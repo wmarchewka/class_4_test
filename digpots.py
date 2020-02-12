@@ -11,3 +11,4 @@ class Digpots(object):
         self.spi = spi.SPI()
         self.config = config.Config()
         self.decoder = decoder.Decoder()
+        self.a = 1

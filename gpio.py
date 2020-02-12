@@ -1,5 +1,17 @@
 import pigpio
+import sys
+
 
 class Gpio(object):
+
     def __init__(self):
-        self.GPIO = pigpio.pi()
+        print("gpio init")
+
+    @classmethod
+    def init_gpio(cls):
+        cls.GPIO = None
+        if sys.platform != 'win32':
+            cls.GPIO = pigpio.pi()
+        print("gpio class init")
+        cls.init = True
+        return cls.GPIO
