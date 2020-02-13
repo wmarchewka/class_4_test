@@ -9,3 +9,4 @@ class Rotary:
         self.logger = logger.Logger()
         self.spi = spi.SPI()
         self.config = config.Config()
+        self.gpio.silly_walk  = 9
