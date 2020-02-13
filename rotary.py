@@ -421,41 +421,28 @@ class Rotary(object):
         self.rotary_actions(pins, delta, Rotary.rotary_num[3], Rotary.DIGITAL_POT_0)
 
     #*****************************************************************************************************
-    #TODO make sure we are pssing data correctly to this when something is missing
+    #TODO make sure we are passing data correctly to this when something is missing
     def rotary_actions(self, pins, delta, rotary_num, chip_select=None, digital_pot=None):
         if rotary_num == 0 or rotary_num == 1:
             direction = self.get_direction(pins, Rotary.rotary_num[rotary_num])
             speed = self.get_speed(delta)
-            self.speed_signal_changed(chip_select, speed, direction)
+            self.speedgen.set_speed_signal(chip_select, speed, direction)
+            channel, data, chip_select = self.codegen.frequency_to_registers(self.speedgen.SPEED_FREQUENCY[self.speedgen.speed_reg],
+                                                          self.speedgen.primary_source_frequency,
+                                                          self.speedgen.freq_shape[self.speedgen.speed_reg], chip_select)
+            self.spi.write(channel, data, chip_select)
 
         if rotary_num == 2 or rotary_num == 3:
             direction = self.get_direction(pins, Rotary.rotary_num[rotary_num])
             speed = self.get_speed(delta)
-            potnumber, coarse_hex, fine_hex = self.digital_pot_value_changed(speed, direction, digital_pot)
+            value = self.digpots.value_changed(speed, direction, digital_pot)
             # self.digitalpots_send_spi(potnumber, coarse_hex, fine_hex)
-
-    # *****************************************************************************************************
-    def speed_signal_changed(self, cs, speed, direction):
-        self.log.debug(
-            'Speed value changed - Received Speed:{}  Direction:{}  CS:{}'.format(speed, direction, cs))
-        self.speedgen.set_speed_signal(cs, speed, direction)
-        channel, data, chip_select = self.codegen.frequency_to_registers(self.speedgen.SPEED_FREQUENCY[self.speedgen.speed_reg],
-                                                      self.speedgen.primary_source_frequency,
-                                                      self.speedgen.freq_shape[self.speedgen.speed_reg], cs)
-        #self.spi.write(2, self.spi_msg, cs)
-        self.spi.write(channel, data, chip_select)
-
-    # *****************************************************************************************************
-    def digital_pot_value_changed(self, speed, direction, potnumber):
-        self.log.debug(
-            'Digital pot value changed - Received Speed:{}  Direction:{}  Pot:{}'.format(speed, direction, potnumber))
-        self.digpots.value_change(speed, direction, potnumber)
-        if digpots.DigPots.gains_locked:
-            value = self.digpots.value_check(digpots.DigPots.PRIMARY_GAIN_POT_NUMBER, digpots.DigPots.value)
-            value = self.digpots.value_check(digpots.DigPots.SECONDARY_GAIN_POT_NUMBER, digpots.DigPots.value)
-        else:
-            self.digpots.value_check(potnumber, value)
-        self.send_spi(potnumber)
+            if digpots.DigPots.gains_locked:
+                value = self.digpots.value_check(digpots.DigPots.PRIMARY_GAIN_POT_NUMBER, digpots.DigPots.value)
+                value = self.digpots.value_check(digpots.DigPots.SECONDARY_GAIN_POT_NUMBER, digpots.DigPots.value)
+            else:
+                self.digpots.value_check(digital_pot, value)
+            self.send_spi(digital_pot)
 
     # *****************************************************************************************************
     def send_spi(self, pot_number):

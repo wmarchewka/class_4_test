@@ -11,8 +11,14 @@ class DigPots(object):
     PRIMARY_GAIN_POT_NUMBER = 0
     SECONDARY_GAIN_POT_NUMBER = 1
     COARSE_MAX_OHMS = 50070
+    FINE_MAX_OHMS = 10070
     COARSE_MAX_BITS = 1023
+    FINE_MAX_BITS = 1023
+    TOTAL_MIN_OHMS = 0
+    TOTAL_MAX_OHMS = COARSE_MAX_OHMS + FINE_MAX_OHMS
     STARTING_RESISTANCE = 180
+    FINE_DIVISOR = FINE_MAX_OHMS / FINE_MAX_BITS
+    COARSE_DIVISOR = COARSE_MAX_OHMS / COARSE_MAX_BITS
     SPEED_SLOW = 0
     SPEED_FAST = 1
     CLOCKWISE = 1
@@ -23,20 +29,14 @@ class DigPots(object):
     SPI_WRITE_COMMAND = [0X00]
     SPI_WIPER_TO_NVRAM_COMMAND = [0b00100000]
     SPI_NVRAM_TO_WIPER_COMMAND = [0b00110000]
-    FINE_MAX_OHMS = 10070
-    FINE_MAX_BITS = 1023
-    TOTAL_MIN_OHMS = 0
     fine_wiper = [0, 0]
     coarse_wiper = [0, 0]
-    fine_divisor = FINE_MAX_OHMS / FINE_MAX_BITS
-    total_max_ohms = COARSE_MAX_OHMS + FINE_MAX_OHMS
-    coarse_divisor = COARSE_MAX_OHMS / COARSE_MAX_BITS
     coarse_wiper_percentage = [0, 0]
     coarse_wiper_resistance = [0, 0]
     coarse_wiper_ohms = [0, 0]
+    fine_wiper_ohms = [0, 0]
     fine_wiper_percentage = [0, 0]
     fine_wiper_resistance = [0, 0]
-    fine_wiper_ohms = [0, 0]
     wiper_total_percentage = [0, 0]
     actual_ohms = [0, 0]
     off = [None, None]
@@ -62,10 +62,12 @@ class DigPots(object):
         self.startup_functions()
         self.log.debug("{} init complete...".format(__name__))
 
+    # *********************************************************************************************************
     def startup_functions(self):
         self.config_file_load()
 
-    def value_change(self, speed, direction, potnumber):
+    # *********************************************************************************************************
+    def value_changed(self, speed, direction, potnumber):
         self.log.debug('CHANGE WIPER:Speed:{}   Direction:{}   Pot_Number:{}'.format(speed, direction, potnumber))
         if speed == DigPots.SPEED_SLOW:
             if direction == DigPots.CLOCKWISE:
@@ -97,12 +99,23 @@ class DigPots(object):
                     DigPots.value[DigPots.SECONDARY_GAIN_POT_NUMBER] = DigPots.value[DigPots.PRIMARY_GAIN_POT_NUMBER]
                 elif not DigPots.gains_locked:
                     DigPots.value[potnumber] = DigPots.value[potnumber] - DigPots.FAST_STEP_AMOUNT
-        if DigPots.gains_locked:
-            self.value_check(DigPots.PRIMARY_GAIN_POT_NUMBER, DigPots.value)
-            self.value_check(DigPots.SECONDARY_GAIN_POT_NUMBER, DigPots.value)
-        else:
-            self.value_check(potnumber, DigPots.value)
+        return DigPots.value[potnumber]
 
+    
+    
+    def check_total_min_ohms(self):
+        pass
+    
+    def check_total_max_ohms(self):
+        pass
+
+    def check_coarse_max_ohms(self):
+        pass
+
+    def check_coarse_min_ohms(self):
+        pass
+
+    # *********************************************************************************************************
     def value_check(self, potnumber, val):
         """Each click of the encoder increases the value by approximately 9.7 ohms.  To figure out what values to send
         to each digital pot, i take the total ohms needed divided by the coarse ohms amount.  The remainder then gets
@@ -115,8 +128,8 @@ class DigPots(object):
         """
 
         DigPots.value[potnumber] = val
-        if DigPots.value[potnumber] > DigPots.total_max_ohms:
-            DigPots.value[potnumber] = DigPots.total_max_ohms
+        if DigPots.value[potnumber] > DigPots.TOTAL_MAX_OHMS:
+            DigPots.value[potnumber] = DigPots.TOTAL_MAX_OHMS
             self.log.debug("POT {} reached MAX".format(potnumber))
         elif DigPots.value[potnumber] < DigPots.TOTAL_MIN_OHMS:
             DigPots.value[potnumber] = DigPots.TOTAL_MIN_OHMS
@@ -129,28 +142,28 @@ class DigPots(object):
             DigPots.off[potnumber] = True
         else:
             if DigPots.value[potnumber] < DigPots.COARSE_MAX_OHMS:
-                DigPots.coarse_wiper[potnumber] = int(DigPots.value[potnumber] / DigPots.coarse_divisor)
+                DigPots.coarse_wiper[potnumber] = int(DigPots.value[potnumber] / DigPots.COARSE_DIVISOR)
                 DigPots.coarse_wiper_ohms[potnumber] = int(
-                    DigPots.coarse_wiper[potnumber] * DigPots.coarse_divisor)
+                    DigPots.coarse_wiper[potnumber] * DigPots.COARSE_DIVISOR)
                 DigPots.fine_wiper_ohms[potnumber] = DigPots.value[potnumber] - DigPots.coarse_wiper_ohms[potnumber]
                 DigPots.fine_wiper[potnumber] = int(
-                    DigPots.fine_wiper_ohms[potnumber] / DigPots.fine_divisor)
-                DigPots.fine_wiper_ohms[potnumber] = DigPots.fine_wiper[potnumber] * DigPots.fine_divisor
+                    DigPots.fine_wiper_ohms[potnumber] / DigPots.FINE_DIVISOR)
+                DigPots.fine_wiper_ohms[potnumber] = DigPots.fine_wiper[potnumber] * DigPots.FINE_DIVISOR
             if DigPots.value[potnumber] > DigPots.COARSE_MAX_OHMS:
                 DigPots.coarse_wiper[potnumber] = min(DigPots.COARSE_MAX_BITS,
-                                                           (int(DigPots.value[potnumber] / DigPots.coarse_divisor)))
+                                                           (int(DigPots.value[potnumber] / DigPots.COARSE_DIVISOR)))
                 DigPots.coarse_wiper_ohms[potnumber] = int(
-                    DigPots.coarse_wiper[potnumber] * DigPots.coarse_divisor)
+                    DigPots.coarse_wiper[potnumber] * DigPots.COARSE_DIVISOR)
                 DigPots.fine_wiper_ohms[potnumber] = DigPots.value[potnumber] - DigPots.coarse_wiper_ohms[potnumber]
                 DigPots.fine_wiper[potnumber] = int(
-                    DigPots.fine_wiper_ohms[potnumber] / DigPots.fine_divisor)
+                    DigPots.fine_wiper_ohms[potnumber] / DigPots.FINE_DIVISOR)
                 DigPots.off[potnumber] = False
         coarse_hex, fine_hex = self.int2hex(DigPots.coarse_wiper, DigPots.fine_wiper)
         #self.digitalpots_send_spi(potnumber, coarse_hex, fine_hex)
         DigPots.actual_ohms[potnumber] = int(
             DigPots.fine_wiper_ohms[potnumber] + DigPots.coarse_wiper_ohms[potnumber])
         DigPots.wiper_total_percentage[potnumber] = DigPots.actual_ohms[
-                                                             potnumber] / DigPots.total_max_ohms
+                                                             potnumber] / DigPots.TOTAL_MAX_OHMS
         self.log.debug(
             "POT {} TOTAL GAIN % {}".format(potnumber, DigPots.wiper_total_percentage[potnumber] * 100))
         self.log.debug(
@@ -162,7 +175,9 @@ class DigPots(object):
                 DigPots.fine_wiper[potnumber],
                 DigPots.coarse_wiper_ohms[potnumber],
                 DigPots.fine_wiper_ohms[potnumber]))
+        return potnumber, coarse_hex, fine_hex
 
+    # *********************************************************************************************************
     def digitalpots_send_spi(self, potnumber, coarse_hex, fine_hex):
         self.log.debug('WIPER WRITE potnumber:' + str(potnumber))
         if potnumber == DigPots.SECONDARY_GAIN_POT_NUMBER:
@@ -178,6 +193,7 @@ class DigPots(object):
             data = DigPots.SPI_WRITE_COMMAND + coarse_hex[2:4]
             self.spi.write(2, data, self.decoder.chip_select_secondary_coarse_gain)
 
+    # *********************************************************************************************************
     # support routine to convert intergers to hex
     def int2hex(self, coarse_wiper, fine_wiper):
         coarse_hex = [(coarse_wiper[0] >> 2), (coarse_wiper[0] & 0b11) << 6,
@@ -187,6 +203,7 @@ class DigPots(object):
         self.log.debug("Coarse HEX {} | Fine HEX {}".format(coarse_hex, fine_hex))
         return coarse_hex, fine_hex
 
+    # *********************************************************************************************************
     def nvram_to_wiper(self):
         # todo make sure this is working
         self.log.debug("COPY NVRAM TO WIPER")
@@ -206,6 +223,7 @@ class DigPots(object):
         self.spi.write(2, spi_msg, self.decoder.chip_select_secondary_fine_gain)
         time.sleep(0.020)
 
+    # *********************************************************************************************************
     # todo make sure this is working
     def wiper_to_nvram(self):
         """this command when sent to the pots will copy wiper contents to the NV ram,
@@ -226,6 +244,7 @@ class DigPots(object):
         self.spi.write(2, spi_msg, self.decoder.chip_select_secondary_fine_gain)
         time.sleep(0.020)
 
+    #*********************************************************************************************************
     def config_file_load(self):
         DigPots.coarse_wiper_increment = self.config.digital_pot_coarse_wiper_increment
         DigPots.coarse_wiper_decrement = self.config.digital_pot_coarse_wiper_decrement

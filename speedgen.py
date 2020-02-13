@@ -48,13 +48,13 @@ class Speedgen(object):
         # self.set_speed_signal()
 
     def set_speed_signal(self, cs: int, speed: int, direction: int) -> int:
-        """depending on speed and direction, speed will be incremeneted or
+        """depending on speed and direction, speed will be incremented or
         decremeneted
         :rtype: int
         :param cs:
         :param speed:
         :param direction:
-        :return: actual speed
+        :return: speed of one encoder click
         """
         speed_text = ""
         direction_text = ""
