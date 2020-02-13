@@ -1,4 +1,3 @@
-import gpio
 import logger
 import config
 import logging
@@ -6,7 +5,7 @@ import decoder
 import codegen
 
 
-class Speedgenerator(object):
+class Speedgen(object):
     PRIMARY_SOURCE_FREQUENCY = None
     SECONDARY_SOURCE_FREQUENCY = None
     PRIMARY_FREQ_GEN_CONSTANT = None  # 268435456.00  # 2^28
@@ -34,7 +33,6 @@ class Speedgenerator(object):
 
     def __init__(self,):
         self.logger = logger.Logger()
-        self.gpio = gpio.Gpio()
         self.config = config.Config()
         self.decoder = decoder.Decoder()
         self.coderategenerator = codegen.Codegen()
@@ -60,17 +58,17 @@ class Speedgenerator(object):
         """
         speed_text = ""
         direction_text = ""
-        if cs == Speedgenerator.SPEED_0_CS:
+        if cs == Speedgen.SPEED_0_CS:
             self.speed_reg = 0
-        if cs == Speedgenerator.SPEED_1_CS:
+        if cs == Speedgen.SPEED_1_CS:
             self.speed_reg = 1
-        if speed == Speedgenerator.SPEED_SLOW:
+        if speed == Speedgen.SPEED_SLOW:
             speed_text = "SLOW"
-        if speed == Speedgenerator.SPEED_FAST:
+        if speed == Speedgen.SPEED_FAST:
             speed_text = "FAST"
-        if direction == Speedgenerator.CLOCKWISE:
+        if direction == Speedgen.CLOCKWISE:
             direction_text = "CLOCKWISE"
-        if direction == Speedgenerator.ANTI_CLOCKWISE:
+        if direction == Speedgen.ANTI_CLOCKWISE:
             direction_text = "ANTI CLOCKWISE"
         self.log.debug(
             'SIGGEN Setting speed with CS:{}  with speed of:{}  direction:{} '.format(cs, speed_text,
@@ -127,10 +125,10 @@ class Speedgenerator(object):
         self.freq_shape = [self.FREQ_SHAPE_SINE, self.FREQ_SHAPE_SINE]
         self.SPEED_0_CS = self.config.SPEED_0_CS  # 6  # SPEED SIMULATION TACH 1
         self.SPEED_1_CS = self.config.SPEED_1_CS  # 7  # SPEED SIMULATION TACH 2
-        Speedgenerator.primary_source_frequency = self.primary_source_frequency
-        Speedgenerator.secondary_source_frequency = self.secondary_source_frequency
-        Speedgenerator.primary_freq_gen_constant = self.primary_freq_gen_constant  # 26
-        Speedgenerator.secondary_freq_gen_constant = self.secondary_freq_gen_constant
-        Speedgenerator.speed_generator_set_speed_spi_header = self.speed_generator_set_speed_spi_header
-        Speedgenerator.SPEED_0_CS = self.SPEED_0_CS  # 6  # SPEED SIMULATION TACH 1
-        Speedgenerator.SPEED_1_CS = self.SPEED_1_CS  # 7  # SPEED SIMULATION TACH 2
+        Speedgen.primary_source_frequency = self.primary_source_frequency
+        Speedgen.secondary_source_frequency = self.secondary_source_frequency
+        Speedgen.primary_freq_gen_constant = self.primary_freq_gen_constant  # 26
+        Speedgen.secondary_freq_gen_constant = self.secondary_freq_gen_constant
+        Speedgen.speed_generator_set_speed_spi_header = self.speed_generator_set_speed_spi_header
+        Speedgen.SPEED_0_CS = self.SPEED_0_CS  # 6  # SPEED SIMULATION TACH 1
+        Speedgen.SPEED_1_CS = self.SPEED_1_CS  # 7  # SPEED SIMULATION TACH 2

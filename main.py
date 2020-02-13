@@ -16,7 +16,7 @@ if __name__ == '__main__':
     g = gpio.Gpio()
     w = gui.gui.Mainwindow()
     r = rotary.Rotary()
-    #c = commander.Commander()
+    c = commander.Commander()
 
     # the timer calls itself every 100ms to allow to break in GUI
     timer = QTimer()

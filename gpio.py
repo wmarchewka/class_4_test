@@ -20,7 +20,7 @@ class Gpio(object):
         tmp_logger.log = tmp_logger
         tmp_logger.log = logging.getLogger(__name__)
         tmp_logger.log.debug("Creating GPIO...")
-        #return cls.__gpio
+        return cls.__gpio
 
     @property
     def class_property(self):
@@ -48,13 +48,11 @@ class Gpio(object):
         self.log = self.logger.log
         self.log = logging.getLogger(__name__)
         if not Gpio._init:
-            Gpio.init_gpio()
+            __gpio = Gpio.init_gpio()
             Gpio._init = True
-            self.GPIO = pigpio.pi()
-
             self.log.debug("FIRST SETUP OF GPIO")
-        self.GPIO = self.__gpio
-        self.log.debug(self.GPIO)
+        self.gpio  = Gpio.__gpio
+        self.log.debug(self.gpio)
         self.startup_proccesses()
         self.log.debug("{} init complete...".format(__name__))
 
@@ -107,7 +105,7 @@ class Gpio(object):
 
     # ****************************************************************************************************
     def check_connection(self):
-        if not self.GPIO.connected:
+        if not self.gpio.connected:
             self.log.debug("PIGPIO not connected, Checking Daemon....")
             self.pigpiod_daemon_status()
 
@@ -118,9 +116,9 @@ class Gpio(object):
     def get_io_status(self):
         try:
             self.log.debug('Getting IO status...')
-            self.log.debug("gpio STATUS: Pins(0-31) {}  Pins(32-54)  {}   ".format(bin(self.GPIO.read_bank_1()),
+            self.log.debug("gpio STATUS: Pins(0-31) {}  Pins(32-54)  {}   ".format(bin(self.gpio.read_bank_1()),
                                                                                    bin(
-                                                                                       self.GPIO.read_bank_2())))
+                                                                                       self.gpio.read_bank_2())))
         except Exception:
             self.log.exception("EXCEPTION in get_status", exc_info=True)
 
@@ -138,7 +136,7 @@ class Gpio(object):
     def pigpiod_daemon_status(self):
         try:
             self.log.info("Getting PIGPIO status...")
-            del self.GPIO
+            del self.gpio
             self.log.debug("Deleting PIGPIO instance...")
             # TODO check into why this is taking a long time to run at times
             self.my_cmd = subprocess.call(["sudo", "systemctl", "stop", "pigpiod"])
@@ -157,9 +155,7 @@ class Gpio(object):
                 self.log.info("Error in startup of PIGPIO DAEMON")
                 raise NameError('Error in startup of PIGPIO DAEMON')
             time.sleep(0.1)
-            self.log.debug("Creating new PIGPIO instance...")
-            self.GPIO = pigpio.pi()
-            gpio_version = self.GPIO.get_pigpio_version()
+            gpio_version = self.gpio.get_pigpio_version()
             self.log.info("Using PIGPIO version: {}".format(gpio_version))
         except Exception:
             self.log.exception("Exception in pigiod_daemon_status", exc_info=True)

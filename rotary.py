@@ -8,8 +8,8 @@ import decoder
 import logger
 import speedgen
 import pollperm
-import codegen
 import spi
+import codegen
 
 class Rotary(object):
     SPEED_FAST = 1
@@ -36,18 +36,15 @@ class Rotary(object):
         self.init = True
         self.config = config.Config()
         self.spi = spi.SPI()
-        self.speedgenerator = speedgen.Speedgenerator()
-        self.pollingpermission = pollperm.Pollperm()
-        self.digitalpots = digpots.DigPots()
-        self.coderategenerator = codegen.Codegen()
+        self.gpio = gpio.Gpio().gpio
+        self.speedgen = speedgen.Speedgen()
+        self.pollperm = pollperm.Pollperm()
+        self.digpots = digpots.DigPots()
         self.decoder = decoder.Decoder()
-        self.GPIO = gpio.Gpio().GPIO
-        #self.GPIO = self.gpio.GPIO
-        print(self.GPIO.connected)
+        self.codegen = codegen.Codegen()
         self.logger = logger.Logger()
         self.log = self.logger.log
         self.log = logging.getLogger(__name__)
-        self.log.debug(self.__dict__)
         self.rotary_interrupts(True)
         self.enable_callbacks()
         self.log.debug("{} init complete...".format(__name__))
@@ -57,33 +54,32 @@ class Rotary(object):
         self.log.debug('ROTARY INTERRUPTS ENABLING...')
         try:
             # switch 3 ENCODER SPEED 1
-            print(self.GPIO.connected)
-            self.GPIO.set_mode(self.config.rotary_0_pins[0], pigpio.INPUT)  # BCM4
-            self.GPIO.set_pull_up_down(self.config.rotary_0_pins[0], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_0_pins[0], pigpio.INPUT)  # BCM4
+            self.gpio.set_pull_up_down(self.config.rotary_0_pins[0], pigpio.PUD_OFF)
             # switch 3 ENCODER SPEED 1
-            self.GPIO.set_mode(self.config.rotary_0_pins[1], pigpio.INPUT)  # BCM14
-            self.GPIO.set_pull_up_down(self.config.rotary_0_pins[1], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_0_pins[1], pigpio.INPUT)  # BCM14
+            self.gpio.set_pull_up_down(self.config.rotary_0_pins[1], pigpio.PUD_OFF)
 
             # switch 4 ENCODER SPEED 2
-            self.GPIO.set_mode(self.config.rotary_1_pins[0], pigpio.INPUT)  # BMC15
-            self.GPIO.set_pull_up_down(self.config.rotary_1_pins[0], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_1_pins[0], pigpio.INPUT)  # BMC15
+            self.gpio.set_pull_up_down(self.config.rotary_1_pins[0], pigpio.PUD_OFF)
             # switch 4 ENCODER SPEED 2
-            self.GPIO.set_mode(self.config.rotary_1_pins[1], pigpio.INPUT)  # BMC22
-            self.GPIO.set_pull_up_down(self.config.rotary_1_pins[1], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_1_pins[1], pigpio.INPUT)  # BMC22
+            self.gpio.set_pull_up_down(self.config.rotary_1_pins[1], pigpio.PUD_OFF)
 
             # switch 5 PRIMARY GAIN
-            self.GPIO.set_mode(self.config.rotary_2_pins[0], pigpio.INPUT)  # BCM23
-            self.GPIO.set_pull_up_down(self.config.rotary_2_pins[0], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_2_pins[0], pigpio.INPUT)  # BCM23
+            self.gpio.set_pull_up_down(self.config.rotary_2_pins[0], pigpio.PUD_OFF)
             # switch 5 PRIMARY GAIN
-            self.GPIO.set_mode(self.config.rotary_2_pins[1], pigpio.INPUT)  # BCM24
-            self.GPIO.set_pull_up_down(self.config.rotary_2_pins[1], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_2_pins[1], pigpio.INPUT)  # BCM24
+            self.gpio.set_pull_up_down(self.config.rotary_2_pins[1], pigpio.PUD_OFF)
 
             # switch 6 SECONDARY GAIN
-            self.GPIO.set_mode(self.config.rotary_3_pins[0], pigpio.INPUT)  # BCM25
-            self.GPIO.set_pull_up_down(self.config.rotary_3_pins[0], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_3_pins[0], pigpio.INPUT)  # BCM25
+            self.gpio.set_pull_up_down(self.config.rotary_3_pins[0], pigpio.PUD_OFF)
             # switch 6 SECONDARY GAIN
-            self.GPIO.set_mode(self.config.rotary_3_pins[1], pigpio.INPUT)  # BCM12
-            self.GPIO.set_pull_up_down(self.config.rotary_3_pins[1], pigpio.PUD_OFF)
+            self.gpio.set_mode(self.config.rotary_3_pins[1], pigpio.INPUT)  # BCM12
+            self.gpio.set_pull_up_down(self.config.rotary_3_pins[1], pigpio.PUD_OFF)
         except Exception as err:
             self.log.exception('Error in gpio setup {}'.format(err.args))
 
@@ -94,43 +90,43 @@ class Rotary(object):
         """
         try:
             # SW3-B ENCODER SPEED 1
-            self.rotary_0_0_callback = self.GPIO.callback(self.config.rotary_0_pins[0], pigpio.EITHER_EDGE,
+            self.rotary_0_0_callback = self.gpio.callback(self.config.rotary_0_pins[0], pigpio.EITHER_EDGE,
                                                           self.rotary_0_pin_0)
-            self.rotary_0_1_callback = self.GPIO.callback(self.config.rotary_0_pins[1], pigpio.EITHER_EDGE,
+            self.rotary_0_1_callback = self.gpio.callback(self.config.rotary_0_pins[1], pigpio.EITHER_EDGE,
                                                           self.rotary_0_pin_1)
-            self.GPIO.set_glitch_filter(self.config.rotary_0_pins[0],
+            self.gpio.set_glitch_filter(self.config.rotary_0_pins[0],
                                         self.config.rotary_0_pin_0_debounce)  # microseconds
-            self.GPIO.set_glitch_filter(self.config.rotary_0_pins[1],
+            self.gpio.set_glitch_filter(self.config.rotary_0_pins[1],
                                         self.config.rotary_0_pin_1_debounce)  # microseconds
 
             # SW4-B ENCODER SPEED 2
-            self.rotary_1_0_callback = self.GPIO.callback(self.config.rotary_1_pins[0], pigpio.EITHER_EDGE,
+            self.rotary_1_0_callback = self.gpio.callback(self.config.rotary_1_pins[0], pigpio.EITHER_EDGE,
                                                           self.rotary_1_pin_0)
-            self.rotary_1_1_callback = self.GPIO.callback(self.config.rotary_1_pins[1], pigpio.EITHER_EDGE,
+            self.rotary_1_1_callback = self.gpio.callback(self.config.rotary_1_pins[1], pigpio.EITHER_EDGE,
                                                           self.rotary_1_pin_1)
-            self.GPIO.set_glitch_filter(self.config.rotary_1_pins[0],
+            self.gpio.set_glitch_filter(self.config.rotary_1_pins[0],
                                         self.config.rotary_1_pin_0_debounce)  # microseconds
-            self.GPIO.set_glitch_filter(self.config.rotary_1_pins[1],
+            self.gpio.set_glitch_filter(self.config.rotary_1_pins[1],
                                         self.config.rotary_1_pin_1_debounce)  # microseconds
 
             # SW5-B PRIMARY CARRIER GAIN
-            self.rotary_2_0_callback = self.GPIO.callback(self.config.rotary_2_pins[0], pigpio.EITHER_EDGE,
+            self.rotary_2_0_callback = self.gpio.callback(self.config.rotary_2_pins[0], pigpio.EITHER_EDGE,
                                                           self.rotary_2_pin_0)
-            self.rotary_2_1_callback = self.GPIO.callback(self.config.rotary_2_pins[1], pigpio.EITHER_EDGE,
+            self.rotary_2_1_callback = self.gpio.callback(self.config.rotary_2_pins[1], pigpio.EITHER_EDGE,
                                                           self.rotary_2_pin_1)
-            self.GPIO.set_glitch_filter(self.config.rotary_2_pins[0],
+            self.gpio.set_glitch_filter(self.config.rotary_2_pins[0],
                                         self.config.rotary_2_pin_0_debounce)  # microseconds
-            self.GPIO.set_glitch_filter(self.config.rotary_2_pins[1],
+            self.gpio.set_glitch_filter(self.config.rotary_2_pins[1],
                                         self.config.rotary_2_pin_1_debounce)  # microseconds
 
             # SW6-B SECONDARY CARRIER GAIN
-            self.rotary_3_0_callback = self.GPIO.callback(self.config.rotary_3_pins[0], pigpio.EITHER_EDGE,
+            self.rotary_3_0_callback = self.gpio.callback(self.config.rotary_3_pins[0], pigpio.EITHER_EDGE,
                                                           self.rotary_3_pin_0)
-            self.rotary_3_1_callback = self.GPIO.callback(self.config.rotary_3_pins[1], pigpio.EITHER_EDGE,
+            self.rotary_3_1_callback = self.gpio.callback(self.config.rotary_3_pins[1], pigpio.EITHER_EDGE,
                                                           self.rotary_3_pin_1)
-            self.GPIO.set_glitch_filter(self.config.rotary_3_pins[0],
+            self.gpio.set_glitch_filter(self.config.rotary_3_pins[0],
                                         self.config.rotary_3_pin_0_debounce)  # microseconds
-            self.GPIO.set_glitch_filter(self.config.rotary_3_pins[1],
+            self.gpio.set_glitch_filter(self.config.rotary_3_pins[1],
                                         self.config.rotary_3_pin_1_debounce)  # microseconds
 
             return True
@@ -250,7 +246,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("SPEED ENCODER 1 Rotary 0 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         self.log.debug("Interrupt Time : {}".format(interrupt_time))
         delta = interrupt_time - Rotary.last_interrupt_time_rotary0_pin0
@@ -259,14 +255,14 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('self.simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_0_pins[0]), self.GPIO.read(self.config.rotary_0_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_0_pins[0]), self.gpio.read(self.config.rotary_0_pins[1])]
             self.log.debug("Pin read time {}".format(time.time()))
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_0_pins[0], pins[0],
                                                                self.config.rotary_0_pins[1],
                                                                pins[1]))
         Rotary.last_interrupt_time_rotary0_pin0 = interrupt_time
-        self.rotary_actions(pins, delta, Rotary.rotary_num[0], self.speedgenerator.SPEED_0_CS)
+        self.rotary_actions(pins, delta, Rotary.rotary_num[0], self.speedgen.SPEED_0_CS)
 
     #*****************************************************************************************************
     # ENCODER SPEED 1				BCM14
@@ -274,7 +270,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("SPEED ENCODER 1 Rotary 1 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         self.log.debug("Interrupt Time : {}".format(interrupt_time))
         delta = interrupt_time - Rotary.last_interrupt_time_rotary0_pin1
@@ -283,14 +279,14 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated Interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_0_pins[0]), self.GPIO.read(self.config.rotary_0_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_0_pins[0]), self.gpio.read(self.config.rotary_0_pins[1])]
             self.log.debug("Pin read time {}".format(time.time()))
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_0_pins[0], pins[0],
                                                                self.config.rotary_0_pins[1],
                                                                pins[1]))
         Rotary.last_interrupt_time_rotary0_pin1 = interrupt_time
-        self.rotary_actions(pins, delta, Rotary.rotary_num[0], self.speedgenerator.SPEED_0_CS)
+        self.rotary_actions(pins, delta, Rotary.rotary_num[0], self.speedgen.SPEED_0_CS)
 
     #*****************************************************************************************************
     # ENCODER SPEED 2				BMC15
@@ -298,7 +294,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("SPEED ENCODER 2 Rotary 1 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         delta = interrupt_time - Rotary.last_interrupt_time_rotary1_pin0
         self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time_rotary1_pin0))
@@ -306,13 +302,13 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_1_pins[0]), self.GPIO.read(self.config.rotary_1_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_1_pins[0]), self.gpio.read(self.config.rotary_1_pins[1])]
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_1_pins[0], pins[0],
                                                                self.config.rotary_1_pins[1],
                                                                pins[1]))
         Rotary.last_interrupt_time_rotary1_pin0 = interrupt_time
-        self.rotary_actions(pins, delta, Rotary.rotary_num[1], self.speedgenerator.SPEED_1_CS)
+        self.rotary_actions(pins, delta, Rotary.rotary_num[1], self.speedgen.SPEED_1_CS)
 
     # *****************************************************************************************************
     # ENCODER SPEED 2				BMC22
@@ -320,7 +316,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("SPEED ENCODER 2 Rotary 1 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         delta = interrupt_time - Rotary.last_interrupt_time_rotary1_pin1
         self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time_rotary1_pin1))
@@ -328,13 +324,13 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_1_pins[0]), self.GPIO.read(self.config.rotary_1_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_1_pins[0]), self.gpio.read(self.config.rotary_1_pins[1])]
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_1_pins[0], pins[0],
                                                                self.config.rotary_1_pins[1],
                                                                pins[1]))
         Rotary.last_interrupt_time_rotary1_pin1 = interrupt_time
-        self.rotary_actions(pins, delta, Rotary.rotary_num[1], self.speedgenerator.SPEED_1_CS)
+        self.rotary_actions(pins, delta, Rotary.rotary_num[1], self.speedgen.SPEED_1_CS)
 
     # *****************************************************************************************************
     # ENCODER PRIMARY GAIN			BMC23
@@ -342,7 +338,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("PRIMARY GAIN Rotary 2 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         delta = interrupt_time - Rotary.last_interrupt_time_rotary2_pin0
         self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time_rotary2_pin0))
@@ -350,7 +346,7 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_2_pins[0]), self.GPIO.read(self.config.rotary_2_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_2_pins[0]), self.gpio.read(self.config.rotary_2_pins[1])]
         self.log.debug(
             "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_2_pins[0], pins[0],
                                                            self.config.rotary_2_pins[1],
@@ -364,7 +360,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("PRIMARY GAIN Rotary 2 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         delta = interrupt_time - Rotary.last_interrupt_time_rotary2_pin1
         self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time_rotary2_pin1))
@@ -372,7 +368,7 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_2_pins[0]), self.GPIO.read(self.config.rotary_2_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_2_pins[0]), self.gpio.read(self.config.rotary_2_pins[1])]
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_2_pins[0], pins[0],
                                                                self.config.rotary_2_pins[1],
@@ -386,7 +382,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("PRIMARY GAIN Rotary 3 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         delta = interrupt_time - Rotary.last_interrupt_time_rotary3_pin0
         self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time_rotary3_pin0))
@@ -394,7 +390,7 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_3_pins[0]), self.GPIO.read(self.config.rotary_3_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_3_pins[0]), self.gpio.read(self.config.rotary_3_pins[1])]
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_3_pins[0], pins[0],
                                                                self.config.rotary_3_pins[1],
@@ -408,7 +404,7 @@ class Rotary(object):
         self.rotary_interrupts(False)
         self.log.debug("#######################################################")
         self.log.debug("PRIMARY GAIN Rotary 3 BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        self.pollingpermission.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohitied = (True, __name__)
         interrupt_time = time.time()
         delta = interrupt_time - Rotary.last_interrupt_time_rotary3_pin1
         self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time_rotary3_pin1))
@@ -416,7 +412,7 @@ class Rotary(object):
             pins = sim_pins
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         else:
-            pins = [self.GPIO.read(self.config.rotary_3_pins[0]), self.GPIO.read(self.config.rotary_3_pins[1])]
+            pins = [self.gpio.read(self.config.rotary_3_pins[0]), self.gpio.read(self.config.rotary_3_pins[1])]
             self.log.debug(
                 "PIN {}: Value:{}    PIN {}:  Value:{}".format(self.config.rotary_3_pins[0], pins[0],
                                                                self.config.rotary_3_pins[1],
@@ -435,29 +431,30 @@ class Rotary(object):
         if rotary_num == 2 or rotary_num == 3:
             direction = self.get_direction(pins, Rotary.rotary_num[rotary_num])
             speed = self.get_speed(delta)
-            self.digital_pot_value_changed(speed, direction, digital_pot)
+            potnumber, coarse_hex, fine_hex = self.digital_pot_value_changed(speed, direction, digital_pot)
+            # self.digitalpots_send_spi(potnumber, coarse_hex, fine_hex)
 
     # *****************************************************************************************************
     def speed_signal_changed(self, cs, speed, direction):
         self.log.debug(
             'Speed value changed - Received Speed:{}  Direction:{}  CS:{}'.format(speed, direction, cs))
-        self.speedgenerator.set_speed_signal(cs, speed, direction)
-        ret = self.coderategenerator.frequency_to_registers(self.speedgenerator.SPEED_FREQUENCY[self.speedgenerator.speed_reg],
-                                                      self.speedgenerator.primary_source_frequency,
-                                                      self.speedgenerator.freq_shape[self.speedgenerator.speed_reg], cs)
+        self.speedgen.set_speed_signal(cs, speed, direction)
+        channel, data, chip_select = self.codegen.frequency_to_registers(self.speedgen.SPEED_FREQUENCY[self.speedgen.speed_reg],
+                                                      self.speedgen.primary_source_frequency,
+                                                      self.speedgen.freq_shape[self.speedgen.speed_reg], cs)
         #self.spi.write(2, self.spi_msg, cs)
-        self.spi.write(ret)
+        self.spi.write(channel, data, chip_select)
 
     # *****************************************************************************************************
     def digital_pot_value_changed(self, speed, direction, potnumber):
         self.log.debug(
             'Digital pot value changed - Received Speed:{}  Direction:{}  Pot:{}'.format(speed, direction, potnumber))
-        self.digitalpots.value_change(speed, direction, potnumber)
-        if DigitalPots.gains_locked:
-            self.digitalpots.value_check(DigitalPots.PRIMARY_GAIN_POT_NUMBER, DigitalPots.value)
-            self.digitalpots.value_check(DigitalPots.SECONDARY_GAIN_POT_NUMBER, DigitalPots.value)
+        self.digpots.value_change(speed, direction, potnumber)
+        if digpots.DigPots.gains_locked:
+            value = self.digpots.value_check(digpots.DigPots.PRIMARY_GAIN_POT_NUMBER, digpots.DigPots.value)
+            value = self.digpots.value_check(digpots.DigPots.SECONDARY_GAIN_POT_NUMBER, digpots.DigPots.value)
         else:
-            self.digitalpots.value_check(speed, direction, potnumber)
+            self.digpots.value_check(potnumber, value)
         self.send_spi(potnumber)
 
     # *****************************************************************************************************
@@ -468,24 +465,24 @@ class Rotary(object):
         """
         coarse_hex, fine_hex = self.int2hex()
         self.log.debug('WIPER WRITE pot_number:' + str(pot_number))
-        if pot_number == DigitalPots.PRIMARY_GAIN_POT_NUMBER:
-            data = DigitalPots.SPI_WRITE_COMMAND + fine_hex[0:2]
-            self.spi.write(2, data, Decoder.chip_select_primary_fine_gain)
-            data = DigitalPots.SPI_WRITE_COMMAND + coarse_hex[0:2]
-            self.spi.write(2, data, Decoder.chip_select_primary_coarse_gain)
-        elif pot_number == DigitalPots.SECONDARY_GAIN_POT_NUMBER:
-            data = DigitalPots.SPI_WRITE_COMMAND + fine_hex[2:4]
-            self.spi.write(2, data, Decoder.chip_select_secondary_fine_gain)
-            data = DigitalPots.SPI_WRITE_COMMAND + coarse_hex[2:4]
-            self.spi.write(2, data, Decoder.chip_select_secondary_coarse_gain)
+        if pot_number == digpots.DigPots.PRIMARY_GAIN_POT_NUMBER:
+            data = digpots.DigPots.SPI_WRITE_COMMAND + fine_hex[0:2]
+            self.spi.write(2, data, decoder.Decoder.chip_select_primary_fine_gain)
+            data = digpots.DigPots.SPI_WRITE_COMMAND + coarse_hex[0:2]
+            self.spi.write(2, data, decoder.Decoder.chip_select_primary_coarse_gain)
+        elif pot_number == digpots.DigPots.SECONDARY_GAIN_POT_NUMBER:
+            data = digpots.DigPots.SPI_WRITE_COMMAND + fine_hex[2:4]
+            self.spi.write(2, data, decoder.Decoder.chip_select_secondary_fine_gain)
+            data = digpots.DigPots.SPI_WRITE_COMMAND + coarse_hex[2:4]
+            self.spi.write(2, data, decoder.Decoder.chip_select_secondary_coarse_gain)
 
     #*****************************************************************************************************
     # support routine to convert intergers to hex
     def int2hex(self):
-        coarse_hex = [(DigitalPots.coarse_wiper[0] >> 2), (DigitalPots.coarse_wiper[0] & 0b11) << 6,
-                      (DigitalPots.coarse_wiper[1] >> 2), (DigitalPots.coarse_wiper[1] & 0b11) << 6]
-        fine_hex = [(DigitalPots.fine_wiper[0] >> 2), (DigitalPots.fine_wiper[0] & 0b11) << 6,
-                    (DigitalPots.fine_wiper[1] >> 2), (DigitalPots.fine_wiper[1] & 0b11) << 6]
+        coarse_hex = [(digpots.DigPots.coarse_wiper[0] >> 2), (digpots.DigPots.coarse_wiper[0] & 0b11) << 6,
+                      (digpots.DigPots.coarse_wiper[1] >> 2), (digpots.DigPots.coarse_wiper[1] & 0b11) << 6]
+        fine_hex = [(digpots.DigPots.fine_wiper[0] >> 2), (digpots.DigPots.fine_wiper[0] & 0b11) << 6,
+                    (digpots.DigPots.fine_wiper[1] >> 2), (digpots.DigPots.fine_wiper[1] & 0b11) << 6]
         self.log.debug("Coarse HEX {} | Fine HEX {}".format(coarse_hex, fine_hex))
         return coarse_hex, fine_hex
 #

@@ -146,7 +146,7 @@ class DigPots(object):
                     DigPots.fine_wiper_ohms[potnumber] / DigPots.fine_divisor)
                 DigPots.off[potnumber] = False
         coarse_hex, fine_hex = self.int2hex(DigPots.coarse_wiper, DigPots.fine_wiper)
-        self.digitalpots_send_spi(potnumber, coarse_hex, fine_hex)
+        #self.digitalpots_send_spi(potnumber, coarse_hex, fine_hex)
         DigPots.actual_ohms[potnumber] = int(
             DigPots.fine_wiper_ohms[potnumber] + DigPots.coarse_wiper_ohms[potnumber])
         DigPots.wiper_total_percentage[potnumber] = DigPots.actual_ohms[
