@@ -2,11 +2,18 @@ import logging
 import logger
 
 class Signalslots(object):
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger
         self.log = logging.getLogger(__name__)
+        self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
+
+    def startup_processes(self):
+        pass
 
     def signal_and_slots(self, window, gui):
         window.buttonGroup.buttonClicked['int'].connect(gui.gpio_button_clicked)  # gpio buttons catch press

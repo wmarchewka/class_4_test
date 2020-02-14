@@ -5,6 +5,9 @@ import pigpio
 import config
 
 class Decoder(object):
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     chip_select_list = list(range(11))
     chip_select_primary_freq = 0
     chip_select_primary_coarse_gain = 1

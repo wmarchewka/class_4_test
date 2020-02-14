@@ -12,6 +12,9 @@ import spi
 import codegen
 
 class Rotary(object):
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     SPEED_FAST = 1
     SPEED_SLOW = 0
     CLOCKWISE = 1

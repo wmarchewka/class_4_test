@@ -10,6 +10,9 @@ import pollperm
 
 
 class SPI(object):
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     def __init__(self):
 
         self.logger = logger.Logger()

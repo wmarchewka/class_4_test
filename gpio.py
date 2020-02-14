@@ -7,6 +7,8 @@ import config
 
 class Gpio(object):
 
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     __gpio = None
     __mode_input = 0
     __mode_output = 1

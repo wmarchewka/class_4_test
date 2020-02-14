@@ -1,5 +1,4 @@
 import faulthandler
-
 faulthandler.enable()
 import datetime
 import logging
@@ -12,6 +11,13 @@ import threading
 import psutil
 import numpy as np
 from numpy import sin, pi
+from PySide2.QtUiTools import QUiLoader
+from PySide2 import QtCore
+from PySide2.QtCore import QTimer, QFile
+from PySide2.QtGui import QFontDatabase
+from PySide2.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
+#my libraries
+import basiclogger
 import gui.signalsslots
 import config
 import gpio
@@ -19,16 +25,14 @@ import securitylevel
 import digpots
 import logger
 import support.support
+import simulation
 #from communication.communication import ThreadedTCPRequestHandler, ThreadedTCPServer
+from gui import QTResources  # do not remove this !!!
 
-from PySide2.QtUiTools import QUiLoader
-from PySide2 import QtWidgets, QtCore
-from PySide2.QtCore import QFile, QObject
-from PySide2.QtGui import QFontDatabase
-from PySide2.QtWidgets import QTableWidgetItem
+class Mainwindow(QMainWindow):
 
+    logging.debug("Initiating {} class...".format(__qualname__))
 
-class Mainwindow(QObject):
     display_brightness = None
     guiname = None
     poll_timer_interval = None
@@ -39,7 +43,7 @@ class Mainwindow(QObject):
     screen_brightness_min = None
 
     def __init__(self):
-        super(Mainwindow, self).__init__()
+        super().__init__()
         self.window = None
         self.config = config.Config()
         self.digitalpots = digpots.DigPots()
@@ -47,8 +51,9 @@ class Mainwindow(QObject):
         self.support = support.support.Support()
         self.gpio = gpio.Gpio()
         self.logger = logger.Logger()
+        self.securitylevel = securitylevel.SecurityLevel()
+        self.simulation = simulation.Simulation(self)
         #self.pollvalues = pollvalues
-
         self.log = self.logger.log
         self.log = logging.getLogger(__name__)
         self.startup_processes()
@@ -58,10 +63,9 @@ class Mainwindow(QObject):
         self.config_file_load()
         self.loadscreen()
         self.screen_fullscreen()
-        self.securitylevel = securitylevel.SecurityLevel()
         self.signalslots.signal_and_slots(self.window, self)
         self.exit_signalling()
-        self.log.info('Waking screen...')
+        self.log.debug('Waking screen...')
         subprocess.call('xset dpms force on', shell=True)  # WAKE SCREEN
         self.securitylevel.index_tab_pages(self.window)
         self.securitylevel.set_security_level("technician", self.window)  # SET SECURITY LEVEL
@@ -69,8 +73,9 @@ class Mainwindow(QObject):
         # self.eeprom_read_data()
         # self.ip_address_query()
         # self.set_frequencies(self)  # send frequency values to frequency generators
-        # self.timers()
+        #self.timers()
 
+    # ******************************************************************************
     def config_file_load(self):
         Mainwindow.display_brightness = self.config.display_brightness
         Mainwindow.guiname = self.config.guiname
@@ -81,9 +86,11 @@ class Mainwindow(QObject):
         Mainwindow.screen_brightness_max = self.config.screen_brightness_max
         Mainwindow.screen_brightness_min = self.config.screen_brightness_min
 
+    # ******************************************************************************
     def exit_signalling(self):
         signal.signal(signal.SIGINT, self.exit_application)
         signal.signal(signal.SIGTERM, self.exit_application)
+        self.log.debug("Setting up exit signaling...")
 
     # ******************************************************************************
     def loadscreen(self):
@@ -102,14 +109,14 @@ class Mainwindow(QObject):
     def screen_fullscreen(self):
         if self.support.ostype == 'rpi':
             self.window.showFullScreen()
-
+            self.log.debug("Window set to fullscreen...")
    # ******************************************************************************
     def timers(self):
         # local timer updates GUI and others
-        self.poll_timer = QtCore.QTimer()
-        self.poll_timer.setObjectName("POLL TIMER")
-        self.poll_timer.timeout.connect(self.pollvalues.poll_read_values)
-        self.pollvalues.poll_changedValue.connect(self.poll_callback_change_value)
+        # self.poll_timer = QtCore.QTimer()
+        # self.poll_timer.setObjectName("POLL TIMER")
+        # self.poll_timer.timeout.connect(self.pollvalues.poll_read_values)
+        # self.pollvalues.poll_changedValue.connect(self.poll_callback_change_value)
         # self.poll_timer.start(self.sense_timer_interval)
 
         # ******************************************************************************
@@ -121,16 +128,16 @@ class Mainwindow(QObject):
 
         # ******************************************************************************
         # sense update timer sets rate of update from SENSE A/D converter
-        self.sense_timer = QtCore.QTimer()
-        self.sense_timer.timeout.connect(self.pollvalues.sense_read_values)
-        self.pollvalues.sense_changedValue.connect(self.sense_callback_change_value)
+        # self.sense_timer = QtCore.QTimer()
+        # self.sense_timer.timeout.connect(self.pollvalues.sense_read_values)
+        # self.pollvalues.sense_changedValue.connect(self.sense_callback_change_value)
         # self.sense_timer.start(self.sense_timer_interval)
 
         # ******************************************************************************
         # switch update timer sets rate to POLL for switch changes
-        self.switch_timer = QtCore.QTimer()
-        self.pollvalues.switch_changedValue.connect(self.switches_callback_change_value)
-        self.switch_timer.timeout.connect(self.switches_run)
+        # self.switch_timer = QtCore.QTimer()
+        # self.pollvalues.switch_changedValue.connect(self.switches_callback_change_value)
+        # self.switch_timer.timeout.connect(self.switches_run)
         # self.switch_timer.start(self.switch_timer_interval)
 
         # ******************************************************************************
@@ -1082,15 +1089,15 @@ class Mainwindow(QObject):
         # TODO: try "ATEXIT"
 
     def shutdown(self):
-        self.gains.setval_and_store(0)
-        self.gains.primary_gain_off()
-        self.gains.secondary_gain_off()
-        self.coderategenerator.coderate_stop()
-        self.speed_generator.speed_1_off()
-        self.speed_generator.speed_2_off()
-        self.local_timer.stop()
-        self.switch_timer.stop()
-        self.sense_timer.stop()
+        # self.gains.setval_and_store(0)
+        # self.gains.primary_gain_off()
+        # self.gains.secondary_gain_off()
+        # self.coderategenerator.coderate_stop()
+        # self.speed_generator.speed_1_off()
+        # self.speed_generator.speed_2_off()
+        # self.local_timer.stop()
+        # self.switch_timer.stop()
+        # self.sense_timer.stop()
         try:
             self.server.server_close()
         except:
@@ -1177,7 +1184,4 @@ class Mainwindow(QObject):
         else:
             self.traces[name] = self.graphWidget.plot(pen='y')
 
-    def exit_application(self, signum, frame):
-        self.log.debug("Starting shutdown")
-        self.log.debug("Received signal from signum: {} with frame:{}".format(signum, frame))
-        sys.exit(0)
+

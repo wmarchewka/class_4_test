@@ -4,6 +4,9 @@ from PySide2 import QtWidgets
 
 # *******************************************************************************
 class SecurityLevel:
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     def __init__(self, level=None):
         self.level = level
         self.logger = logger.Logger()
@@ -12,10 +15,11 @@ class SecurityLevel:
         self.tab_pages = []
     # *******************************************************************************
     def set_security_level(self, level, window):
+
+        self.log.debug("Setting security level to {}".format(level))
         if level == "admin":
             pass
         elif level == "technician":
-            pass
             self.tabWidget_remove("GRAPH", window)
             self.tabWidget_remove("EEPROM", window)
             self.tabWidget_remove("SPILOG", window)

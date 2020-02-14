@@ -10,8 +10,10 @@ import threading
 import logging
 
 class Codegen(object):
-    def __init__(self):
 
+    logging.debug("Initiating {} class...".format(__qualname__))
+
+    def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger.log
         self.log = logging.getLogger(__name__)

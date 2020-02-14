@@ -1,8 +1,9 @@
 import os.path, pkgutil
 import commander
-import logger
-import gpio
+import basiclogger
+import logging
 import gui.gui
+import sys
 import rotary
 from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import QTimer
@@ -12,8 +13,10 @@ from PySide2.QtCore import QTimer
 
 
 if __name__ == '__main__':
+
+    logging.debug("Initiating {} class...".format(__name__))
+
     app = QApplication(['PORTABLE TESTER'])
-    g = gpio.Gpio()
     w = gui.gui.Mainwindow()
     r = rotary.Rotary()
     c = commander.Commander()
@@ -22,7 +25,6 @@ if __name__ == '__main__':
     timer = QTimer()
     timer.timeout.connect(lambda: None)  # runs every 100ms
     timer.start(100)
-    app.exit(app.exec_())
-
+    sys.exit(app.exec_())
 
 

@@ -8,6 +8,9 @@ import time
 
 # **********************************************************************************************
 class DigPots(object):
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     PRIMARY_GAIN_POT_NUMBER = 0
     SECONDARY_GAIN_POT_NUMBER = 1
     COARSE_MAX_OHMS = 50070

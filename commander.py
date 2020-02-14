@@ -8,6 +8,9 @@ import digpots
 import logger
 
 class Commander(object):
+
+    logging.debug("Initiating {} class...".format(__qualname__))
+
     def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger.log

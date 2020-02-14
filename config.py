@@ -5,6 +5,7 @@ import logger
 
 class Config(object):
 
+    logging.debug("Initiating {} class...".format(__qualname__))
 
     def __init__(self):
         self.init = True
