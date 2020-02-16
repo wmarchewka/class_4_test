@@ -2,7 +2,6 @@ import os
 import logging
 import logging.config
 
-
 class Logger(object):
 
     logging.debug("Initiating {} class...".format(__qualname__))
@@ -16,7 +15,7 @@ class Logger(object):
             logging.config.fileConfig(self.log_config_file_path)
         except FileNotFoundError:
             self.logging_error = "Could not find " + str(self.log_config_file_path)
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger('sLog')
         self.log.info('Starting up portable tester...')
         self.log.info("CWD: {}".format(cwd))
         self.log.debug("{} init complete...".format(__name__))

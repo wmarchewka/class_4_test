@@ -74,7 +74,6 @@ class Mainwindow(QMainWindow):
         # self.ip_address_query()
         # self.set_frequencies(self)  # send frequency values to frequency generators
         #self.timers()
-
     # ******************************************************************************
     def config_file_load(self):
         Mainwindow.display_brightness = self.config.display_brightness

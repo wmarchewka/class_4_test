@@ -30,6 +30,7 @@ class Speedgen(object):
     SPEED_FAST = 1
     CLOCKWISE = 1
     ANTI_CLOCKWISE = -1
+    ERROR = 0
     SPEED_REG = 0
     FREQ_TEXT = ''
     FREQ_SHAPE = [FREQ_SHAPE_SINE, FREQ_SHAPE_SINE]
@@ -50,21 +51,20 @@ class Speedgen(object):
         self.polling_prohibited = (True, self.__class__)
         # self.set_speed_signal()
 
-    def set_speed_signal(self, cs: int, speed: int, direction: int) -> int:
+    def set_speed_signal(self, sg: int, speed: int, direction: int) -> int:
         """depending on speed and direction, speed will be incremented or
         decremeneted
         :rtype: int
-        :param cs:
-        :param speed:
-        :param direction:
-        :return: speed of one encoder click
+        :param sg: speed signal generator 0 or 1
+        :param speed: how fast did encoder turn?
+        :param direction: direction determines incremeneting or decrementing
+        :return: actual frequency or signal
         """
-        speed_text = ""
-        direction_text = ""
-        if cs == Speedgen.SPEED_0_CS:
-            self.speed_reg = 0
-        if cs == Speedgen.SPEED_1_CS:
-            self.speed_reg = 1
+        global speed_text, direction_text
+        if sg == 0:
+            cs = Speedgen.SPEED_0_CS
+        if sg == 1:
+            cs = Speedgen.SPEED_1_CS
         if speed == Speedgen.SPEED_SLOW:
             speed_text = "SLOW"
         if speed == Speedgen.SPEED_FAST:
@@ -73,35 +73,34 @@ class Speedgen(object):
             direction_text = "CLOCKWISE"
         if direction == Speedgen.ANTI_CLOCKWISE:
             direction_text = "ANTI CLOCKWISE"
+        if direction == Speedgen.ERROR:
+            direction_text = "ERROR"
         self.log.debug(
-            'SIGGEN Setting speed with CS:{}  with speed of:{}  direction:{} '.format(cs, speed_text,
-                                                                                      direction_text))
+            'SIGGEN Setting speed of SG:{}  with speed of:{}  direction:{} '.format(sg, speed_text, direction_text))
         if direction == self.CLOCKWISE:
             if speed == self.SPEED_SLOW:
-                self.SPEED_FREQUENCY[self.speed_reg] = self.SPEED_FREQUENCY[
-                                                           self.speed_reg] + self.FREQ_SLOW_INCREMENT
+                self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] + self.FREQ_SLOW_INCREMENT
             elif speed == self.SPEED_FAST:
-                self.SPEED_FREQUENCY[self.speed_reg] = self.SPEED_FREQUENCY[
-                                                           self.speed_reg] + self.FREQ_FAST_INCREMENT
-            if self.SPEED_FREQUENCY[self.speed_reg] > self.SPEED_FREQUENCY_MAX:
-                self.SPEED_FREQUENCY[self.speed_reg] = self.SPEED_FREQUENCY_MAX
+                self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] + self.FREQ_FAST_INCREMENT
+            if self.SPEED_FREQUENCY[sg] > self.SPEED_FREQUENCY_MAX:
+                self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY_MAX
         elif direction == self.ANTI_CLOCKWISE:
             if speed == self.SPEED_SLOW:
-                self.SPEED_FREQUENCY[self.speed_reg] = self.SPEED_FREQUENCY[
-                                                           self.speed_reg] - self.FREQ_SLOW_INCREMENT
+                self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[
+                                               sg] - self.FREQ_SLOW_INCREMENT
             elif speed == self.SPEED_FAST:
-                self.SPEED_FREQUENCY[self.speed_reg] = self.SPEED_FREQUENCY[
-                                                           self.speed_reg] - self.FREQ_FAST_INCREMENT
-            if self.SPEED_FREQUENCY[self.speed_reg] < self.SPEED_FREQUENCY_MIN:
-                self.SPEED_FREQUENCY[self.speed_reg] = self.SPEED_FREQUENCY_MIN
+                self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[
+                                               sg] - self.FREQ_FAST_INCREMENT
+            if self.SPEED_FREQUENCY[sg] < self.SPEED_FREQUENCY_MIN:
+                self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY_MIN
         self.speed1_actual_freq = self.SPEED_FREQUENCY[0]
         self.speed2_actual_freq = self.SPEED_FREQUENCY[1]
         self.log.debug('SIGGEN Speed 1 Actual Freq: {}'.format(self.speed1_actual_freq))
         self.log.debug('SIGGEN Speed 2 Actual Freq: {}'.format(self.speed2_actual_freq))
-        if cs == self.SPEED_0_CS:
-            return self.speed1_actual_freq
-        if cs == self.SPEED_1_CS:
-            return self.speed2_actual_freq
+        if sg == 0:
+            return self.speed1_actual_freq, cs
+        if sg == 1:
+            return self.speed2_actual_freq, cs
 
     def speed_off(self, speed_generator: int) -> object:
         """pass speed generator 1 or 2
@@ -133,5 +132,3 @@ class Speedgen(object):
         Speedgen.primary_freq_gen_constant = self.primary_freq_gen_constant  # 26
         Speedgen.secondary_freq_gen_constant = self.secondary_freq_gen_constant
         Speedgen.speed_generator_set_speed_spi_header = self.speed_generator_set_speed_spi_header
-        Speedgen.SPEED_0_CS = self.SPEED_0_CS  # 6  # SPEED SIMULATION TACH 1
-        Speedgen.SPEED_1_CS = self.SPEED_1_CS  # 7  # SPEED SIMULATION TACH 2
