@@ -1,6 +1,7 @@
+import logging
+
 import logger
 import gpio
-import logging
 import pigpio
 import config
 
@@ -8,28 +9,31 @@ class Decoder(object):
 
     logging.debug("Initiating {} class...".format(__qualname__))
 
-    chip_select_list = list(range(11))
-    chip_select_primary_freq = 0
-    chip_select_primary_coarse_gain = 1
-    chip_select_secondary_freq = 2
-    chip_select_secondary_coarse_gain = 3
-    chip_select_secondary_fine_gain = 4
-    chip_select_primary_fine_gain = 5
-    chip_select_speed_tach_1 = 6
-    chip_select_speed_tach_2 = 7
-    chip_select_current_sense = 8
-    chip_select_switches = 9
-    chip_select_names = ["Primary Frequency", "Primary Gain Coarse", "Secondary Frequency",
-                         "Secondary Gain Coarse",
-                         "Seondary Gain Fine", "Primary Gain Fine",
-                         "Speed Tach 1", "Speed Tach 2", "Current Sense", "Switches"]
+    @classmethod
+    def variables(cls):
+        cls.chip_select_list = list(range(11))
+        cls.chip_select_primary_freq = 0
+        cls.chip_select_primary_coarse_gain = 1
+        cls.chip_select_secondary_freq = 2
+        cls.chip_select_secondary_coarse_gain = 3
+        cls.chip_select_secondary_fine_gain = 4
+        cls.chip_select_primary_fine_gain = 5
+        cls.chip_select_speed_tach_1 = 6
+        cls.chip_select_speed_tach_2 = 7
+        cls.chip_select_current_sense = 8
+        cls.chip_select_switches = 9
+        cls.chip_select_names = ["Primary Frequency", "Primary Gain Coarse", "Secondary Frequency",
+                             "Secondary Gain Coarse",
+                             "Seondary Gain Fine", "Primary Gain Fine",
+                             "Speed Tach 1", "Speed Tach 2", "Current Sense", "Switches"]
 
     def __init__(self):
         self.logger = logger.Logger()
-        self.config = config.Config()
-        self.GPIO = gpio.Gpio().gpio
         self.log = self.logger.log
         self.log = logging.getLogger(__name__)
+        self.config = config.Config()
+        self.GPIO = gpio.Gpio().gpio
+        Decoder.variables()
         self.log.debug('Decoder initializing....')
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))

@@ -18,7 +18,6 @@ class Codegen(object):
         self.log = self.logger.log
         self.log = logging.getLogger(__name__)
         self.gpio = gpio.Gpio().gpio
-        self.logger = logger.Logger()
         self.spi = spi.SPI()
         self.config = config.Config()
         self.startup_processes()

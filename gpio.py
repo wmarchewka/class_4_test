@@ -7,7 +7,9 @@ import config
 
 class Gpio(object):
 
+    log = None
     logging.debug("Initiating {} class...".format(__qualname__))
+
 
     __gpio = None
     __mode_input = 0
@@ -18,11 +20,10 @@ class Gpio(object):
     @classmethod
     def init_gpio(cls):
         cls.__gpio = pigpio.pi()
-        tmp_logger = logging.Logger(__name__)
-        tmp_logger.log = tmp_logger
-        tmp_logger.log = logging.getLogger(__name__)
-        tmp_logger.log.debug("Creating GPIO...")
-        return cls.__gpio
+        cls.tmp_logger = logging.getLogger(__name__)
+        cls.tmp_logger.log = cls.tmp_logger
+        cls.tmp_logger.log = logging.getLogger(__name__)
+        cls.tmp_logger.log.debug("Creating GPIO...")
 
     @property
     def class_property(self):
@@ -53,7 +54,7 @@ class Gpio(object):
             __gpio = Gpio.init_gpio()
             Gpio._init = True
             self.log.debug("FIRST SETUP OF GPIO")
-        self.gpio  = Gpio.__gpio
+        self.gpio = Gpio.__gpio
         self.log.debug(self.gpio)
         self.startup_proccesses()
         self.log.debug("{} init complete...".format(__name__))
@@ -117,12 +118,12 @@ class Gpio(object):
     # ****************************************************************************************************
     def get_io_status(self):
         try:
-            self.log.debug('Getting IO status...')
-            self.log.debug("gpio STATUS: Pins(0-31) {}  Pins(32-54)  {}   ".format(bin(self.gpio.read_bank_1()),
+            self.logger.log.debug('Getting IO status...')
+            self.logger.log.debug("gpio STATUS: Pins(0-31) {}  Pins(32-54)  {}   ".format(bin(self.gpio.read_bank_1()),
                                                                                    bin(
                                                                                        self.gpio.read_bank_2())))
         except Exception:
-            self.log.exception("EXCEPTION in get_status", exc_info=True)
+            self.logger.log.exception("EXCEPTION in get_status", exc_info=True)
 
     # ****************************************************************************************************
     # @staticmethod

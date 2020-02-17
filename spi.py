@@ -52,7 +52,8 @@ class SPI(object):
         return_val = ""
         self.polling.polling_prohitied = (True, "SPI WRITE")
         hex_data = []
-        chip_select_name = self.decoder.chip_select_names[chip_select]
+        csn = self.decoder.chip_select_names[chip_select]
+        chip_select_name = csn
         for item in data:
             hex_data.append(format(item, '02x'))
         bin_data = []
