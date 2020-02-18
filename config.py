@@ -18,29 +18,12 @@ class Config(object):
 
     @classmethod
     def read_from_ini(cls):    
+
         # GPIO
         cls.ports = cls.config.get('GPIO', 'ports')  # read in from INI file
         cls.ports = ast.literal_eval(cls.ports)
 
         # ROTARY SECTION
-        cls.speed_threshold = cls.config.getfloat('ROTARY', 'threshold')  # read in from INI file
-        cls.bouncetime = cls.config.getint('ROTARY', 'bouncetime')
-        cls.rotary_0_pins = cls.config.get('ROTARY', 'rotary_0_pins')
-        cls.rotary_0_pins = ast.literal_eval(cls.rotary_0_pins)
-        cls.rotary_1_pins = cls.config.get('ROTARY', 'rotary_1_pins')
-        cls.rotary_1_pins = ast.literal_eval(cls.rotary_1_pins)
-        cls.rotary_2_pins = cls.config.get('ROTARY', 'rotary_2_pins')
-        cls.rotary_2_pins = ast.literal_eval(cls.rotary_2_pins)
-        cls.rotary_3_pins = cls.config.get('ROTARY', 'rotary_3_pins')
-        cls.rotary_3_pins = ast.literal_eval(cls.rotary_3_pins)
-        cls.rotary_0_pin_0_debounce = cls.config.getint('ROTARY', 'rotary_0_pin_0_debounce_microseconds')
-        cls.rotary_0_pin_1_debounce = cls.config.getint('ROTARY', 'rotary_0_pin_1_debounce_microseconds')
-        cls.rotary_1_pin_0_debounce = cls.config.getint('ROTARY', 'rotary_1_pin_0_debounce_microseconds')
-        cls.rotary_1_pin_1_debounce = cls.config.getint('ROTARY', 'rotary_1_pin_1_debounce_microseconds')
-        cls.rotary_2_pin_0_debounce = cls.config.getint('ROTARY', 'rotary_2_pin_0_debounce_microseconds')
-        cls.rotary_2_pin_1_debounce = cls.config.getint('ROTARY', 'rotary_2_pin_1_debounce_microseconds')
-        cls.rotary_3_pin_0_debounce = cls.config.getint('ROTARY', 'rotary_3_pin_0_debounce_microseconds')
-        cls.rotary_3_pin_1_debounce = cls.config.getint('ROTARY', 'rotary_3_pin_1_debounce_microseconds')
 
         # DIGITAL POT SECTION
         cls.digital_pot_fine_wiper_increment = cls.config.getint('DIGITAL_POT', 'fine_wiper_increment')
@@ -59,39 +42,25 @@ class Config(object):
         cls.secondary_source_frequency = cls.config.getfloat('SPEED_GENERATOR', 'secondary_source_frequency')
         cls.primary_freq_gen_constant = cls.config.getfloat('SPEED_GENERATOR', 'primary_freq_gen_constant')
         cls.secondary_freq_gen_constant = cls.config.getfloat('SPEED_GENERATOR', 'secondary_freq_gen_constant')
-        cls.REG_60 = cls.config.get('SPEED_GENERATOR', 'REG_60')
-        cls.REG_60 = ast.literal_eval(cls.REG_60)
-        cls.REG_100 = cls.config.get('SPEED_GENERATOR', 'REG_100')
-        cls.REG_100 = ast.literal_eval(cls.REG_100)
-        cls.REG_250 = cls.config.get('SPEED_GENERATOR', 'REG_250')
-        cls.REG_250 = ast.literal_eval(cls.REG_250)
-        cls.REG_2340 = cls.config.get('SPEED_GENERATOR', 'REG_2340')
-        cls.REG_2340 = ast.literal_eval(cls.REG_2340)
-        cls.REG_4550 = cls.config.get('SPEED_GENERATOR', 'REG_4550')
-        cls.REG_4550 = ast.literal_eval(cls.REG_4550)
-        cls.REG_5525 = cls.config.get('SPEED_GENERATOR', 'REG_5525')
-        cls.REG_5525 = ast.literal_eval(cls.REG_5525)
         cls.REG_OFF = cls.config.get('SPEED_GENERATOR', 'REG_OFF')
         cls.REG_OFF = ast.literal_eval(cls.REG_OFF)
-        cls.freq_regs_slow_increment = cls.config.getint('SPEED_GENERATOR', 'freq_regs_slow_increment')
-        cls.freq_regs_fast_increment = cls.config.getint('SPEED_GENERATOR', 'freq_regs_fast_increment')
-        cls.freq_regs_slow_decrement = cls.config.getint('SPEED_GENERATOR', 'freq_regs_slow_decrement')
-        cls.freq_regs_fast_decrement = cls.config.getint('SPEED_GENERATOR', 'freq_regs_fast_decrement')
-        cls.speed_generator_set_speed_spi_header = cls.config.get("SPEED_GENERATOR",
-                                                                    'set_speed_spi_header')
+        cls.speed_generator_set_speed_spi_header = cls.config.get("SPEED_GENERATOR", 'set_speed_spi_header')
         cls.speed_generator_set_speed_spi_header = list(ast.literal_eval(cls.speed_generator_set_speed_spi_header))
-        cls.PRI_CAR_CS = cls.config.getint('SPEED_GENERATOR', 'PRI_CAR_CS')
-        cls.SEC_CAR_CS = cls.config.getint('SPEED_GENERATOR', 'SEC_CAR_CS')
+
         cls.SPEED_0_CS = cls.config.getint('SPEED_GENERATOR', 'SPEED_0_CS')
         cls.SPEED_1_CS = cls.config.getint('SPEED_GENERATOR', 'SPEED_1_CS')
         cls.SPEED_0_thresholds = cls.config.get('SPEED_GENERATOR', 'speed_0_thresholds')
         cls.SPEED_1_thresholds = cls.config.get('SPEED_GENERATOR', 'speed_1_thresholds')
         cls.SPEED_0_thresholds = ast.literal_eval(cls.SPEED_0_thresholds)
         cls.SPEED_1_thresholds = ast.literal_eval(cls.SPEED_1_thresholds)
-        cls.SPEED_0_increments = cls.config.get('SPEED_GENERATOR', 'speed_0_increments')
-        cls.SPEED_1_increments = cls.config.get('SPEED_GENERATOR', 'speed_1_increments')
-        cls.SPEED_0_increments = ast.literal_eval(cls.SPEED_0_increments)
-        cls.SPEED_1_increments = ast.literal_eval(cls.SPEED_1_increments)
+        cls.rotary_0_pins = cls.config.get('SPEED_GENERATOR', 'rotary_0_pins')
+        cls.rotary_0_pins = ast.literal_eval(cls.rotary_0_pins)
+        cls.rotary_1_pins = cls.config.get('SPEED_GENERATOR', 'rotary_1_pins')
+        cls.rotary_1_pins = ast.literal_eval(cls.rotary_1_pins)
+        cls.rotary_0_pin_0_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_0_pin_0_debounce_microseconds')
+        cls.rotary_0_pin_1_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_0_pin_1_debounce_microseconds')
+        cls.rotary_1_pin_0_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_1_pin_0_debounce_microseconds')
+        cls.rotary_1_pin_1_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_1_pin_1_debounce_microseconds')
 
         # DECODER SECTION
         cls.decoder_pin_select = cls.config.get('DECODER', 'pin_select')
@@ -125,6 +94,22 @@ class Config(object):
         cls.switch_timer_interval = cls.config.getint('MAIN', 'switch_timer_interval')
         cls.screen_brightness_max = cls.config.getint('MAIN', 'screen_brightness_max')
         cls.screen_brightness_min = cls.config.getint('MAIN', 'screen_brightness_min')
+
+        #GAINS
+        cls.rotary_2_pins = cls.config.get('GAINS', 'rotary_2_pins')
+        cls.rotary_2_pins = ast.literal_eval(cls.rotary_2_pins)
+        cls.rotary_3_pins = cls.config.get('GAINS', 'rotary_3_pins')
+        cls.rotary_3_pins = ast.literal_eval(cls.rotary_3_pins)
+        cls.rotary_2_pin_0_debounce = cls.config.getint('GAINS', 'rotary_2_pin_0_debounce_microseconds')
+        cls.rotary_2_pin_1_debounce = cls.config.getint('GAINS', 'rotary_2_pin_1_debounce_microseconds')
+        cls.rotary_3_pin_0_debounce = cls.config.getint('GAINS', 'rotary_3_pin_0_debounce_microseconds')
+        cls.rotary_3_pin_1_debounce = cls.config.getint('GAINS', 'rotary_3_pin_1_debounce_microseconds')
+        cls.gain_0_thresholds = cls.config.get('GAINS', 'gain_0_thresholds')
+        cls.gain_1_thresholds = cls.config.get('GAINS', 'gain_1_thresholds')
+        cls.gain_0_thresholds = ast.literal_eval(cls.gain_0_thresholds)
+        cls.gain_1_thresholds = ast.literal_eval(cls.gain_1_thresholds)
+        cls.GAIN_0_CS = cls.config.getint('GAINS', 'gain_0_cs')
+        cls.GAIN_1_CS = cls.config.getint('GAINS', 'gain_1_cs')
 
     def __init__(self):
         self.logger = logger.Logger()

@@ -21,7 +21,7 @@ class Rotary(object):
     first_pin = None
     second_pin = None
 
-    def __init__(self, name, speedgen, callback, pin0, pin1, pin0_debounce, pin1_debounce, thresholds=None):
+    def __init__(self, name, number, callback, pin0, pin1, pin0_debounce, pin1_debounce):
 
         self.logger = logger.Logger()
         self.log = self.logger
@@ -29,17 +29,22 @@ class Rotary(object):
         self.config = config.Config()
         self.gpio = gpio.Gpio().gpio
         self.pollperm = pollperm.Pollperm()
-        self.sg = speedgen
+        self.number = number
         self.name = name
         self.callback = callback
         self.pin0 = pin0
         self.pin1 = pin1
         self.pin0_debounce = pin0_debounce
         self.pin1_debounce = pin1_debounce
-        self.thresholds = thresholds
         self.rotary_callback_list = []
         self.callback_list = []
         self.create_rotary()
+        self.log.debug(
+            "Creating rotarty encoder:{} BCM PIN0:{}  BCM PIN1:{} DEBOUNCE:{}".format(name, pin0, pin1, pin0_debounce,
+                                                                                        pin1_debounce))
+        self.log.debug("Speedgen number:{}".format(name))
+        self.log.debug("Callback:{}".format(callback))
+        self.log.debug("{} init complete...".format(__name__))
 
     def create_rotary(self):
         self.create_callback(self.pin0, self.pin1, self.pin0_debounce, self.pin1_debounce)
@@ -57,7 +62,6 @@ class Rotary(object):
         self.gpio.set_glitch_filter(pin, pin_debounce)  # microseconds
         cb = self.gpio.callback(pin, pigpio.EITHER_EDGE, self.rotary_callback)
         self.callback_list.append((pin, pigpio.EITHER_EDGE, self.rotary_callback))
-        self.log.debug("Setting up Rotary Pins BCM PIN:{}  DEBOUNCE:{}".format(pin, pin_debounce))
         return cb
 
     # *****************************************************************************************************
@@ -95,27 +99,22 @@ class Rotary(object):
             #self.disable_interrupts()
             if Rotary.first_pin == self.pin0 and Rotary.second_pin == self.pin1:
                 direction = Rotary.CLOCKWISE
-                self.log.debug("Direction is CLOCKWISE")
+                self.log.debug("Direction is CLOCKWISE: {}".format(direction))
             elif Rotary.first_pin == self.pin1 and Rotary.second_pin == self.pin0:
                 direction = Rotary.ANTI_CLOCKWISE
-                self.log.debug("Direction is ANTICLOCKWISE")
+                self.log.debug("Direction is ANTICLOCKWISE: {}".format(direction))
             else:
                 direction = Rotary.DIRECTION_ERROR
-            self.log.debug("Direction is {}".format(direction))
+                self.log.debug("Direction is ERROR: {}".format(direction))
             Rotary.first_pin = None
             Rotary.second_pin = None
             delta = tick - Rotary.last_interrupt_time
             if Rotary.last_interrupt_time == 0:
-                delta = 0
+                delta = 1000000                                        #since first value will have nothing to compare to set at 1000ms
             Rotary.last_interrupt_time = tick
-            speed = -1
-            for t in reversed(self.thresholds):
-                if (delta / 1000) > t:
-                    speed = speed + 1
-            self.log.debug("Speed threshold {}".format(speed))
             self.log.debug("Delta time : {} ms".format(delta / 1000))
             self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time))
-            self.callback(self.sg, speed, direction)
+            self.callback(self.number, delta, direction)
 
     def disable_interrupts(self):
         for r in self.rotary_callback_list:

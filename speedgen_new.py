@@ -34,8 +34,6 @@ class Speedgen(object):
     FREQ_SHAPE = [FREQ_SHAPE_SINE, FREQ_SHAPE_SINE]
     SPEED_0_THRESHOLDS = []
     SPEED_1_THRESHOLDS = []
-    SPEED_0_INCREMENTS = []
-    SPEED_1_INCREMENTS = []
     rotaries = []
 
     def __init__(self, spi_channel):
@@ -56,18 +54,17 @@ class Speedgen(object):
     def startup_processes(self):
         self.load_config()
         self.create_rotaries()
-        # self.speed_off(0)
-        # self.speed_off(1)
-        #self.disable_interrupts()
-        #self.enable_interrupts()
+        self.speed_off(0)
+        self.speed_off(1)
 
     def create_rotaries(self):
+        self.log.debug("Creating Speed rotaties...")
         self.create_rotary("Speed0", 0, self.rotary_0_pins[0], self.rotary_0_pins[1], self.rotary_0_pin_0_debounce,
                            self.rotary_0_pin_1_debounce, self.SPEED_0_THRESHOLDS)
         self.create_rotary("Speed1", 1, self.rotary_1_pins[0], self.rotary_1_pins[1], self.rotary_1_pin_0_debounce,
                            self.rotary_1_pin_1_debounce, self.SPEED_1_THRESHOLDS)
 
-    def create_rotary(self, name, sg, pin0, pin1, pin0_debounce, pin1_debounce, thresholds):
+    def create_rotary(self, name, number, pin0, pin1, pin0_debounce, pin1_debounce, thresholds):
         """create global list of rotary encoders create across instances so that we can
         disable or enable all callbacks
         :param name:
@@ -78,16 +75,33 @@ class Speedgen(object):
         :param pin1_debounce:
         :param thresholds:
         """
-        Speedgen.rotaries.append(rotary_new.Rotary(name, sg, self.set_speed_signal, pin0, pin1, pin0_debounce, pin1_debounce, thresholds))
+        Speedgen.rotaries.append(rotary_new.Rotary(name, number, self.set_speed_signal, pin0, pin1, pin0_debounce, pin1_debounce))
 
-    def set_speed_signal(self, sg: int, speed: int, direction=None):
-        global speed_text, direction_text, speed_increment, cs
+    def set_speed_signal(self, sg: int, delta: int, direction=None):
+        global speed_text, direction_text, speed_increment, cs, thresholds, speed
+        delta = delta / 1000
+        self.log.debug("Delta:{}".format(delta))
+        speed = 0
+        if sg == 0:
+            thresholds = Speedgen.SPEED_0_THRESHOLDS
+        if sg == 1:
+            thresholds = Speedgen.SPEED_1_THRESHOLDS
+        self.log.debug("Thresholds {}".format(thresholds))
+        for t in thresholds:
+            val = t[0]
+            self.log.debug("Checking Threshold {}ms".format(val))
+            if delta >= val:
+                speed = speed + 1
+        speed = speed - 1
+        self.log.debug("Speed threshold {}".format(speed))
+        inc = thresholds[speed][1]
+        self.log.debug("Speed increment {}".format(inc))
         if sg == 0:
             cs = Speedgen.SPEED_0_CS
-            speed_increment = self.SPEED_0_INCREMENTS[speed]
+            speed_increment = inc
         if sg == 1:
             cs = Speedgen.SPEED_1_CS
-            speed_increment = self.SPEED_1_INCREMENTS[speed]
+            speed_increment = inc
         if direction == Speedgen.CLOCKWISE:
             direction_text = "CLOCKWISE"
             self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] + speed_increment
@@ -179,8 +193,6 @@ class Speedgen(object):
         Speedgen.speed_generator_set_speed_spi_header = self.speed_generator_set_speed_spi_header
         Speedgen.SPEED_0_THRESHOLDS = self.config.SPEED_0_thresholds
         Speedgen.SPEED_1_THRESHOLDS = self.config.SPEED_1_thresholds
-        Speedgen.SPEED_0_INCREMENTS = self.config.SPEED_0_increments
-        Speedgen.SPEED_1_INCREMENTS = self.config.SPEED_1_increments
         Speedgen.SPEED_0_CS = self.SPEED_0_CS
         Speedgen.SPEED_1_CS = self.SPEED_1_CS
         self.rotary_0_pins = self.config.rotary_0_pins
