@@ -79,39 +79,39 @@ class Rotary(object):
         self.pollperm.polling_prohitied = (True, __name__)
         self.log.debug("BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
         if simulate:
-            Rotary.first_pin = sim_pins[0]
-            Rotary.second_pin = sim_pins[1]
+            self.first_pin = sim_pins[0]
+            self.second_pin = sim_pins[1]
             self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
-        if Rotary.first_pin is None:
+        if self.first_pin is None:
             if simulate:
-                Rotary.first_pin = sim_pins[0]
+                self.first_pin = sim_pins[0]
             else:
-                Rotary.first_pin = pin_num
+                self.first_pin = pin_num
             self.log.debug("First pin set as {}".format(pin_num))
             pin_num = None
         if pin_num is not None and Rotary.first_pin:
             if simulate:
-                Rotary.second_pin = sim_pins[1]
+                self.second_pin = sim_pins[1]
             else:
-                Rotary.second_pin = pin_num
+                self.second_pin = pin_num
             self.log.debug("Second pin set as {}".format(Rotary.second_pin))
         if Rotary.first_pin and Rotary.second_pin:
             #self.disable_interrupts()
-            if Rotary.first_pin == self.pin0 and Rotary.second_pin == self.pin1:
+            if self.first_pin == self.pin0 and self.second_pin == self.pin1:
                 direction = Rotary.CLOCKWISE
                 self.log.debug("Direction is CLOCKWISE: {}".format(direction))
-            elif Rotary.first_pin == self.pin1 and Rotary.second_pin == self.pin0:
+            elif Rotary.first_pin == self.pin1 and self.second_pin == self.pin0:
                 direction = Rotary.ANTI_CLOCKWISE
                 self.log.debug("Direction is ANTICLOCKWISE: {}".format(direction))
             else:
                 direction = Rotary.DIRECTION_ERROR
                 self.log.debug("Direction is ERROR: {}".format(direction))
-            Rotary.first_pin = None
-            Rotary.second_pin = None
-            delta = tick - Rotary.last_interrupt_time
-            if Rotary.last_interrupt_time == 0:
+            self.first_pin = None
+            self.second_pin = None
+            delta = tick - self.last_interrupt_time
+            if self.last_interrupt_time == 0:
                 delta = 1000000                                        #since first value will have nothing to compare to set at 1000ms
-            Rotary.last_interrupt_time = tick
+            self.last_interrupt_time = tick
             self.log.debug("Delta time : {} ms".format(delta / 1000))
             self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time))
             self.callback(self.number, delta, direction)

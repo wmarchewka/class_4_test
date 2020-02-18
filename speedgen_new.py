@@ -78,7 +78,6 @@ class Speedgen(object):
         Speedgen.rotaries.append(rotary_new.Rotary(name, number, self.set_speed_signal, pin0, pin1, pin0_debounce, pin1_debounce))
 
     def set_speed_signal(self, sg: int, delta: int, direction=None):
-        global speed_text, direction_text, speed_increment, cs, thresholds, speed
         delta = delta / 1000
         self.log.debug("Delta:{}".format(delta))
         speed = 0
@@ -86,15 +85,15 @@ class Speedgen(object):
             thresholds = Speedgen.SPEED_0_THRESHOLDS
         if sg == 1:
             thresholds = Speedgen.SPEED_1_THRESHOLDS
-        self.log.debug("Thresholds {}".format(thresholds))
-        for t in thresholds:
+        self.log.debug("Thresholds {}".format(self.thresholds))
+        for t in self.thresholds:
             val = t[0]
             self.log.debug("Checking Threshold {}ms".format(val))
             if delta >= val:
                 speed = speed + 1
         speed = speed - 1
         self.log.debug("Speed threshold {}".format(speed))
-        inc = thresholds[speed][1]
+        inc = self.thresholds[speed][1]
         self.log.debug("Speed increment {}".format(inc))
         if sg == 0:
             cs = Speedgen.SPEED_0_CS
@@ -104,12 +103,12 @@ class Speedgen(object):
             speed_increment = inc
         if direction == Speedgen.CLOCKWISE:
             direction_text = "CLOCKWISE"
-            self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] + speed_increment
+            self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] + self.speed_increment
             if self.SPEED_FREQUENCY[sg] > self.SPEED_FREQUENCY_MAX:
                 self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY_MAX
         elif direction == Speedgen.ANTI_CLOCKWISE:
             direction_text = "ANTI CLOCKWISE"
-            self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] - speed_increment
+            self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY[sg] - self.speed_increment
             if self.SPEED_FREQUENCY[sg] < self.SPEED_FREQUENCY_MIN:
                 self.SPEED_FREQUENCY[sg] = self.SPEED_FREQUENCY_MIN
         else:

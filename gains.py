@@ -17,8 +17,6 @@ class Gains(object):
     rotaries = []
     GAIN_0_CS = None
     GAIN_1_CS = None
-    GAIN_0_THRESHOLDS = []
-    GAIN_1_THRESHOLDS = []
     PRIMARY_GAIN_POT_NUMBER = 0
     SECONDARY_GAIN_POT_NUMBER = 1
     COARSE_MAX_OHMS = 50070
@@ -37,21 +35,11 @@ class Gains(object):
     FINE_MAX_OHMS = 10070
     FINE_MAX_BITS = 1023
     TOTAL_MIN_OHMS = 0
-    fine_wiper = [0, 0]
-    coarse_wiper = [0, 0]
+    # fine_wiper = [0, 0]
+    # coarse_wiper = [0, 0]
     fine_divisor = FINE_MAX_OHMS / FINE_MAX_BITS
     total_max_ohms = COARSE_MAX_OHMS + FINE_MAX_OHMS
     coarse_divisor = COARSE_MAX_OHMS / COARSE_MAX_BITS
-    coarse_wiper_percentage = [0, 0]
-    coarse_wiper_resistance = [0, 0]
-    coarse_wiper_ohms = [0, 0]
-    fine_wiper_percentage = [0, 0]
-    fine_wiper_resistance = [0, 0]
-    fine_wiper_ohms = [0, 0]
-    wiper_total_percentage = [0, 0]
-    actual_ohms = [0, 0]
-    off = [None, None]
-    value = [0,0,0,0]
     COARSE_WIPER_INCREMENT = None
     COARSE_WIPER_DECREMENT = None
     COARSE_WIPER_MAX_BITS = None
@@ -60,9 +48,17 @@ class Gains(object):
     FINE_WIPER_DECREMENT = None
     FINE_WIPER_MAX_BITS = None
     FINE_WIPER_MIN_BITS = None
-    gains_locked = False
 
     def __init__(self, spi_channel):
+        self.wiper_total_percentage = [0, 0]
+        self.off = [0, 0]
+        self.actual_ohms = [0, 0]
+        self.coarse_wiper_ohms = [0, 0]
+        self.fine_wiper_ohms = [0, 0]
+        self.wiper = [0, 0]
+        self.coarse_wiper = [0, 0]
+        self.gains_locked = None
+        self.value = [0, 0]
         self.logger = logger.Logger()
         self.log = self.logger
         self.log = logging.getLogger(__name__)
@@ -102,52 +98,46 @@ class Gains(object):
         Gains.rotaries.append(rotary_new.Rotary(name, number, self.value_change, pin0, pin1, pin0_debounce, pin1_debounce))
 
     def value_change(self, number, delta, direction):
-        global thresholds, speed_increment
         self.log.debug('CHANGE WIPER:Speed:{}   Direction:{}   Pot_Number:{}'.format(delta, direction, number))
         delta = delta / 1000
         self.log.debug("Delta:{}".format(delta))
         speed = 0
         if number == 0:
-            thresholds = Gains.GAIN_0_THRESHOLDS
+            self.thresholds = self.GAIN_0_THRESHOLDS
         if number == 1:
-            thresholds = Gains.GAIN_1_THRESHOLDS
-        self.log.debug("Thresholds {}".format(thresholds))
-        for t in thresholds:
+            self.thresholds = self.GAIN_1_THRESHOLDS
+        self.log.debug("Thresholds {}".format(self.thresholds))
+        for t in self.thresholds:
             val = t[0]
             self.log.debug("Checking Threshold {}ms".format(val))
             if delta >= val:
                 speed = speed + 1
         speed = speed - 1
         self.log.debug("Speed threshold {}".format(speed))
-        inc = thresholds[speed][1]
+        inc = self.thresholds[speed][1]
         self.log.debug("Speed increment {}".format(inc))
-        if number == 0:
-            cs = Gains.GAIN_0_CS
-            speed_increment = inc
-        if number == 1:
-            cs = Gains.GAIN_1_CS
-            speed_increment = inc
+        self.speed_increment = inc
         if direction == Gains.CLOCKWISE:
-            if Gains.gains_locked:
-                Gains.value[Gains.PRIMARY_GAIN_POT_NUMBER] = Gains.value[
-                                                                             Gains.PRIMARY_GAIN_POT_NUMBER] + speed_increment
-                Gains.value[Gains.SECONDARY_GAIN_POT_NUMBER] = Gains.value[
+            if self.gains_locked:
+                self.value[Gains.PRIMARY_GAIN_POT_NUMBER] = self.value[
+                                                                             Gains.PRIMARY_GAIN_POT_NUMBER] + self.speed_increment
+                self.value[Gains.SECONDARY_GAIN_POT_NUMBER] = self.value[
                     Gains.PRIMARY_GAIN_POT_NUMBER]
-            elif not Gains.gains_locked:
-                Gains.value[number] = Gains.value[number] + speed_increment
+            elif not self.gains_locked:
+                self.value[number] = self.value[number] + self.speed_increment
         elif direction == Gains.ANTI_CLOCKWISE:
-            if Gains.gains_locked:
-                Gains.value[Gains.PRIMARY_GAIN_POT_NUMBER] = Gains.value[
-                                                                             Gains.PRIMARY_GAIN_POT_NUMBER] - speed_increment
-                Gains.value[Gains.SECONDARY_GAIN_POT_NUMBER] = Gains.value[
+            if self.gains_locked:
+                self.value[Gains.PRIMARY_GAIN_POT_NUMBER] = self.value[
+                                                                             Gains.PRIMARY_GAIN_POT_NUMBER] - self.speed_increment
+                self.value[Gains.SECONDARY_GAIN_POT_NUMBER] = self.value[
                     Gains.PRIMARY_GAIN_POT_NUMBER]
-            elif not Gains.gains_locked:
-                Gains.value[number] = Gains.value[number] - speed_increment
-        if Gains.gains_locked:
-            self.value_check(Gains.PRIMARY_GAIN_POT_NUMBER, Gains.value[0])
-            self.value_check(Gains.SECONDARY_GAIN_POT_NUMBER, Gains.value[1])
+            elif not self.gains_locked:
+                self.value[number] = self.value[number] - self.speed_increment
+        if self.gains_locked:
+            self.value_check(Gains.PRIMARY_GAIN_POT_NUMBER, self.value[0])
+            self.value_check(Gains.SECONDARY_GAIN_POT_NUMBER, self.value[1])
         else:
-            self.value_check(number, Gains.value[number])
+            self.value_check(number, self.value[number])
 
     def value_check(self, number, val):
         """Each click of the encoder increases the value by approximately 9.7 ohms.  To figure out what values to send
@@ -158,57 +148,57 @@ class Gains(object):
         :param value:
         :param number:
         """
-        Gains.value[number] = val
-        if Gains.value[number] > Gains.total_max_ohms:
-            Gains.value[number] = Gains.total_max_ohms
+        self.value[number] = val
+        if self.value[number] > Gains.total_max_ohms:
+            self.value[number] = Gains.total_max_ohms
             self.log.debug("POT {} reached MAX".format(number))
-        elif Gains.value[number] < Gains.TOTAL_MIN_OHMS:
-            Gains.value[number] = Gains.TOTAL_MIN_OHMS
+        elif self.value[number] < Gains.TOTAL_MIN_OHMS:
+            self.value[number] = Gains.TOTAL_MIN_OHMS
             self.log.debug("POT {} reached MIN".format(number))
-            Gains.coarse_wiper[number] = 0
-            Gains.fine_wiper[number] = 0
-            Gains.fine_wiper_ohms[number] = 0
-            Gains.coarse_wiper_ohms[number] = 0
-            Gains.actual_ohms[number] = 0
-            Gains.off[number] = True
+            self.coarse_wiper[number] = 0
+            self.fine_wiper[number] = 0
+            self.fine_wiper_ohms[number] = 0
+            self.coarse_wiper_ohms[number] = 0
+            self.actual_ohms[number] = 0
+            self.off[number] = True
         else:
-            if Gains.value[number] < Gains.COARSE_MAX_OHMS:
-                Gains.coarse_wiper[number] = int(Gains.value[number] / Gains.coarse_divisor)
-                Gains.coarse_wiper_ohms[number] = int(
-                    Gains.coarse_wiper[number] * Gains.coarse_divisor)
-                Gains.fine_wiper_ohms[number] = Gains.value[number] - Gains.coarse_wiper_ohms[
+            if self.value[number] < Gains.COARSE_MAX_OHMS:
+                self.coarse_wiper[number] = int(self.value[number] / Gains.coarse_divisor)
+                self.coarse_wiper_ohms[number] = int(
+                    self.coarse_wiper[number] * Gains.coarse_divisor)
+                self.fine_wiper_ohms[number] = self.value[number] - self.coarse_wiper_ohms[
                     number]
-                Gains.fine_wiper[number] = int(
-                    Gains.fine_wiper_ohms[number] / Gains.fine_divisor)
-                Gains.fine_wiper_ohms[number] = Gains.fine_wiper[number] * Gains.fine_divisor
-            if Gains.value[number] > Gains.COARSE_MAX_OHMS:
-                Gains.coarse_wiper[number] = min(Gains.COARSE_MAX_BITS,
-                                                          (int(Gains.value[
+                self.fine_wiper[number] = int(
+                    self.fine_wiper_ohms[number] / Gains.fine_divisor)
+                self.fine_wiper_ohms[number] = self.fine_wiper[number] * Gains.fine_divisor
+            if self.value[number] > Gains.COARSE_MAX_OHMS:
+                self.coarse_wiper[number] = min(Gains.COARSE_MAX_BITS,
+                                                          (int(self.value[
                                                                    number] / Gains.coarse_divisor)))
-                Gains.coarse_wiper_ohms[number] = int(
-                    Gains.coarse_wiper[number] * Gains.coarse_divisor)
-                Gains.fine_wiper_ohms[number] = Gains.value[number] - Gains.coarse_wiper_ohms[
+                self.coarse_wiper_ohms[number] = int(
+                    self.coarse_wiper[number] * Gains.coarse_divisor)
+                self.fine_wiper_ohms[number] = self.value[number] - self.coarse_wiper_ohms[
                     number]
-                Gains.fine_wiper[number] = int(
-                    Gains.fine_wiper_ohms[number] / Gains.fine_divisor)
-                Gains.off[number] = False
-        coarse_hex, fine_hex = self.int2hex(Gains.coarse_wiper, Gains.fine_wiper)
+                self.fine_wiper[number] = int(
+                    self.fine_wiper_ohms[number] / Gains.fine_divisor)
+                self.off[number] = False
+        coarse_hex, fine_hex = self.int2hex(self.coarse_wiper, self.fine_wiper)
         self.digitalpots_send_spi(number, coarse_hex, fine_hex)
-        Gains.actual_ohms[number] = int(
-            Gains.fine_wiper_ohms[number] + Gains.coarse_wiper_ohms[number])
-        Gains.wiper_total_percentage[number] = Gains.actual_ohms[
+        self.actual_ohms[number] = int(
+            self.fine_wiper_ohms[number] + self.coarse_wiper_ohms[number])
+        self.wiper_total_percentage[number] = self.actual_ohms[
                                                             number] / Gains.total_max_ohms
         self.log.debug(
-            "POT {} TOTAL GAIN % {}".format(number, Gains.wiper_total_percentage[number] * 100))
+            "POT {} TOTAL GAIN % {}".format(number, self.wiper_total_percentage[number] * 100))
         self.log.debug(
             "RAW: {} ohms   ACTUAL: {} ohms  POT: {} COARSE bits: {}  FINE bits: {}  COARSE ohms: {}  FINE ohms: {} ".format(
-                Gains.value[number],
-                Gains.actual_ohms[number],
+                self.value[number],
+                self.actual_ohms[number],
                 number,
-                Gains.coarse_wiper[number],
-                Gains.fine_wiper[number],
-                Gains.coarse_wiper_ohms[number],
-                Gains.fine_wiper_ohms[number]))
+                self.coarse_wiper[number],
+                self.fine_wiper[number],
+                self.coarse_wiper_ohms[number],
+                self.fine_wiper_ohms[number]))
 
     def digitalpots_send_spi(self, number, coarse_hex, fine_hex):
         self.log.debug('WIPER WRITE number:' + str(number))
@@ -275,8 +265,8 @@ class Gains(object):
 
     def load_config(self):
         #TODO CHANGE THIS TO PINS 2 AND 3 !!!!
-        self.rotary_2_pins = self.config.rotary_0_pins
-        self.rotary_3_pins = self.config.rotary_1_pins
+        self.rotary_2_pins = self.config.rotary_2_pins
+        self.rotary_3_pins = self.config.rotary_3_pins
         self.rotary_2_pin_0_debounce = self.config.rotary_2_pin_0_debounce
         self.rotary_2_pin_1_debounce = self.config.rotary_2_pin_1_debounce
         self.rotary_3_pin_0_debounce = self.config.rotary_3_pin_0_debounce
@@ -285,5 +275,5 @@ class Gains(object):
         self.GAIN_1_CS = self.config.GAIN_1_CS  # 7  # SPEED SIMULATION TACH 2
         Gains.GAIN_0_CS = self.GAIN_0_CS
         Gains.GAIN_1_CS = self.GAIN_1_CS
-        Gains.GAIN_0_THRESHOLDS = self.config.gain_0_thresholds
-        Gains.GAIN_1_THRESHOLDS = self.config.gain_1_thresholds
+        self.GAIN_0_THRESHOLDS = self.config.gain_0_thresholds
+        self.GAIN_1_THRESHOLDS = self.config.gain_1_thresholds
