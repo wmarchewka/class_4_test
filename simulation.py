@@ -6,7 +6,7 @@ import logger
 
 class Simulation(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self, mainwindow):
         self.logger = logger.Logger()
@@ -15,7 +15,6 @@ class Simulation(object):
         self.log.info('Starting up simulation routine...')
         self.mainwindow = mainwindow
         self.support = support.support.Support()
-        self.rotary = rotary.Rotary()
         if __name__ == '__main__':
             self.signal_generator = speedgen.Speedgen()
         self.log.debug('Simulation initializing...')

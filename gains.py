@@ -12,56 +12,43 @@ import pollperm
 
 
 class Gains(object):
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     rotaries = []
-    GAIN_0_CS = None
-    GAIN_1_CS = None
-    PRIMARY_GAIN_POT_NUMBER = 0
-    SECONDARY_GAIN_POT_NUMBER = 1
+
+    FINE_MAX_OHMS = 10070
     COARSE_MAX_OHMS = 50070
+    TOTAL_MIN_OHMS = 0
+    TOTAL_MAX_OHMS = COARSE_MAX_OHMS + FINE_MAX_OHMS
+    FINE_MAX_BITS = 1023
     COARSE_MAX_BITS = 1023
+    COARSE_DIVISOR = COARSE_MAX_OHMS / COARSE_MAX_BITS
     STARTING_RESISTANCE = 180
     SPEED_SLOW = 0
     SPEED_FAST = 1
     CLOCKWISE = 1
     ANTI_CLOCKWISE = -1
     DIRECTION_ERROR = 0
-    SLOW_STEP_AMOUNT = 5  # since each endcoder interrupts twice per click, i changed this to 5
-    FAST_STEP_AMOUNT = 500
     SPI_WRITE_COMMAND = [0X00]
     SPI_WIPER_TO_NVRAM_COMMAND = [0b00100000]
     SPI_NVRAM_TO_WIPER_COMMAND = [0b00110000]
-    FINE_MAX_OHMS = 10070
-    FINE_MAX_BITS = 1023
-    TOTAL_MIN_OHMS = 0
-    # fine_wiper = [0, 0]
-    # coarse_wiper = [0, 0]
     FINE_DIVISOR = FINE_MAX_OHMS / FINE_MAX_BITS
-    TOTAL_MAX_OHMS = COARSE_MAX_OHMS + FINE_MAX_OHMS
-    COARSE_DIVISOR = COARSE_MAX_OHMS / COARSE_MAX_BITS
-    COARSE_WIPER_INCREMENT = None
-    COARSE_WIPER_DECREMENT = None
-    COARSE_WIPER_MAX_BITS = None
-    COARSE_WIPER_MIN_BITS = None
-    FINE_WIPER_INCREMENT = None
-    FINE_WIPER_DECREMENT = None
-    FINE_WIPER_MAX_BITS = None
-    FINE_WIPER_MIN_BITS = None
 
     def __init__(self, name, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce,
-                 thresholds):
-        self.speed = 0
-        self.delta = 0
-        self.speed_increment = 0
-        self.wiper_total_percentage = [0, 0]
+                 thresholds, callback, commander_gain_move_callback):
+
+        self.wiper_total_percentage = 0
         self.off = None
-        self.actual_ohms = None
-        self.coarse_wiper_ohms = None
         self.wiper = None
+        self.fine_wiper = None
+        self.fine_wiper_ohms = None
         self.coarse_wiper = None
-        self.gains_locked = None
-        self.value = None
+        self.coarse_wiper_ohms = None
+        self.actual_ohms = None
+        self.gains_locked = False
+        self.speed = 0
+        self.speed_value = 0
+        self.value = 0
         self.name = name
         self.pin_0 = pin_0
         self.pin_1 = pin_1
@@ -70,6 +57,8 @@ class Gains(object):
         self.spi_channel = spi_channel
         self.chip_select = chip_select
         self.thresholds = thresholds
+        self.callback = callback
+        self.commander_gain_move_callback = commander_gain_move_callback
         self.logger = logger.Logger()
         self.log = self.logger
         self.log = logging.getLogger()
@@ -82,60 +71,49 @@ class Gains(object):
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
-    #***************************************************************************************************************
+    # ***************************************************************************************************************
     def startup_processes(self):
         self.load_config()
         self.create_rotaries()
         # self.speed_off(0)
         # self.speed_off(1)
 
-    #***************************************************************************************************************
+    # ***************************************************************************************************************
     def create_rotaries(self):
         self.log.debug("Creating {} Rotary...".format(self.name))
         Gains.rotaries.append(
-            rotary_new.Rotary(self.name, self.value_change, self.pin_0, self.pin_1, self.pin_0_debounce,
+            rotary_new.Rotary(self.name, self.value_change_callback, self.pin_0, self.pin_1, self.pin_0_debounce,
                               self.pin_1_debounce))
 
     # ***************************************************************************************************************
     def threshold_check(self, delta):
+        speed = 0
         for t in self.thresholds:
             val = t[0]
             self.log.debug("Checking Threshold {}ms".format(val))
             if delta >= val:
-                self.speed = self.speed + 1
-        self.speed = self.speed - 1
-        self.log.debug("Speed threshold {}".format(self.speed))
-        self.speed_increment = self.thresholds[self.speed][1]
-        self.log.debug("Speed increment {}".format(self.speed_increment))
-        return self.speed_increment
+                speed = speed + 1
+        speed = speed - 1
+        speed_increment = self.thresholds[speed][1]
+        self.log.debug("Speed threshold:{} | Speed increment:{}".format(speed, speed_increment))
+        return speed_increment
 
     # ***************************************************************************************************************
-    def value_change(self, delta, direction):
+    def value_change_callback(self, delta, direction):
         self.log.debug('CHANGE WIPER:Speed:{}   Direction:{}'.format(delta, direction))
-        delta = delta / 1000
-        self.delta = delta
-        self.log.debug("Delta:{}".format(self.delta))
-        self.log.debug("Thresholds {}".format(self.thresholds))
-        self.speed = 0
-        self.speed_increment = self.threshold_check(delta)
-        self.value = self.increment_decrement(direction)
-        self.value_check(self.value)
-
-    #***************************************************************************************************************
-    def increment_decrement(self, direction):
-        if direction == Gains.CLOCKWISE:
-            if self.gains_locked:
-                self.value = self.value + self.speed_increment
-            elif not self.gains_locked:
-                self.value = self.value + self.speed_increment
-        elif direction == Gains.ANTI_CLOCKWISE:
-            if self.gains_locked:
-                self.value = self.value - self.speed_increment
-            elif not self.gains_locked:
-                self.value = self.value - self.speed_increment
+        if direction is not Gains.DIRECTION_ERROR:
+            delta = delta / 1000
+            self.log.debug("Delta:{}".format(delta))
+            self.log.debug("Thresholds {}".format(self.thresholds))
+            speed_increment = self.threshold_check(delta)
+            speed_value = self.bounds_check(speed_increment, direction)
+            coarse_hex, fine_hex = speed_value
+            self.digitalpots_send_spi(coarse_hex, fine_hex)
+        else:
+            self.log.debug("Direction error received")
 
     # ***************************************************************************************************************
-    def value_check(self, val):
+    def bounds_check(self, speed_increment, direction):
         """Each click of the encoder increases the value by approximately 9.7 ohms.  To figure out what values to send
         to each digital pot, i take the total ohms needed divided by the coarse ohms amount.  The remainder then gets
         divided by the fine ohms amount.  Example:  if 210 ohms is needed, then take 210 / 49.7 = 4 coarse bits.  Then
@@ -144,7 +122,21 @@ class Gains(object):
         :param value:
         :param number:
         """
-        self.value = val
+        if direction == Gains.CLOCKWISE:
+            if self.gains_locked:
+                self.value = self.value + speed_increment
+            elif not self.gains_locked:
+                self.value = self.value + speed_increment
+        elif direction == Gains.ANTI_CLOCKWISE:
+            if self.gains_locked:
+                self.value = self.value - speed_increment
+            elif not self.gains_locked:
+                self.value = self.value - speed_increment
+        elif direction == Gains.DIRECTION_ERROR:
+            self.value = self.value
+        self.commander_gain_move_callback(self.name, direction, speed_increment)
+        self.log.debug("Gains Locked:{} Direction:{}".format(self.gains_locked, direction))
+        self.log.debug("Speed Increment:{}  Value:{}".format(speed_increment, self.value))
         if self.value > Gains.TOTAL_MAX_OHMS:
             self.value = Gains.TOTAL_MAX_OHMS
             self.log.debug("POT {} reached MAX".format(self.name))
@@ -171,31 +163,34 @@ class Gains(object):
                 self.fine_wiper = int(self.fine_wiper_ohms / Gains.FINE_DIVISOR)
                 self.off = False
         coarse_hex, fine_hex = self.int2hex(self.coarse_wiper, self.fine_wiper)
-        self.digitalpots_send_spi(coarse_hex, fine_hex)
         self.actual_ohms = int(self.fine_wiper_ohms + self.coarse_wiper_ohms)
         self.wiper_total_percentage = self.actual_ohms / Gains.TOTAL_MAX_OHMS
-        self.log.info("{}  TOTAL GAIN % {}".format(self.name, self.wiper_total_percentage * 100))
-        self.log.debug(
-            "RAW: {} ohms   ACTUAL: {} ohms  COARSE bits: {}  FINE bits: {}  COARSE ohms: {}  FINE ohms: {} ".format(
+        self.callback(self.name, self.wiper_total_percentage)
+        self.log.info("NAME:{}  TOTAL GAIN % {}".format(self.name, self.wiper_total_percentage * 100))
+        self.log.info(
+            "RAW:{} ohms ACTUAL:{} ohms COARSE bits:{} FINE bits:{} COARSE ohms:{} FINE ohms:{} ".format(
                 self.value,
                 self.actual_ohms,
                 self.coarse_wiper,
                 self.fine_wiper,
                 self.coarse_wiper_ohms,
                 self.fine_wiper_ohms))
-
+        return coarse_hex,fine_hex
     # ***************************************************************************************************************
     def digitalpots_send_spi(self, coarse_hex, fine_hex):
-        self.log.debug('Gain: {}' + str(self.name))
+        self.log.debug('Gain:{} Coarse HEX:{}  Fine HEX{}'.format(self.name, coarse_hex[0:2], fine_hex[0:2]))
         data = Gains.SPI_WRITE_COMMAND + fine_hex[0:2]
+        self.log.debug('Data{}'.format(data))
         self.spi.write(self.spi_channel, data, self.decoder.chip_select_primary_fine_gain)
         # time.sleep(0.010)
         data = Gains.SPI_WRITE_COMMAND + coarse_hex[0:2]
+        self.log.debug('Data{}'.format(data))
         self.spi.write(self.spi_channel, data, self.decoder.chip_select_primary_coarse_gain)
 
     # ***************************************************************************************************************
     # support routine to convert intergers to hex
     def int2hex(self, coarse_wiper, fine_wiper):
+        self.log.debug("Received Coarse WIPER {} | Fine WIPER {}".format(coarse_wiper, fine_wiper))
         coarse_hex = [(coarse_wiper >> 2), (coarse_wiper & 0b11) << 6]
         fine_hex = [(fine_wiper >> 2), (fine_wiper & 0b11) << 6]
         self.log.debug("Coarse HEX {} | Fine HEX {}".format(coarse_hex, fine_hex))

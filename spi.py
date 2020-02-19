@@ -11,7 +11,7 @@ import pollperm
 #TODO need to make this so that i can instantiate a sperate clas for each channel ?
 
 class SPI(object):
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
 
@@ -29,14 +29,17 @@ class SPI(object):
         self.log.debug('Using SPI BUS: {}'.format(self.spi_bus))
         self.log.debug("{} init complete...".format(__name__))
 
+    #************************************************************************************************************
     def startup_processes(self):
         self.load_from_config()
         self.setup_spi()
         self.setup_datalog()
 
+    # ************************************************************************************************************
     def setup_datalog(self):
         self.data_log = collections.deque(maxlen=500)
 
+    # ************************************************************************************************************
     def setup_spi(self):
         # SPI1_0 uses SPI1 and CE0 (BCM18)
         self.spi1_0 = spidev.SpiDev()
@@ -52,7 +55,9 @@ class SPI(object):
         self.spi1_2.mode = self.config.spi1_2_mode
         self.log.debug('SPI1_2 using CE2 as CS: Pin 16')
 
+    # ************************************************************************************************************
     def write(self, channel, msg, chip_select):
+        self.log.debug("SPI Write received Channel:{}  MSG:{}  CHIP SELECT:{}".format(channel, msg, chip_select))
         self.polling.polling_prohitied = (True, __name__)
         chip_select_name = self.decoder.chip_select_names[chip_select]
         try:
@@ -61,11 +66,11 @@ class SPI(object):
                 self.spi1_0.xfer2(msg)
             elif channel == 2:
                 self.spi1_2.xfer2(msg)
-            self.spi_debug_log(channel, msg, chip_select_name)
         except Exception:
             self.log.exception("Exception in SPI write", exc_info=True)
         self.polling.polling_prohitied = (False, "SPI WRITE")
 
+    # ************************************************************************************************************
     def spi_debug_log(self, channel, msg, chip_select_name):
         hex_data = []
         val = threading.currentThread(), threading.current_thread().name
@@ -83,6 +88,7 @@ class SPI(object):
         self.log.debug("Writing SPI to Channel: {}| BIN data: {}".format(channel, bin_data))
         self.data_logger(str_data)
 
+    # ************************************************************************************************************
     def read(self, channel, number_bytes, chip_select, data=None):
         val = threading.currentThread(), threading.current_thread().name
         thread_value = str(val)
@@ -132,6 +138,7 @@ class SPI(object):
         self.polling.polling_prohitied = (False, "SPI READ")
         return return_val
 
+    # ************************************************************************************************************
     def data_logger(self, msg):
         if self.log_data:
             # TODO: NEED TO FIX THIS TO MAKE SURE IT ONLY LOGS SO MUCH DATA
@@ -148,6 +155,7 @@ class SPI(object):
             # self.scrollbar = self.mainwindow.window.TE_spi_log.verticalScrollBar()
             # self.scrollbar.setValue(self.mainwindow.window.TE_spi_log.blockCount() - 25)
 
+    # ************************************************************************************************************
     def load_from_config(self):
         self.spi_chip_select = self.config.spi_chip_select
         self.spi_bus = self.config.spi_bus

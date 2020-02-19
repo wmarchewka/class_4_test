@@ -3,7 +3,7 @@ import logger
 
 class Signalslots(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.debug("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
         self.logger = logger.Logger()
@@ -83,6 +83,6 @@ class Signalslots(object):
         window.PB_popup_test.clicked.connect(gui.popup_test)
         window.PB_graph_left.clicked.connect(gui.graph_increase)
         window.PB_graph_right.clicked.connect(gui.graph_decrease)
-        window.PB_store_in_nvram.clicked.connect(gui.digitalpots.wiper_to_nvram)
-        window.PB_nvram_to_wiper.clicked.connect(gui.digitalpots.nvram_to_wiper)
+        # window.PB_store_in_nvram.clicked.connect(gui.digitalpots.wiper_to_nvram)
+        # window.PB_nvram_to_wiper.clicked.connect(gui.digitalpots.nvram_to_wiper)
         window.PB_primary_gain_value.clicked.connect(gui.primary_gain_value_test)

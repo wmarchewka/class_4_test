@@ -3,7 +3,7 @@ import logging
 
 class Pollperm(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     def __new__(cls):
         if not hasattr(cls, 'instance') or not cls.instance:

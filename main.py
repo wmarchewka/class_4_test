@@ -14,7 +14,7 @@ from PySide2.QtCore import QTimer
 
 if __name__ == '__main__':
 
-    logging.debug("Initiating {} class...".format(__name__))
+    logging.debug("Instantiating {} class...".format(__name__))
 
     app = QApplication(['PORTABLE TESTER'])
     w = gui.gui.Mainwindow()

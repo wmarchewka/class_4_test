@@ -4,7 +4,7 @@ import logging.config
 
 class Logger(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     log = logging.getLogger()
     log.info('Starting up portable tester...')
@@ -20,13 +20,10 @@ class Logger(object):
     log.debug("LOG LEVEL {}".format(log.getEffectiveLevel()))
 
     def __init__(self, level = None):
-        level = 10
         self.log = Logger.log
         self.log.disabled = False
-        print(self.log.handlers)
-        self.log.handle("StreamHandler",)
-        self.log.debug("{} init complete...".format(__name__))
         if level:
-            pass
+            logging.getLogger().setLevel(level)
+        self.log.debug("{} init complete...".format(__name__))
         self.log.debug("LOG LEVEL {}".format(self.log.getEffectiveLevel()))
 

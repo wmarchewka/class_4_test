@@ -2,7 +2,6 @@ import logger
 import config
 import spi
 import gpio
-import argparse
 import configparser
 import os
 import pigpio
@@ -11,7 +10,7 @@ import logging
 
 class Codegen(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
         self.logger = logger.Logger()
@@ -26,11 +25,6 @@ class Codegen(object):
 
     def startup_processes(self):
         #self.coderate_stop()
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('-signal', nargs="+", type=int)
-        self.args = self.parser.parse_args()
-        self.log.info("Arguments passed into script: " + str(self.args.signal))
-        self.passed_list = self.args.signal
         cwd = os.getcwd()
         self.log.debug('Starting up Coderate Generator...')
         self.log.debug("CWD: {}".format(cwd))

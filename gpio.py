@@ -8,7 +8,7 @@ import config
 class Gpio(object):
 
     log = None
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
 
     __gpio = None

@@ -5,7 +5,7 @@ from PySide2 import QtWidgets
 # *******************************************************************************
 class SecurityLevel:
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self, level=None):
         self.level = level

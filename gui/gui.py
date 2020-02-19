@@ -22,7 +22,6 @@ import gui.signalsslots
 import config
 import gpio
 import securitylevel
-import digpots
 import logger
 import support.support
 import simulation
@@ -31,7 +30,7 @@ from gui import QTResources  # do not remove this !!!
 
 class Mainwindow(QMainWindow):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.debug("Instantiating {} class...".format(__qualname__))
 
     display_brightness = None
     guiname = None
@@ -46,7 +45,7 @@ class Mainwindow(QMainWindow):
         super().__init__()
         self.window = None
         self.config = config.Config()
-        self.digitalpots = digpots.DigPots()
+        #self.digitalpots = digpots.DigPots()
         self.signalslots = gui.signalsslots.Signalslots()
         self.support = support.support.Support()
         self.gpio = gpio.Gpio()

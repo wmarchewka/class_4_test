@@ -7,7 +7,7 @@ import codegen
 
 class Speedgen(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     PRIMARY_SOURCE_FREQUENCY = None
     SECONDARY_SOURCE_FREQUENCY = None

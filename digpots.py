@@ -9,7 +9,7 @@ import time
 # **********************************************************************************************
 class DigPots(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     PRIMARY_GAIN_POT_NUMBER = 0
     SECONDARY_GAIN_POT_NUMBER = 1

@@ -1,11 +1,11 @@
 import logging
 
-class Basiclogger(object):
 
-    log_format = "%(asctime)s - %(levelname)s - %(name)s - %(funcName)s - %(lineno)d -%(message)s"
-    logging.basicConfig(level='DEBUG', format=log_format)
+class Basiclogger(object):
+    log_format = "%(asctime)s - %(name)s - %(levelname)-7s - Module:%(module)-18s  Function:%(funcName)-25s  Line Number:%(lineno)-8d - %(message)s"
+    logging.basicConfig(level='INFO', format=log_format)
     logging.getLogger()
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.debug("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
         pass

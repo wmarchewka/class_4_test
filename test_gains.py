@@ -6,7 +6,7 @@ import logger
 import config
 
 class TestGains(object):
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
         self.logger = logger.Logger()

@@ -6,7 +6,7 @@ import logger
 
 class Config(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     _init = None
     config_file_path = "config/config.ini"
@@ -26,14 +26,7 @@ class Config(object):
         # ROTARY SECTION
 
         # DIGITAL POT SECTION
-        cls.digital_pot_fine_wiper_increment = cls.config.getint('DIGITAL_POT', 'fine_wiper_increment')
-        cls.digital_pot_fine_wiper_decrement = cls.config.getint('DIGITAL_POT', 'fine_wiper_decrement')
-        cls.digital_pot_coarse_wiper_increment = cls.config.getint('DIGITAL_POT', 'coarse_wiper_increment')
-        cls.digital_pot_coarse_wiper_decrement = cls.config.getint('DIGITAL_POT', 'coarse_wiper_decrement')
-        cls.digital_pot_fine_wiper_max_bits = cls.config.getint('DIGITAL_POT', 'fine_wiper_max_bits')
-        cls.digital_pot_fine_wiper_min_bits = cls.config.getint('DIGITAL_POT', 'fine_wiper_min_bits')
-        cls.digital_pot_coarse_wiper_max_bits = cls.config.getint('DIGITAL_POT', 'coarse_wiper_max_bits')
-        cls.digital_pot_coarse_wiper_min_bits = cls.config.getint('DIGITAL_POT', 'coarse_wiper_min_bits')
+
 
         # SPEED GENERATOR SECTION
         cls.freq_regs_max = cls.config.getint('SPEED_GENERATOR', 'freq_regs_max')
@@ -120,6 +113,7 @@ class Config(object):
         cls.gain_1_spi_channel = cls.config.getint('GAINS', 'gain_1_spi_channel')
         cls.gain_0_name = cls.config.get('GAINS', 'gain_0_name')
         cls.gain_1_name = cls.config.get('GAINS', 'gain_1_name')
+
 
     def __init__(self):
         self.logger = logger.Logger()

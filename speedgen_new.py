@@ -2,16 +2,19 @@
 import logging
 
 # my libraries
-import logger
-import config
+import basiclogger
 import decoder
 import spi
 import rotary_new
 import pollperm
-
+import gui.gui
+import speedgen_new
+import gains
+import logger
+import config
 
 class Speedgen(object):
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     PRIMARY_SOURCE_FREQUENCY = None
     SECONDARY_SOURCE_FREQUENCY = None
@@ -31,7 +34,8 @@ class Speedgen(object):
     rotaries = []
 
     def __init__(self, name, shape, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce,
-                 thresholds):
+                 thresholds, callback, commander_speed_move_callback):
+
         self.new_speed_increment = 0
         self.logger = logger.Logger()
         self.log = self.logger
@@ -50,6 +54,9 @@ class Speedgen(object):
         self.pin_1 = pin_1
         self.pin_0_debounce = pin_0_debounce
         self.pin_1_debounce = pin_1_debounce
+        self.callback = callback
+        self.commander_speed_move_callback = commander_speed_move_callback
+
         self.delta = 0
         self.direction = 0
         self.speed = 0
@@ -93,6 +100,7 @@ class Speedgen(object):
         self.log.debug("Speed threshold {}".format(self.speed))
         self.speed_increment = self.thresholds[self.speed][1]
         self.log.debug("Speed increment:{}   New Speed Increment:{}".format(self.speed_increment, self.new_speed_increment ))
+        self.commander_speed_move_callback(self.name, direction, self.speed_increment)
         if self.direction == Speedgen.CLOCKWISE:
             self.direction_text = "CLOCKWISE"
             self.speed_frequency = self.speed_frequency + self.speed_increment
@@ -109,6 +117,7 @@ class Speedgen(object):
             'SIGGEN Setting speed of {}  with speed of:{}  direction:{} '.format(self.name, self.speed_frequency,
                                                                                  self.direction_text))
         self.log.info("{}  FREQ:{}".format(self.name,self.speed_frequency))
+        self.callback(self.name, self.speed_frequency)
         self.spi_msg = self.frequency_to_registers(self.speed_frequency, self.shape)
         if self.direction is not 0:
             self.spi_send(self.spi_msg)

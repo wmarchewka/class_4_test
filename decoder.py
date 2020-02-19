@@ -7,7 +7,7 @@ import config
 
 class Decoder(object):
 
-    logging.debug("Initiating {} class...".format(__qualname__))
+    logging.info("Instantiating {} class...".format(__qualname__))
 
     @classmethod
     def variables(cls):
