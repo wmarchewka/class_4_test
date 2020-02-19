@@ -14,7 +14,7 @@ class Commander(object):
     def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.rotary = rotary.Rotary()
         self.speed = speedgen.Speedgen()
         self.codegen = codegen.Codegen()

@@ -11,7 +11,7 @@ class Simulation(object):
     def __init__(self, mainwindow):
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.log.info('Starting up simulation routine...')
         self.mainwindow = mainwindow
         self.support = support.support.Support()

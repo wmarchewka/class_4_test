@@ -19,7 +19,7 @@ class Support(object):
         self.config = config.Config()
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.log.info('Starting up portable tester...')
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))

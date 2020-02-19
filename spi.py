@@ -19,7 +19,7 @@ class SPI(object):
         self.config = config.Config()
         self.decoder = decoder.Decoder()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.polling = pollperm.Pollperm()
         self.log.debug('SPI initializing...')
         self.spi_log_count = 0

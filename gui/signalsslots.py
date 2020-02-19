@@ -8,7 +8,7 @@ class Signalslots(object):
     def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 

@@ -61,6 +61,12 @@ class Config(object):
         cls.rotary_0_pin_1_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_0_pin_1_debounce_microseconds')
         cls.rotary_1_pin_0_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_1_pin_0_debounce_microseconds')
         cls.rotary_1_pin_1_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_1_pin_1_debounce_microseconds')
+        cls.speed_0_shape = cls.config.getint('SPEED_GENERATOR', 'speed_0_shape')
+        cls.speed_1_shape = cls.config.getint('SPEED_GENERATOR', 'speed_1_shape')
+        cls.speed_0_spi_channel = cls.config.getint('SPEED_GENERATOR', 'speed_0_spi_channel')
+        cls.speed_1_spi_channel = cls.config.getint('SPEED_GENERATOR', 'speed_1_spi_channel')
+        cls.speed_0_name = cls.config.get('SPEED_GENERATOR', 'speed_0_name')
+        cls.speed_1_name = cls.config.get('SPEED_GENERATOR', 'speed_1_name')
 
         # DECODER SECTION
         cls.decoder_pin_select = cls.config.get('DECODER', 'pin_select')
@@ -110,11 +116,15 @@ class Config(object):
         cls.gain_1_thresholds = ast.literal_eval(cls.gain_1_thresholds)
         cls.GAIN_0_CS = cls.config.getint('GAINS', 'gain_0_cs')
         cls.GAIN_1_CS = cls.config.getint('GAINS', 'gain_1_cs')
+        cls.gain_0_spi_channel = cls.config.getint('GAINS', 'gain_0_spi_channel')
+        cls.gain_1_spi_channel = cls.config.getint('GAINS', 'gain_1_spi_channel')
+        cls.gain_0_name = cls.config.get('GAINS', 'gain_0_name')
+        cls.gain_1_name = cls.config.get('GAINS', 'gain_1_name')
 
     def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         if not Config._init:
             Config.read_from_ini()
             Config._init = True

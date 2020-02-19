@@ -20,9 +20,9 @@ class Gpio(object):
     @classmethod
     def init_gpio(cls):
         cls.__gpio = pigpio.pi()
-        cls.tmp_logger = logging.getLogger(__name__)
+        cls.tmp_logger = logging.getLogger()
         cls.tmp_logger.log = cls.tmp_logger
-        cls.tmp_logger.log = logging.getLogger(__name__)
+        cls.tmp_logger.log = logging.getLogger()
         cls.tmp_logger.log.debug("Creating GPIO...")
 
     @property
@@ -49,7 +49,7 @@ class Gpio(object):
         self.config = config.Config()
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         if not Gpio._init:
             __gpio = Gpio.init_gpio()
             Gpio._init = True
@@ -67,41 +67,41 @@ class Gpio(object):
 
     # ****************************************************************************************************
     def shutdown(self):
-        if self.GPIO.connected:
-            self.GPIO.wave_tx_stop()
-            self.GPIO.wave_clear()
-            self.GPIO.stop()
+        if self.gpio.connected:
+            self.gpio.wave_tx_stop()
+            self.gpio.wave_clear()
+            self.gpio.stop()
             self.log.debug("Shutting down PIGPIO...")
 
     # ****************************************************************************************************
     def set_chip_select(self, data):
-        self.GPIO.write(data[0][0], data[0][1])
-        self.GPIO.write(data[1][0], data[1][1])
-        self.GPIO.write(data[2][0], data[2][1])
+        self.gpio.write(data[0][0], data[0][1])
+        self.gpio.write(data[1][0], data[1][1])
+        self.gpio.write(data[2][0], data[2][1])
 
     # ****************************************************************************************************
     def get_pin(self, pin):
-        mode = self.GPIO.get_mode(pin)
+        mode = self.gpio.get_mode(pin)
         if mode == Gpio.__mode_input:
             txtmode = "INPUT"
-            return self.GPIO.read(pin), txtmode
+            return self.gpio.read(pin), txtmode
         elif mode == Gpio.__mode_output:
             txtmode = "OUTPUT"
-            return self.GPIO.read(pin), txtmode
+            return self.gpio.read(pin), txtmode
         else:
             txtmode = "UNKNOWN mode " + str(mode)
             return 0, txtmode
 
     # ****************************************************************************************************
     def set_pin(self, pin, state):
-        mode = self.GPIO.get_mode(pin)
+        mode = self.gpio.get_mode(pin)
         if mode == Gpio.__mode_input:
             txtmode = "INPUT"
-            return self.GPIO.read(pin), txtmode
+            return self.gpio.read(pin), txtmode
         elif mode == Gpio.__mode_output:
             txtmode = "OUTPUT"
-            self.GPIO.write(pin, state)
-            return self.GPIO.read(pin), txtmode
+            self.gpio.write(pin, state)
+            return self.gpio.read(pin), txtmode
         else:
             txtmode = "UNKNOWN mode " + str(mode)
             return 0, txtmode

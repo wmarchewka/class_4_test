@@ -60,7 +60,7 @@ class DigPots(object):
         self.decoder = decoder.Decoder()
         self.spi = spi.SPI()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.log.debug('Digital Pots initializing...')
         self.startup_functions()
         self.log.debug("{} init complete...".format(__name__))

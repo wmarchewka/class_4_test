@@ -11,7 +11,7 @@ class SecurityLevel:
         self.level = level
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.tab_pages = []
     # *******************************************************************************
     def set_security_level(self, level, window):

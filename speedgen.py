@@ -42,7 +42,7 @@ class Speedgen(object):
         self.coderategenerator = codegen.Codegen()
         self.init = True
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 

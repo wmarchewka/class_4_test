@@ -20,7 +20,7 @@ class Pollperm(object):
         self.init = True
         self.logger = logger.Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.polling_prohibited = (False, self.__class__)
         self.log.debug("{} init complete...".format(__name__))
 

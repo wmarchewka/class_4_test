@@ -1,15 +1,15 @@
-#libraries
+# libraries
 import logging
 import pigpio
 
-#my libraries
+# my libraries
 import gpio
 import logger
 import config
 import pollperm
 
-class Rotary(object):
 
+class Rotary(object):
     logging.debug("Initiating {} class...".format(__qualname__))
 
     SPEED_FAST = 1
@@ -21,34 +21,33 @@ class Rotary(object):
     first_pin = None
     second_pin = None
 
-    def __init__(self, name, number, callback, pin0, pin1, pin0_debounce, pin1_debounce):
-
+    def __init__(self, name, callback, pin_0, pin_1, pin_0_debounce, pin_1_debounce):
         self.logger = logger.Logger()
         self.log = self.logger
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger()
         self.config = config.Config()
         self.gpio = gpio.Gpio().gpio
         self.pollperm = pollperm.Pollperm()
-        self.number = number
         self.name = name
         self.callback = callback
-        self.pin0 = pin0
-        self.pin1 = pin1
-        self.pin0_debounce = pin0_debounce
-        self.pin1_debounce = pin1_debounce
+        self.pin0 = pin_0
+        self.pin1 = pin_1
+        self.pin0_debounce = pin_0_debounce
+        self.pin1_debounce = pin_1_debounce
         self.rotary_callback_list = []
         self.callback_list = []
         self.create_rotary()
-        self.log.debug(
-            "Creating rotarty encoder:{} BCM PIN0:{}  BCM PIN1:{} DEBOUNCE:{}".format(name, pin0, pin1, pin0_debounce,
-                                                                                        pin1_debounce))
-        self.log.debug("Speedgen number:{}".format(name))
+        self.log.debug("Creating rotary encoder:{} BCM PIN0:{}  BCM PIN1:{}".format(name, pin_0, pin_1))
+        self.log.debug("DEBOUNCE PIN 0:{}  DEBOUNCE PIN 1:{}".format(name, pin_0_debounce, pin_1_debounce))
         self.log.debug("Callback:{}".format(callback))
         self.log.debug("{} init complete...".format(__name__))
 
+    # ********************************************************************************************************************
     def create_rotary(self):
+        # creates a callback for both pins that points to same callback
         self.create_callback(self.pin0, self.pin1, self.pin0_debounce, self.pin1_debounce)
 
+    # ********************************************************************************************************************
     def create_callback(self, pin0, pin1, pin0_debounce, pin1_debounce):
         """creates list of rotary callbacks so that all the callbacks can
         be disabled at once
@@ -56,6 +55,7 @@ class Rotary(object):
         self.rotary_callback_list.append(self.pin_setup(pin0, pin0_debounce))
         self.rotary_callback_list.append(self.pin_setup(pin1, pin1_debounce))
 
+    # ********************************************************************************************************************
     def pin_setup(self, pin, pin_debounce):
         self.gpio.set_mode(pin, pigpio.INPUT)
         self.gpio.set_pull_up_down(pin, pigpio.PUD_OFF)
@@ -65,7 +65,8 @@ class Rotary(object):
         return cb
 
     # *****************************************************************************************************
-    def rotary_callback(self, pin_num: int, level: int, tick: int, simulate: int = False, sim_pins: list = None) -> None:
+    def rotary_callback(self, pin_num: int, level: int, tick: int, simulate: int = False,
+                        sim_pins: list = None) -> None:
         """receives callback from interrupt on pin pair for a decoder, calls a routine that is passed to the
         class as a callback
         :rtype: list
@@ -89,18 +90,18 @@ class Rotary(object):
                 self.first_pin = pin_num
             self.log.debug("First pin set as {}".format(pin_num))
             pin_num = None
-        if pin_num is not None and Rotary.first_pin:
+        if pin_num is not None and self.first_pin:
             if simulate:
                 self.second_pin = sim_pins[1]
             else:
                 self.second_pin = pin_num
-            self.log.debug("Second pin set as {}".format(Rotary.second_pin))
-        if Rotary.first_pin and Rotary.second_pin:
-            #self.disable_interrupts()
+            self.log.debug("Second pin set as {}".format(self.second_pin))
+        if self.first_pin and self.second_pin:
+            # self.disable_interrupts()
             if self.first_pin == self.pin0 and self.second_pin == self.pin1:
                 direction = Rotary.CLOCKWISE
                 self.log.debug("Direction is CLOCKWISE: {}".format(direction))
-            elif Rotary.first_pin == self.pin1 and self.second_pin == self.pin0:
+            elif self.first_pin == self.pin1 and self.second_pin == self.pin0:
                 direction = Rotary.ANTI_CLOCKWISE
                 self.log.debug("Direction is ANTICLOCKWISE: {}".format(direction))
             else:
@@ -110,19 +111,19 @@ class Rotary(object):
             self.second_pin = None
             delta = tick - self.last_interrupt_time
             if self.last_interrupt_time == 0:
-                delta = 1000000                                        #since first value will have nothing to compare to set at 1000ms
+                delta = 1000000  # since first value will have nothing to compare to set at 1000ms
             self.last_interrupt_time = tick
             self.log.debug("Delta time : {} ms".format(delta / 1000))
-            self.log.debug("Last saved time : {}".format(Rotary.last_interrupt_time))
-            self.callback(self.number, delta, direction)
+            self.log.debug("Last saved time : {}".format(self.last_interrupt_time))
+            self.callback(delta, direction)
 
+    # ********************************************************************************************************************
     def disable_interrupts(self):
         for r in self.rotary_callback_list:
             self.log.debug("Cancel Interrupts on {}".format(r))
             r.cancel()
-
+    #********************************************************************************************************************
     def enable_interrupts(self):
         pass
         # for cb in self.callback_list:
         #     self.gpio.callback(cb[0],cb[1],cb[2])
-
