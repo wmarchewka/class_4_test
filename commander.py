@@ -1,7 +1,9 @@
 import faulthandler
+
 faulthandler.enable()
 import logging
 import argparse
+import time
 from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import QTimer
 
@@ -10,7 +12,7 @@ import config
 import speedgen_new
 import gains
 import logger
-import gui.gui
+import gui.gui_new
 
 
 class Commander(object):
@@ -34,7 +36,7 @@ class Commander(object):
             self.logging_level = self.level_config[self.logging_args[0]]
             logger.Logger(level=self.logging_level)
         self.config = config.Config()
-        self.gui = gui.gui.Mainwindow()
+        self.gui = gui.gui_new.Mainwindow(self)
         self.GAIN_0_CS = self.config.GAIN_0_CS
         self.GAIN_1_CS = self.config.GAIN_1_CS
         self.GAIN_0_THRESHOLDS = self.config.gain_0_thresholds
@@ -67,30 +69,30 @@ class Commander(object):
         self.rotary_1_pin_1_debounce = self.config.rotary_1_pin_1_debounce
         self.speed_0_thresholds = self.config.SPEED_0_thresholds
         self.speed_1_thresholds = self.config.SPEED_1_thresholds
-
         self.speed0 = speedgen_new.Speedgen(self.speed_0_name, self.speed_0_shape, self.speed_0_spi_channel,
                                             self.SPEED_0_CS,
                                             self.rotary_0_pins[0], self.rotary_0_pins[1],
                                             self.rotary_0_pin_0_debounce,
                                             self.rotary_0_pin_1_debounce, self.speed_0_thresholds, self.speed_callback,
                                             self.commander_speed_move_callback)
-
         self.speed1 = speedgen_new.Speedgen(self.speed_1_name, self.speed_1_shape, self.speed_1_spi_channel,
                                             self.SPEED_1_CS,
                                             self.rotary_1_pins[0], self.rotary_1_pins[1],
                                             self.rotary_1_pin_0_debounce,
                                             self.rotary_1_pin_1_debounce, self.speed_1_thresholds, self.speed_callback,
                                             self.commander_speed_move_callback)
-
         self.gain0 = gains.Gains(self.gain_0_name, self.gain_0_spi_channel, self.GAIN_0_CS,
                                  self.rotary_2_pins[0], self.rotary_2_pins[1], self.rotary_2_pin_0_debounce,
                                  self.rotary_2_pin_1_debounce, self.gain_0_thresholds, self.gains_callback,
                                  self.commander_gain_move_callback)
-
         self.gain1 = gains.Gains(self.gain_1_name, self.gain_1_spi_channel, self.GAIN_1_CS,
                                  self.rotary_3_pins[0], self.rotary_3_pins[1], self.rotary_3_pin_0_debounce,
                                  self.rotary_3_pin_1_debounce, self.gain_1_thresholds, self.gains_callback,
                                  self.commander_gain_move_callback)
+        self.mainwindow = gui.gui_new.Mainwindow(self)
+
+    def startup_processes(self):
+        pass
 
     def parse_args(self, arguments):
         for currentArgument, currentValue in arguments:
@@ -145,10 +147,15 @@ class Commander(object):
                 self.gain1_val = self.gain1_val - 1
         self.gui.window.QDIAL_secondary_gain.setValue(self.gain1_val)
 
+    def simulate_speed(self, name, sim_pins):
+        self.log.debug("Simulatiung:{} PINS:{}".format(name, sim_pins))
+        if name == "SPEED1":
+            self.speed0.rotary.rotary_callback(0, 0, time.time(), True, self.rotary_0_pins[0], self.rotary_0_pins[1])
+
+
 if __name__ == "__main__":
     app = QApplication(['PORTABLE TESTER'])
     # app.setStyle("fusion")
-    start_window = gui.gui.Mainwindow()
     commander = Commander()
     # the timer calls itself every 100ms to allow to break in GUI
     timer = QTimer()

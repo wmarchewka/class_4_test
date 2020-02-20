@@ -1,22 +1,20 @@
 import logging
 import support.support
-import rotary
-import speedgen
 import logger
+import config
 
 class Simulation(object):
 
     logging.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, mainwindow):
+    def __init__(self, commander):
         self.logger = logger.Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.log.info('Starting up simulation routine...')
-        self.mainwindow = mainwindow
         self.support = support.support.Support()
-        if __name__ == '__main__':
-            self.signal_generator = speedgen.Speedgen()
+        self.config = config.Config()
+        self.commander = commander
         self.log.debug('Simulation initializing...')
         self.primary_gain_last_value = 0
         self.secondary_gain_last_value = 0
@@ -69,7 +67,7 @@ class Simulation(object):
         else:
             self.log.debug("Speed 1 GUI Knob  CLOCKWISE")
             direction = self.clockwise
-        self.speed_1_change(direction)
+        self.speed_0_change(direction)
         self.speed_1_last_value = value
 
     # **************************************************************************
@@ -80,136 +78,42 @@ class Simulation(object):
         else:
             self.log.debug("Speed 2 GUI Knob CLOCKWISE")
             direction = self.clockwise
-        self.speed_2_change(direction)
+        self.speed_1_change(direction)
         self.speed_2_last_value = value
 
     # **************************************************************************
     def primary_gain_change(self, direction):
         if direction == self.clockwise:
-            self.primary_gain_local_val = self.primary_gain_local_val + 1
-            if self.primary_gain_local_val > 4:
-                self.primary_gain_local_val = 1
-        else:
-            self.primary_gain_local_val = self.primary_gain_local_val - 1
-            if self.primary_gain_local_val < 1:
-                self.primary_gain_local_val = 4
-        self.log.debug('PRIMARY GAIN VAL:' + str(self.primary_gain_local_val))
-        if self.primary_gain_local_val == 1:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 1]
-            self.rotary.rotary_2_pin_0(23, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.primary_gain_local_val == 2:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 1]
-            self.rotary.rotary_2_pin_1(24, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.primary_gain_local_val == 3:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 0]
-            self.rotary.rotary_2_pin_0(23, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.primary_gain_local_val == 4:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 0]
-            self.rotary.rotary_2_pin_1(24, self.level, self.tick)
-            self.rotary.simulate = False
+            self.sim_pins = self.config.rotary_2_pins
+        elif direction == self.anti_clockwise:
+            self.sim_pins = reversed(self.config.rotary_2_pins)
+        self.commander.simulate_gain("GAIN0",self.sim_pins)
 
     # **************************************************************************
     def secondary_gain_change(self, direction):
         if direction == self.clockwise:
-            self.secondary_gain_local_val = self.secondary_gain_local_val + 1
-            if self.secondary_gain_local_val > 4:
-                self.secondary_gain_local_val = 1
+            self.sim_pins = self.config.rotary_3_pins
         elif direction == self.anti_clockwise:
-            self.secondary_gain_local_val = self.secondary_gain_local_val - 1
-            if self.secondary_gain_local_val < 1:
-                self.secondary_gain_local_val = 4
-        self.log.debug('SECONDARY GAIN VAL:' + str(self.secondary_gain_local_val))
-        if self.secondary_gain_local_val == 1:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 1]
-            self.rotary.rotary_3_pin_0(25, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.secondary_gain_local_val == 2:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 1]
-            self.rotary.rotary_3_pin_1(12, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.secondary_gain_local_val == 3:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 0]
-            self.rotary.rotary_3_pin_0(25, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.secondary_gain_local_val == 4:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 0]
-            self.rotary.rotary_3_pin_1(12, self.level, self.tick)
-            self.rotary.simulate = False
+            self.sim_pins = reversed(self.config.rotary_3_pins)
+        self.commander.simulate_gain("GAIN1",self.sim_pins)
+
+
+    # **************************************************************************
+    def speed_0_change(self, direction):
+        if direction == self.clockwise:
+            self.sim_pins = self.config.rotary_0_pins
+        elif direction == self.anti_clockwise:
+            self.sim_pins = reversed(self.config.rotary_0_pins)
+        self.commander.simulate_speed("SPEED0",self.sim_pins)
 
     # **************************************************************************
     def speed_1_change(self, direction):
         if direction == self.clockwise:
-            self.speed_1_local_value = self.speed_1_local_value + 1
-            if self.speed_1_local_value > 4:
-                self.speed_1_local_value = 1
+            self.sim_pins = self.config.rotary_1_pins
         elif direction == self.anti_clockwise:
-            self.speed_1_local_value = self.speed_1_local_value - 1
-            if self.speed_1_local_value < 1:
-                self.speed_1_local_value = 4
-        self.log.debug('SPEED 1 VAL:' + str(self.speed_1_local_value))
-        if self.speed_1_local_value == 1:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 1]
-            self.rotary.rotary_0_pin_0(4, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.speed_1_local_value == 2:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 1]
-            self.rotary.rotary_0_pin_1(14, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.speed_1_local_value == 3:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 0]
-            self.rotary.rotary_0_pin_0(4, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.speed_1_local_value == 4:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 0]
-            self.rotary.rotary_0_pin_1(14, self.level, self.tick)
-            self.rotary.simulate = False
+            self.sim_pins = reversed(self.config.rotary_1_pins)
+        self.commander.simulate_speed("SPEED1", self.sim_pins)
 
-    # **************************************************************************
-    def speed_2_change(self, direction):
-        if direction == self.clockwise:
-            self.speed_2_local_value = self.speed_2_local_value + 1
-            if self.speed_2_local_value > 4:
-                self.speed_2_local_value = 1
-        elif direction == self.anti_clockwise:
-            self.speed_2_local_value = self.speed_2_local_value - 1
-            if self.speed_2_local_value < 1:
-                self.speed_2_local_value = 4
-        self.log.debug('SPEED 2 VAL:' + str(self.speed_2_local_value))
-        if self.speed_2_local_value == 1:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 1]
-            self.rotary.rotary_1_pin_0(15, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.speed_2_local_value == 2:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 1]
-            self.rotary.rotary_1_pin_1(22, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.speed_2_local_value == 3:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [1, 0]
-            self.rotary.rotary_1_pin_0(15, self.level, self.tick)
-            self.rotary.simulate = False
-        if self.speed_2_local_value == 4:
-            self.rotary.simulate = True
-            self.rotary.sim_pins = [0, 0]
-            self.rotary.rotary_1_pin_1(22, self.level, self.tick)
-            self.rotary.simulate = False
     # **************************************************************************
     def __str__(self):
         return 'Simulation'

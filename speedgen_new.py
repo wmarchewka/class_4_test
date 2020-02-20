@@ -7,9 +7,6 @@ import decoder
 import spi
 import rotary_new
 import pollperm
-import gui.gui
-import speedgen_new
-import gains
 import logger
 import config
 
@@ -56,7 +53,7 @@ class Speedgen(object):
         self.pin_1_debounce = pin_1_debounce
         self.callback = callback
         self.commander_speed_move_callback = commander_speed_move_callback
-
+        self.rotary = None
         self.delta = 0
         self.direction = 0
         self.speed = 0
@@ -77,9 +74,9 @@ class Speedgen(object):
     def create_rotary(self):
         """create global list of rotary encoders create across instances so that we can
         disable or enable all callbacks"""
-        Speedgen.rotaries.append(
-            rotary_new.Rotary(self.name, self.set_speed_signal_callback, self.pin_0, self.pin_1,
-                              self.pin_0_debounce, self.pin_1_debounce))
+        self.rotary = rotary_new.Rotary(self.name, self.set_speed_signal_callback, self.pin_0, self.pin_1,
+                              self.pin_0_debounce, self.pin_1_debounce)
+        Speedgen.rotaries.append(self.rotary)
 
     # **************************************************************************************************************
     def set_speed_signal_callback(self, delta: int, direction=None):

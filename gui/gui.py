@@ -16,6 +16,7 @@ from PySide2 import QtCore
 from PySide2.QtCore import QTimer, QFile
 from PySide2.QtGui import QFontDatabase
 from PySide2.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
+
 #my libraries
 import basiclogger
 import gui.signalsslots
@@ -41,17 +42,17 @@ class Mainwindow(QMainWindow):
     screen_brightness_max = None
     screen_brightness_min = None
 
-    def __init__(self):
+    def __init__(self, commander):
         super().__init__()
         self.window = None
         self.config = config.Config()
-        #self.digitalpots = digpots.DigPots()
-        self.signalslots = gui.signalsslots.Signalslots()
+        self.signalslots = gui.signalsslots.Signalslots(commander)
         self.support = support.support.Support()
         self.gpio = gpio.Gpio()
         self.logger = logger.Logger()
         self.securitylevel = securitylevel.SecurityLevel()
-        self.simulation = simulation.Simulation(self)
+        self.simulation = simulation.Simulation(commander)
+        self.commander = commander
         #self.pollvalues = pollvalues
         self.log = self.logger.log
         self.log = logging.getLogger()

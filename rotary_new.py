@@ -117,6 +117,7 @@ class Rotary(object):
             self.log.debug("Last saved time : {}".format(self.last_interrupt_time))
             self.callback(delta, direction)
 
+
     # ********************************************************************************************************************
     def disable_interrupts(self):
         for r in self.rotary_callback_list:

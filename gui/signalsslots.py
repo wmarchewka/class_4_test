@@ -1,14 +1,16 @@
 import logging
 import logger
+import commander
 
 class Signalslots(object):
 
     logging.debug("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self):
+    def __init__(self, commander, simulate):
         self.logger = logger.Logger()
         self.log = self.logger
         self.log = logging.getLogger()
+        self.commander = commander
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
@@ -25,8 +27,8 @@ class Signalslots(object):
         window.QDIAL_secondary_gain.valueChanged.connect(gui.secondary_gain_change)
 
         # speed 1 and speed2 value change
-        window.QDIAL_speed_1.valueChanged.connect(gui.speed_1_change)
-        window.QDIAL_speed_2.valueChanged.connect(gui.speed_2_change)
+        window.QDIAL_speed_1.valueChanged.connect(self.)
+        window.QDIAL_speed_2.valueChanged.connect(self.commander.simulate_speed)
 
         # TIMER ON OFF BUTTONS
         window.PB_display_timer_toggle.clicked.connect(gui.display_timer_toggled)  # PB to turn timers on and off
