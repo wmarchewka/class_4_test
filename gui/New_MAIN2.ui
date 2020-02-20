@@ -4864,13 +4864,22 @@ color: rgb(252, 1, 7);</string>
        <bool>true</bool>
       </property>
       <property name="minimum">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="maximum">
        <number>24</number>
       </property>
+      <property name="pageStep">
+       <number>24</number>
+      </property>
+      <property name="tracking">
+       <bool>true</bool>
+      </property>
       <property name="wrapping">
        <bool>true</bool>
+      </property>
+      <property name="notchTarget">
+       <double>1.000000000000000</double>
       </property>
      </widget>
      <widget class="QCheckBox" name="CHK_secondary_frequency_auto">
@@ -5231,12 +5240,12 @@ color: rgb(252, 1, 7);</string>
   </property>
  </designerdata>
  <buttongroups>
-  <buttongroup name="buttonGroup_3"/>
+  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
-  <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup_3"/>
  </buttongroups>
 </ui>

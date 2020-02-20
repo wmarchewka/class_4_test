@@ -1,5 +1,6 @@
 # libraries
 import logging
+import time
 
 # my libraries
 import basiclogger
@@ -9,6 +10,7 @@ import rotary_new
 import pollperm
 import logger
 import config
+
 
 class Speedgen(object):
     logging.info("Instantiating {} class...".format(__qualname__))
@@ -25,6 +27,7 @@ class Speedgen(object):
     FREQ_SHAPE_TRIANGLE = 2
     CLOCKWISE = 1
     ANTI_CLOCKWISE = -1
+    DIRECTION_ERROR = 0
     ERROR = 0
     SPEED_REG = 0
     FREQ_SHAPE = [FREQ_SHAPE_SINE, FREQ_SHAPE_SINE]
@@ -64,60 +67,93 @@ class Speedgen(object):
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
+    def simulate(self, sim_pins):
+        """
+        allows simulation of speed signal
+        :param sim_pins: pin numbers to simulate
+        """
+        tick = self.rotary.gpio.get_current_tick()
+        self.rotary.interrupt_callback(0, 0, tick, True, sim_pins)
+
     # **************************************************************************************************************
     def startup_processes(self):
+        """
+        run any process that you need to at startup
+        """
         self.load_config()
         self.create_rotary()
         self.speed_off()
 
     # **************************************************************************************************************
     def create_rotary(self):
-        """create global list of rotary encoders create across instances so that we can
-        disable or enable all callbacks"""
-        self.rotary = rotary_new.Rotary(self.name, self.set_speed_signal_callback, self.pin_0, self.pin_1,
-                              self.pin_0_debounce, self.pin_1_debounce)
+        """creates rotary instance and also create global list of rotary encoders create across instances
+        so that we can disable or enable all callbacks
+        """
+        self.rotary = rotary_new.Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
+                                        self.pin_0_debounce, self.pin_1_debounce)
         Speedgen.rotaries.append(self.rotary)
 
-    # **************************************************************************************************************
-    def set_speed_signal_callback(self, delta: int, direction=None):
-        self.delta = delta / 1000
-        self.new_speed_increment = round(50000 / self.delta)
-        self.direction = direction
-        self.log.debug("{} Delta:{}".format(self.name, self.delta))
-        self.speed = 0
-        self.log.debug("Thresholds {}".format(self.thresholds))
+    # ***************************************************************************************************************
+    def threshold_check(self, delta):
+        """
+        converts the delta time between encode clicks into an amount to add/subtract from the speed value
+        :rtype: object
+        """
+        speed = 0
         for t in self.thresholds:
             val = t[0]
             self.log.debug("Checking Threshold {}ms".format(val))
-            if self.delta >= val:
-                self.speed = self.speed + 1
-            else:
-                break
-        self.speed = self.speed - 1
-        self.log.debug("Speed threshold {}".format(self.speed))
-        self.speed_increment = self.thresholds[self.speed][1]
-        self.log.debug("Speed increment:{}   New Speed Increment:{}".format(self.speed_increment, self.new_speed_increment ))
-        self.commander_speed_move_callback(self.name, direction, self.speed_increment)
-        if self.direction == Speedgen.CLOCKWISE:
-            self.direction_text = "CLOCKWISE"
-            self.speed_frequency = self.speed_frequency + self.speed_increment
+            if delta >= val:
+                speed = speed + 1
+        speed = speed - 1
+        speed_increment = self.thresholds[speed][1]
+        self.log.debug("Speed threshold:{} | Speed increment:{}".format(speed, speed_increment))
+        return speed_increment
+
+    # ***************************************************************************************************************
+    def bounds_check(self, simulate, speed_increment, direction):
+        direction_text = None
+        if not simulate:
+            # this callback will move the dial on the screen.
+            self.commander_speed_move_callback(self.name, direction, speed_increment)
+        if direction == Speedgen.CLOCKWISE:
+            direction_text = "CLOCKWISE"
+            self.speed_frequency = self.speed_frequency + speed_increment
             if self.speed_frequency > self.SPEED_FREQUENCY_MAX:
                 self.speed_frequency = self.SPEED_FREQUENCY_MAX
         elif direction == Speedgen.ANTI_CLOCKWISE:
-            self.direction_text = "ANTI CLOCKWISE"
-            self.speed_frequency = self.speed_frequency - self.speed_increment
+            direction_text = "ANTI CLOCKWISE"
+            self.speed_frequency = self.speed_frequency - speed_increment
             if self.speed_frequency < self.SPEED_FREQUENCY_MIN:
                 self.speed_frequency = self.SPEED_FREQUENCY_MIN
         else:
             self.direction_text = "ERROR"
-        self.log.debug(
-            'SIGGEN Setting speed of {}  with speed of:{}  direction:{} '.format(self.name, self.speed_frequency,
-                                                                                 self.direction_text))
-        self.log.info("{}  FREQ:{}".format(self.name,self.speed_frequency))
-        self.callback(self.name, self.speed_frequency)
-        self.spi_msg = self.frequency_to_registers(self.speed_frequency, self.shape)
-        if self.direction is not 0:
-            self.spi_send(self.spi_msg)
+        self.log.debug("Simulate:{}  Speed Increment:{}  Direction:{}".format(simulate, speed_increment, direction_text))
+        return self.speed_frequency
+
+    # **************************************************************************************************************
+    def interrupt_callback(self, delta: int, direction=None, simulate=None):
+        """
+        This is the callback that is sent to the rotary class and will be called when the rotary pins are
+        interrupted.  The simulate is included so that if in simulation mode, we will not cause the front
+        panel dial to move.
+        :param delta:
+        :param direction:
+        :param simulate:
+        """
+        if direction is not Speedgen.DIRECTION_ERROR:
+            delta = delta / 1000
+            self.log.debug("{} Delta:{}".format(self.name, self.delta))
+            self.log.debug("Thresholds {}".format(self.thresholds))
+            speed_increment = self.threshold_check(delta)
+            self.log.debug("Speed threshold {}".format(speed_increment))
+            value = self.bounds_check(simulate, speed_increment, direction)
+            self.log.info("{}  FREQ:{}".format(self.name, value))
+            self.callback(self.name, value)
+            spi_msg = self.frequency_to_registers(self.speed_frequency, self.shape)
+            self.spi_send(spi_msg)
+        else:
+            self.log.debug("Direction error received")
 
     # **************************************************************************************************************
     def disable_interrupts(self):
@@ -140,6 +176,12 @@ class Speedgen(object):
 
     # **************************************************************************************************************
     def frequency_to_registers(self, frequency, shape):
+        """
+        takes a frquency and creates the correct registers to send to the ad9833 freq generating ic
+        :param frequency: frequency in
+        :param shape: shape in
+        :return: creates return msg to send to ad9833
+        """
         msg = []
         self.log.debug(
             "FREQ TO REG running with FREQ:{} SHAPE:{}".format(frequency, shape))
@@ -162,7 +204,14 @@ class Speedgen(object):
         return msg
 
     # **************************************************************************************************************
-    def _ad9833_append(self, integer, msg):
+    @staticmethod
+    def _ad9833_append(integer, msg):
+        """
+        support function
+        :param integer:
+        :param msg:
+        :return:
+        """
         high, low = divmod(integer, 0x100)
         msg.append(high)
         msg.append(low)
@@ -170,11 +219,13 @@ class Speedgen(object):
 
     # **************************************************************************************************************
     def load_config(self):
+        """
+        loads configuration information from config file
+        """
         Speedgen.PRIMARY_SOURCE_FREQUENCY = self.config.primary_source_frequency
         Speedgen.SECONDARY_SOURCE_FREQUENCY = self.config.secondary_source_frequency
         Speedgen.PRIMARY_FREQ_GEN_CONSTANT = self.config.primary_freq_gen_constant  # 268435456.00  # 2^28
         Speedgen.SECONDARY_FREQ_GEN_CONSTANT = self.config.secondary_freq_gen_constant  # 268435456.00  # 2^28
         Speedgen.SPEED_GENERATOR_SET_SPEED_SPI_HEADER = self.config.speed_generator_set_speed_spi_header  # [0x20, 0x00]
-
         Speedgen.SPEED_0_THRESHOLDS = self.config.SPEED_0_thresholds
         Speedgen.SPEED_1_THRESHOLDS = self.config.SPEED_1_thresholds

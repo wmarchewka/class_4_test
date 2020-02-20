@@ -89,12 +89,17 @@ class Commander(object):
                                  self.rotary_3_pins[0], self.rotary_3_pins[1], self.rotary_3_pin_0_debounce,
                                  self.rotary_3_pin_1_debounce, self.gain_1_thresholds, self.gains_callback,
                                  self.commander_gain_move_callback)
-        self.mainwindow = gui.gui_new.Mainwindow(self)
 
+    # ****************************************************************************************************************
     def startup_processes(self):
         pass
 
+    # ****************************************************************************************************************
     def parse_args(self, arguments):
+        """
+        parses arguments sent from running the command line
+        :param arguments:
+        """
         for currentArgument, currentValue in arguments:
             if currentArgument in ("-v", "--verbose"):
                 print("enabling verbose mode")
@@ -103,14 +108,39 @@ class Commander(object):
             elif currentArgument in ("-o", "--output"):
                 print(("enabling special output mode (%s)") % (currentValue))
 
+    # ****************************************************************************************************************
     def speed_callback(self, name, frequency):
+        """
+        receives callback from the speed class to update screen
+        :rtype: object
+        """
         self.log.debug("Callback received from {} with value of {}".format(name, frequency))
         if name == "SPEED0":
             self.gui.window.LBL_pri_tach_freq.setText("{:5.0f}".format(frequency))
         if name == "SPEED1":
             self.gui.window.LBL_sec_tach_freq.setText("{:5.0f}".format(frequency))
+        self.log.debug("updated GUI ")
+    # ****************************************************************************************************************
+    def gains_callback(self, name, gain):
+        """
+          receives callback from the speed class to update screen
+          :rtype: object
+          """
+        self.log.debug("Callback received from {} with value of {}".format(name, gain))
+        if name == "GAIN0":
+            self.gui.window.LBL_primary_gain_percent.setText("{0:.3%}".format(gain))
+        if name == "GAIN1":
+            self.gui.window.LBL_secondary_gain_percent.setText("{0:.3%}".format(gain))
 
+    # ****************************************************************************************************************
     def commander_speed_move_callback(self, name, direction, speed_increment):
+        """
+        when the physical speed dial is moved this callback is activated.  it causes the screen simulated
+        dial to move
+        :param name:
+        :param direction:
+        :param speed_increment:
+        """
         self.log.debug("Callback from:{} Direction:{} Speed:{}".format(name, direction, speed_increment))
         if name == "SPEED0":
             if direction == 1:
@@ -125,14 +155,15 @@ class Commander(object):
                 self.speed1_val = self.speed1_val - 1
         self.gui.window.QDIAL_speed_2.setValue(self.speed1_val)
 
-    def gains_callback(self, name, gain):
-        self.log.debug("Callback received from {} with value of {}".format(name, gain))
-        if name == "GAIN0":
-            self.gui.window.LBL_primary_gain_percent.setText("{0:.3%}".format(gain))
-        if name == "GAIN1":
-            self.gui.window.LBL_secondary_gain_percent.setText("{0:.3%}".format(gain))
-
+    # ****************************************************************************************************************
     def commander_gain_move_callback(self, name, direction, speed_increment):
+        """
+        when the physical speed dial is moved this callback is activated.  it causes the screen simulated
+        dial to move
+        :param name:
+        :param direction:
+        :param speed_increment:
+        """
         self.log.debug("Callback from:{} Direction:{} Speed:{}".format(name, direction, speed_increment))
         if name == "GAIN0":
             if direction == 1:
@@ -147,14 +178,36 @@ class Commander(object):
                 self.gain1_val = self.gain1_val - 1
         self.gui.window.QDIAL_secondary_gain.setValue(self.gain1_val)
 
+    #****************************************************************************************************************
     def simulate_speed(self, name, sim_pins):
-        self.log.debug("Simulatiung:{} PINS:{}".format(name, sim_pins))
+        """
+        when the on screen dial is rotated, this routine is called to simulate the physical pot turning
+        :param name:
+        :param sim_pins:
+        """
+        self.log.debug("Simulating:{} PINS:{}".format(name, sim_pins))
+        if name == "SPEED0":
+            self.speed0.simulate(sim_pins)
         if name == "SPEED1":
-            self.speed0.rotary.rotary_callback(0, 0, time.time(), True, self.rotary_0_pins[0], self.rotary_0_pins[1])
+            self.speed0.simulate(sim_pins)
+
+    #****************************************************************************************************************
+    def simulate_gain(self, name, sim_pins):
+        """
+        when the on screen dial is rotated, this routine is called to simulate the physical pot turning
+        :param name:
+        :param sim_pins:
+        """
+        self.log.debug("Simulating:{} PINS:{}".format(name, sim_pins))
+        if name == "SPEED0":
+            self.gain0.simulate(sim_pins)
+        if name == "SPEED1":
+            self.gain0.simulate(sim_pins)
 
 
 if __name__ == "__main__":
     app = QApplication(['PORTABLE TESTER'])
+    app.setWheelScrollLines(1)
     # app.setStyle("fusion")
     commander = Commander()
     # the timer calls itself every 100ms to allow to break in GUI

@@ -60,13 +60,13 @@ class Rotary(object):
         self.gpio.set_mode(pin, pigpio.INPUT)
         self.gpio.set_pull_up_down(pin, pigpio.PUD_OFF)
         self.gpio.set_glitch_filter(pin, pin_debounce)  # microseconds
-        cb = self.gpio.callback(pin, pigpio.EITHER_EDGE, self.rotary_callback)
-        self.callback_list.append((pin, pigpio.EITHER_EDGE, self.rotary_callback))
+        cb = self.gpio.callback(pin, pigpio.EITHER_EDGE, self.interrupt_callback)
+        self.callback_list.append((pin, pigpio.EITHER_EDGE, self.interrupt_callback))
         return cb
 
     # *****************************************************************************************************
-    def rotary_callback(self, pin_num: int, level: int, tick: int, simulate: int = False,
-                        sim_pins: list = None) -> None:
+    def interrupt_callback(self, pin_num: int, level: int, tick: int, simulate: int = False,
+                           sim_pins: list = None) -> None:
         """receives callback from interrupt on pin pair for a decoder, calls a routine that is passed to the
         class as a callback
         :rtype: list
@@ -76,47 +76,49 @@ class Rotary(object):
         :param simulate: do you want to simlulate the pins generating an interrupt
         :param sim_pins: what pins to send simulate an interrupt occured
         """
+        first_pin = 0
+        second_pin = 0
+        pin_num = 0
         self.log.debug("#######################################################")
         self.pollperm.polling_prohitied = (True, __name__)
         self.log.debug("BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
-        if simulate:
-            self.first_pin = sim_pins[0]
-            self.second_pin = sim_pins[1]
-            self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
         if self.first_pin is None:
             if simulate:
-                self.first_pin = sim_pins[0]
+                pin_num = sim_pins[0]
+                first_pin = sim_pins[0]
+                second_pin = sim_pins[1]
+                self.log.debug('Simulated interrupt with PINS ' + str(sim_pins))
+                pin_num = sim_pins[1]
             else:
-                self.first_pin = pin_num
-            self.log.debug("First pin set as {}".format(pin_num))
-            pin_num = None
-        if pin_num is not None and self.first_pin:
+                first_pin = pin_num
+                pin_num = None
+            self.log.debug("First pin set as {}".format(first_pin))
+        if pin_num is not None and first_pin:
             if simulate:
-                self.second_pin = sim_pins[1]
+                second_pin = sim_pins[1]
             else:
-                self.second_pin = pin_num
-            self.log.debug("Second pin set as {}".format(self.second_pin))
-        if self.first_pin and self.second_pin:
+                second_pin = pin_num
+            self.log.debug("Second pin set as {}".format(second_pin))
+        if first_pin and second_pin:
             # self.disable_interrupts()
-            if self.first_pin == self.pin0 and self.second_pin == self.pin1:
+            if first_pin == self.pin0 and second_pin == self.pin1:
                 direction = Rotary.CLOCKWISE
                 self.log.debug("Direction is CLOCKWISE: {}".format(direction))
-            elif self.first_pin == self.pin1 and self.second_pin == self.pin0:
+            elif first_pin == self.pin1 and second_pin == self.pin0:
                 direction = Rotary.ANTI_CLOCKWISE
                 self.log.debug("Direction is ANTICLOCKWISE: {}".format(direction))
             else:
                 direction = Rotary.DIRECTION_ERROR
                 self.log.debug("Direction is ERROR: {}".format(direction))
-            self.first_pin = None
-            self.second_pin = None
+            first_pin = None
+            second_pin = None
             delta = tick - self.last_interrupt_time
             if self.last_interrupt_time == 0:
                 delta = 1000000  # since first value will have nothing to compare to set at 1000ms
             self.last_interrupt_time = tick
             self.log.debug("Delta time : {} ms".format(delta / 1000))
             self.log.debug("Last saved time : {}".format(self.last_interrupt_time))
-            self.callback(delta, direction)
-
+            self.callback(delta, direction, simulate)
 
     # ********************************************************************************************************************
     def disable_interrupts(self):

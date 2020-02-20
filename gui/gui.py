@@ -519,7 +519,7 @@ class Mainwindow(QMainWindow):
         #     self.pri_gain_count = self.pri_gain_count - 1
         #     if self.pri_gain_count < 1:
         #         self.pri_gain_count = 20
-        #     self.primary_gain_change(self.pri_gain_count)
+        #     self.primary_gain_get_pins(self.pri_gain_count)
         # if self.CHK_secondary_gain_auto.isChecked():
         #     self.log.debug("Seondary GAIN in AUTO MODE Count: {}".format(self.sec_gain_count))
         #     self.sec_gain_count = self.sec_gain_count - 1
@@ -741,7 +741,7 @@ class Mainwindow(QMainWindow):
         elif command[0] == "PULSECODES":
             self.comm_send_query_data("PULSECODES", peer_info)
         elif command[0] == "PRIGAIN":
-            # self.primary_gain_change(int(command[1]))
+            # self.primary_gain_get_pins(int(command[1]))
             self.gains.primary_gain_set_percent(float(command[1]))
             # self.comm_send_query_data("OK", peer_info)
         elif command[0] == "SECGAIN":
@@ -1005,7 +1005,7 @@ class Mainwindow(QMainWindow):
     def speed_1_change(self, value):
         self.log.debug('START OF SPEED 1******************************************')
         self.log.debug('Speed 1 GUI knob value : ' + str(value))
-        self.simulation.change_speed_1(value)
+        self.simulation.change_speed_0(value)
         self.log.debug('END OF SPEED 1********************************************')
 
         # ************************************************************************************
@@ -1015,7 +1015,7 @@ class Mainwindow(QMainWindow):
     def speed_2_change(self, value):
         self.log.debug('START OF SPEED 2******************************************')
         self.log.debug('Speed 2 GUI knob value : ' + str(value))
-        self.simulation.change_speed_2(value)
+        self.simulation.change_speed_1(value)
         self.log.debug('END OF SPEED 2********************************************')
 
         # ************************************************************************************

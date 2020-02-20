@@ -21,6 +21,7 @@ from PySide2.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
 import config
 import logger
 import support.support
+import signaling
 
 class Mainwindow(QMainWindow):
 
@@ -37,17 +38,8 @@ class Mainwindow(QMainWindow):
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.startup_processes()
+        self.signaling = signaling.Signaling(self.window, self.commander)
         self.log.debug("{} init complete...".format(__name__))
-
-
-    def signaling(self):
-        # primary and secondary gain encoders value change
-        self.window.QDIAL_primary_gain.valueChanged.connect(self.commander.primary_gain_change)
-        self.window.QDIAL_secondary_gain.valueChanged.connect(self.commander.secondary_gain_change)
-
-        # speed 1 and speed2 value change
-        self.window.QDIAL_speed_1.valueChanged.connect(self.commander.primary_gain_change)
-        self.window.QDIAL_speed_2.valueChanged.connect(self.commander.primary_gain_change)
 
     def startup_processes(self):
         self.config_file_load()

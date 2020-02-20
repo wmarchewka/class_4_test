@@ -3,122 +3,138 @@ import support.support
 import logger
 import config
 
-class Simulation(object):
 
+class Simulation(object):
     logging.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, commander):
+    def __init__(self):
         self.logger = logger.Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.log.info('Starting up simulation routine...')
         self.support = support.support.Support()
         self.config = config.Config()
-        self.commander = commander
         self.log.debug('Simulation initializing...')
-        self.primary_gain_last_value = 0
-        self.secondary_gain_last_value = 0
-        self.primary_gain_local_val = 0
-        self.secondary_gain_local_val = 0
-        self.primary_gain_direction = 0
-        self.secondary_gain_direction = 0
+        self.speed_0_last_value = 0
         self.speed_1_last_value = 0
-        self.speed_2_last_value = 0
-        self.speed_1_local_value = 0
-        self.speed_2_local_value = 0
-        self.speed_1_direction = 0
-        self.speed_2_direction = 0
-        self.freq = 6
-        self.cs = 0
-        self.clockwise = 1
-        self.anti_clockwise = 0
-        self.level = 0
-        self.tick = 0
+        self.gain_0_last_value = 0
+        self.gain_1_last_value = 0
+        self.CLOCKWISE = 1
+        self.ANTI_CLOCKWISE = 0
+        self.sim_pins = []
         self.log.debug("{} init complete...".format(__name__))
 
     # **************************************************************************
-    def change_primary_gain(self, value):
-        if value > self.primary_gain_last_value:
-            self.log.debug("Primary Gain GUI Knob ANTI CLOCKWISE")
-            self.primary_gain_direction = self.anti_clockwise
-        else:
-            self.log.debug("Primary Gain GUI Knob CLOCKWISE")
-            self.primary_gain_direction = self.clockwise
-        self.primary_gain_change(self.primary_gain_direction)
-        self.primary_gain_last_value = value
+    # **************************************************************************
+    def gain_0_value_changed(self, value):
+        direction = 0
+        diff = value - self.gain_0_last_value
+        self.log.debug("Diff:{}".format(diff))
+        if diff == 1 or diff == -23:
+            self.log.debug("GAIN 0 GUI Knob  CLOCKWISE")
+            direction = self.CLOCKWISE
+        elif diff == -1 or diff == 23:
+            self.log.debug("GAIN 0 GUI Knob ANTI CLOCKWISE")
+            direction = self.ANTI_CLOCKWISE
+        sim_pins = self.change_gain_0(direction)
+        self.gain_0_last_value = value
+        return sim_pins
 
     # **************************************************************************
-    def change_secondary_gain(self, value):
-        # print('FREQ VALUE :' + str(value))
-        if value > self.secondary_gain_last_value:
-            self.log.debug("Secondary Gain GUI Knob ANTI CLOCKKWISE")
-            direction = self.anti_clockwise
+    def change_gain_0(self, direction):
+        if direction == self.CLOCKWISE:
+            sim_pins = self.config.rotary_2_pins
+            sim_pins = sim_pins[::-1]
+        elif direction == self.ANTI_CLOCKWISE:
+            sim_pins = self.config.rotary_2_pins
         else:
-            self.log.debug("Secondary Gain GUI Knob CLOCKWISE")
-            direction = self.clockwise
-        self.secondary_gain_change(direction)
-        self.secondary_gain_last_value = value
+            sim_pins = [0, 0]
+        return sim_pins
 
     # **************************************************************************
-    def change_speed_1(self, value):
-        if value > self.speed_1_last_value:
-            self.log.debug("Speed 1 GUI Knob ANTI CLOCKWISE")
-            direction = self.anti_clockwise
+    # **************************************************************************
+    def gain_1_value_changed(self, value):
+        direction = 0
+        diff = value - self.gain_1_last_value
+        self.log.debug("Diff:{}".format(diff))
+        if diff == 1 or diff == -23:
+            self.log.debug("GAIN 1 GUI Knob  CLOCKWISE")
+            direction = self.CLOCKWISE
+        elif diff == -1 or diff == 23:
+            self.log.debug("GAIN 1 GUI Knob ANTI CLOCKWISE")
+            direction = self.ANTI_CLOCKWISE
+        sim_pins = self.change_gain_1(direction)
+        self.gain_1_last_value = value
+        return sim_pins
+
+    # **************************************************************************
+    def change_gain_1(self, direction):
+        if direction == self.CLOCKWISE:
+            sim_pins = self.config.rotary_3_pins
+            sim_pins = sim_pins[::-1]
+        elif direction == self.ANTI_CLOCKWISE:
+            sim_pins = self.config.rotary_3_pins
         else:
-            self.log.debug("Speed 1 GUI Knob  CLOCKWISE")
-            direction = self.clockwise
-        self.speed_0_change(direction)
+            sim_pins = [0, 0]
+        return sim_pins
+
+    # **************************************************************************
+    # **************************************************************************
+    def speed_0_value_changed(self, value):
+        direction = 0
+        diff = value - self.speed_0_last_value
+        self.log.debug("Diff:{}".format(diff))
+        if diff == 1 or diff == -23:
+            self.log.debug("SPEED0 GUI Knob  CLOCKWISE")
+            direction = self.CLOCKWISE
+        elif diff == -1  or diff == 23:
+            self.log.debug("SPEED0 GUI Knob ANTI CLOCKWISE")
+            direction = self.ANTI_CLOCKWISE
+        sim_pins = self.change_speed_0(direction)
+        self.speed_0_last_value = value
+        return sim_pins
+
+    # **************************************************************************
+    def change_speed_0(self, direction):
+        if direction == self.CLOCKWISE:
+            sim_pins = self.config.rotary_0_pins
+        elif direction == self.ANTI_CLOCKWISE:
+            sim_pins = self.config.rotary_0_pins
+            sim_pins = sim_pins[::-1]
+        else:
+            sim_pins = [0, 0]
+        return sim_pins
+
+    # **************************************************************************
+    # **************************************************************************
+    def speed_1_value_changed(self, value):
+        direction = 0
+        diff = value - self.speed_1_last_value
+        self.log.debug("Diff:{}".format(diff))
+        if diff == 1 or diff == -23:
+            self.log.debug("SPEED0 1 GUI Knob  CLOCKWISE")
+            direction = self.CLOCKWISE
+        elif diff == -1  or diff == 23:
+            self.log.debug("SPEED1 1 GUI Knob ANTI CLOCKWISE")
+            direction = self.ANTI_CLOCKWISE
+        sim_pins = self.change_speed_1(direction)
         self.speed_1_last_value = value
+        return sim_pins
 
     # **************************************************************************
-    def change_speed_2(self, value):
-        if value > self.speed_2_last_value:
-            self.log.debug("Speed 2 GUI Knob ANTI CLOCKWISE")
-            direction = self.anti_clockwise
+    def change_speed_1(self, direction):
+        if direction == self.CLOCKWISE:
+            sim_pins = self.config.rotary_1_pins
+            sim_pins = sim_pins[::-1]
+        elif direction == self.ANTI_CLOCKWISE:
+            sim_pins = self.config.rotary_1_pins
         else:
-            self.log.debug("Speed 2 GUI Knob CLOCKWISE")
-            direction = self.clockwise
-        self.speed_1_change(direction)
-        self.speed_2_last_value = value
+            sim_pins = [0, 0]
+        return sim_pins
 
-    # **************************************************************************
-    def primary_gain_change(self, direction):
-        if direction == self.clockwise:
-            self.sim_pins = self.config.rotary_2_pins
-        elif direction == self.anti_clockwise:
-            self.sim_pins = reversed(self.config.rotary_2_pins)
-        self.commander.simulate_gain("GAIN0",self.sim_pins)
-
-    # **************************************************************************
-    def secondary_gain_change(self, direction):
-        if direction == self.clockwise:
-            self.sim_pins = self.config.rotary_3_pins
-        elif direction == self.anti_clockwise:
-            self.sim_pins = reversed(self.config.rotary_3_pins)
-        self.commander.simulate_gain("GAIN1",self.sim_pins)
-
-
-    # **************************************************************************
-    def speed_0_change(self, direction):
-        if direction == self.clockwise:
-            self.sim_pins = self.config.rotary_0_pins
-        elif direction == self.anti_clockwise:
-            self.sim_pins = reversed(self.config.rotary_0_pins)
-        self.commander.simulate_speed("SPEED0",self.sim_pins)
-
-    # **************************************************************************
-    def speed_1_change(self, direction):
-        if direction == self.clockwise:
-            self.sim_pins = self.config.rotary_1_pins
-        elif direction == self.anti_clockwise:
-            self.sim_pins = reversed(self.config.rotary_1_pins)
-        self.commander.simulate_speed("SPEED1", self.sim_pins)
-
-    # **************************************************************************
     def __str__(self):
         return 'Simulation'
 
 
 if __name__ == '__main__':
     sim = Simulation
-

@@ -50,6 +50,7 @@ class Gains(object):
         self.speed_value = 0
         self.value = 0
         self.name = name
+        self.rotary = None
         self.pin_0 = pin_0
         self.pin_1 = pin_1
         self.pin_0_debounce = pin_0_debounce
@@ -71,22 +72,43 @@ class Gains(object):
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
+
+
     # ***************************************************************************************************************
     def startup_processes(self):
+        """
+        any processes to run when initialized
+        """
         self.load_config()
-        self.create_rotaries()
+        self.create_rotary()
         # self.speed_off(0)
         # self.speed_off(1)
 
     # ***************************************************************************************************************
-    def create_rotaries(self):
+    def simulate(self, sim_pins):
+        """
+        allows simulation of speed signal
+        :param sim_pins: pin numbers to simulate
+        """
+        self.rotary.interrupt_callback(0, 0, time.time(), True, sim_pins)
+
+    # ***************************************************************************************************************
+    def create_rotary(self):
+        """
+        creats the rotary encoder instance and adds it to global list of encoders.
+        """
         self.log.debug("Creating {} Rotary...".format(self.name))
-        Gains.rotaries.append(
-            rotary_new.Rotary(self.name, self.value_change_callback, self.pin_0, self.pin_1, self.pin_0_debounce,
-                              self.pin_1_debounce))
+        self.rotary = rotary_new.Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
+                                        self.pin_0_debounce, self.pin_1_debounce)
+
+        Gains.rotaries.append(self.rotary)
 
     # ***************************************************************************************************************
     def threshold_check(self, delta):
+        """
+        converts the delta time between encode clicks into an amount to add/subtract from the speed value
+        :rtype: object
+        """
         speed = 0
         for t in self.thresholds:
             val = t[0]
@@ -95,19 +117,23 @@ class Gains(object):
                 speed = speed + 1
         speed = speed - 1
         speed_increment = self.thresholds[speed][1]
-        self.log.debug("Speed threshold:{} | Speed increment:{}".format(speed, speed_increment))
+        self.log.debug("Gain threshold:{} | Gain increment:{}".format(speed, speed_increment))
         return speed_increment
 
     # ***************************************************************************************************************
-    def value_change_callback(self, delta, direction):
+    def interrupt_callback(self, delta: int, direction=None, simulate=None):
+        """
+        this routine is called back from the rotary class when the rotary makes one click
+        :rtype: object
+        """
         self.log.debug('CHANGE WIPER:Speed:{}   Direction:{}'.format(delta, direction))
         if direction is not Gains.DIRECTION_ERROR:
             delta = delta / 1000
             self.log.debug("Delta:{}".format(delta))
             self.log.debug("Thresholds {}".format(self.thresholds))
             speed_increment = self.threshold_check(delta)
-            speed_value = self.bounds_check(speed_increment, direction)
-            coarse_hex, fine_hex = speed_value
+            value = self.bounds_check(speed_increment, direction)
+            coarse_hex, fine_hex = value
             self.digitalpots_send_spi(coarse_hex, fine_hex)
         else:
             self.log.debug("Direction error received")
@@ -119,6 +145,7 @@ class Gains(object):
         divided by the fine ohms amount.  Example:  if 210 ohms is needed, then take 210 / 49.7 = 4 coarse bits.  Then
         subtract the coarse amount from the total, to get the fine amount, ie 210 - 200 = 10.  Then take the 10 ohms
         remaining and divide by fine amount of 10 and you get 1 bit needed for the fine digital pot.
+        :rtype: object
         :param value:
         :param number:
         """
@@ -175,9 +202,14 @@ class Gains(object):
                 self.fine_wiper,
                 self.coarse_wiper_ohms,
                 self.fine_wiper_ohms))
-        return coarse_hex,fine_hex
+        return coarse_hex, fine_hex
+
     # ***************************************************************************************************************
     def digitalpots_send_spi(self, coarse_hex, fine_hex):
+        """
+          prepares spi packet to send to spi
+          :rtype: object
+          """
         self.log.debug('Gain:{} Coarse HEX:{}  Fine HEX{}'.format(self.name, coarse_hex[0:2], fine_hex[0:2]))
         data = Gains.SPI_WRITE_COMMAND + fine_hex[0:2]
         self.log.debug('Data{}'.format(data))
@@ -198,11 +230,14 @@ class Gains(object):
 
     # ***************************************************************************************************************
     def nvram_to_wiper(self):
+        """
+        this command when sent to the pots will copy wiper contents to the NV ram,
+        so that on power up the pots will go to the NV ram value.
+        i want that to be 0
+        """
         # todo make sure this is working
         self.log.debug("COPY NVRAM TO WIPER")
-        # this command when sent to the pots will copy wiper contents to the NV ram,
-        # so that on power up the pots will go to the NV ram value.
-        # i want that to be 0
+
         spi_msg = Gains.SPI_NVRAM_TO_WIPER_COMMAND
         self.spi.write(2, spi_msg, self.decoder.chip_select_primary_coarse_gain)
         time.sleep(0.020)  # delay per data sheet
@@ -222,6 +257,7 @@ class Gains(object):
         """this command when sent to the pots will copy wiper contents to the NV ram,
         so that on power up the pots will go to the NV ram value.
         i want that to be 0
+        :rtype: object
         """
         self.log.debug("COPY WIPER TO NVRAM")
         spi_msg = Gains.SPI_WIPER_TO_NVRAM_COMMAND

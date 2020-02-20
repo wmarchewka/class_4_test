@@ -23,7 +23,7 @@ class Signalslots(object):
         window.TBL_cal_values.cellClicked.connect(gui.cal_values_cell_clicked)
 
         # primary and secondary gain encoders value change
-        window.QDIAL_primary_gain.valueChanged.connect(gui.primary_gain_change)
+        window.QDIAL_primary_gain.valueChanged.connect(gui.primary_gain_get_pins)
         window.QDIAL_secondary_gain.valueChanged.connect(gui.secondary_gain_change)
 
         # speed 1 and speed2 value change
