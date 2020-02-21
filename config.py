@@ -83,7 +83,19 @@ class Config(object):
 
         # CODERATE
         cls.code_rate_generator_toggle_pin = cls.config.getint('CODE RATE', 'code_rate_mux_pin')
+        cls.primary_channel_chip_select_pin = cls.config.getint('CODE RATE', 'primary_channel_chip_select_pin')
+        cls.secondary_channel_chip_select_pin = cls.config.getint('CODE RATE', 'secondary_channel_chip_select_pin')
+        cls.primary_source_frequency = cls.config.getint('CODE RATE', 'primary_source_frequency')
+        cls.secondary_source_frequency = cls.config.getint('CODE RATE', 'secondary_source_frequency')
+        cls.shape_sine = cls.config.getint('CODE RATE', 'shape_sine')
+        cls.shape_square = cls.config.getint('CODE RATE', 'shape_square')
+        cls.shape_triangle = cls.config.getint('CODE RATE', 'shape_triangle')
+        cls.duty_cycle_default = cls.config.getfloat('CODE RATE', 'duty_cycle_default')
+        cls.pulses_per_second_default = cls.config.getfloat('CODE RATE', 'pulses_per_second_default')
+        cls.primary_channel_mux_pin = cls.config.getint('CODE RATE', 'primary_channel_mux_pin')
+        cls.secondary_channel_mux_pin = cls.config.getint('CODE RATE', 'secondary_channel_mux_pin')
 
+        
         #GUI
         cls.display_brightness = cls.config.getint('MAIN', 'screen_brightness')
         cls.guiname = cls.config.get('MAIN', 'gui')

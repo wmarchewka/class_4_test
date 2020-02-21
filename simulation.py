@@ -44,9 +44,9 @@ class Simulation(object):
     def change_gain_0(self, direction):
         if direction == self.CLOCKWISE:
             sim_pins = self.config.rotary_2_pins
-            sim_pins = sim_pins[::-1]
         elif direction == self.ANTI_CLOCKWISE:
             sim_pins = self.config.rotary_2_pins
+            sim_pins = sim_pins[::-1]
         else:
             sim_pins = [0, 0]
         return sim_pins
@@ -71,9 +71,9 @@ class Simulation(object):
     def change_gain_1(self, direction):
         if direction == self.CLOCKWISE:
             sim_pins = self.config.rotary_3_pins
-            sim_pins = sim_pins[::-1]
         elif direction == self.ANTI_CLOCKWISE:
             sim_pins = self.config.rotary_3_pins
+            sim_pins = sim_pins[::-1]
         else:
             sim_pins = [0, 0]
         return sim_pins
@@ -125,9 +125,9 @@ class Simulation(object):
     def change_speed_1(self, direction):
         if direction == self.CLOCKWISE:
             sim_pins = self.config.rotary_1_pins
-            sim_pins = sim_pins[::-1]
         elif direction == self.ANTI_CLOCKWISE:
             sim_pins = self.config.rotary_1_pins
+            sim_pins = sim_pins[::-1]
         else:
             sim_pins = [0, 0]
         return sim_pins

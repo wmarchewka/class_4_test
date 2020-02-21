@@ -8,14 +8,15 @@ from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import QTimer
 
 # my imports
-import config
-import speedgen_new
-import gains
-import logger
-import gui.gui_new
-
+from config import Config
+from speedgen_new import Speedgen
+from gains import Gains
+from logger import Logger
+from gui.gui_new import Mainwindow
+from codegen import Codegen
 
 class Commander(object):
+
     logging.debug("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
@@ -23,9 +24,10 @@ class Commander(object):
         self.gain1_val = 0
         self.speed0_val = 0
         self.speed1_val = 0
-        self.logger = logger.Logger(level=logging.DEBUG)
+        self.logger = Logger(level=logging.DEBUG)
         self.log = self.logger.log
         self.log = logging.getLogger()
+        self.codegen = Codegen()
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('--debug', '-d', nargs="+", type=str)
         self.args = self.parser.parse_args()
@@ -34,9 +36,9 @@ class Commander(object):
         if self.logging_args:
             self.level_config = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, "CRITICAL": logging.CRITICAL}  # etc.
             self.logging_level = self.level_config[self.logging_args[0]]
-            logger.Logger(level=self.logging_level)
-        self.config = config.Config()
-        self.gui = gui.gui_new.Mainwindow(self)
+            Logger(level=self.logging_level)
+        self.config = Config()
+        self.gui = Mainwindow(self)
         self.GAIN_0_CS = self.config.GAIN_0_CS
         self.GAIN_1_CS = self.config.GAIN_1_CS
         self.GAIN_0_THRESHOLDS = self.config.gain_0_thresholds
@@ -69,23 +71,23 @@ class Commander(object):
         self.rotary_1_pin_1_debounce = self.config.rotary_1_pin_1_debounce
         self.speed_0_thresholds = self.config.SPEED_0_thresholds
         self.speed_1_thresholds = self.config.SPEED_1_thresholds
-        self.speed0 = speedgen_new.Speedgen(self.speed_0_name, self.speed_0_shape, self.speed_0_spi_channel,
+        self.speed0 = Speedgen(self.speed_0_name, self.speed_0_shape, self.speed_0_spi_channel,
                                             self.SPEED_0_CS,
                                             self.rotary_0_pins[0], self.rotary_0_pins[1],
                                             self.rotary_0_pin_0_debounce,
                                             self.rotary_0_pin_1_debounce, self.speed_0_thresholds, self.speed_callback,
                                             self.commander_speed_move_callback)
-        self.speed1 = speedgen_new.Speedgen(self.speed_1_name, self.speed_1_shape, self.speed_1_spi_channel,
+        self.speed1 = Speedgen(self.speed_1_name, self.speed_1_shape, self.speed_1_spi_channel,
                                             self.SPEED_1_CS,
                                             self.rotary_1_pins[0], self.rotary_1_pins[1],
                                             self.rotary_1_pin_0_debounce,
                                             self.rotary_1_pin_1_debounce, self.speed_1_thresholds, self.speed_callback,
                                             self.commander_speed_move_callback)
-        self.gain0 = gains.Gains(self.gain_0_name, self.gain_0_spi_channel, self.GAIN_0_CS,
+        self.gain0 = Gains(self.gain_0_name, self.gain_0_spi_channel, self.GAIN_0_CS,
                                  self.rotary_2_pins[0], self.rotary_2_pins[1], self.rotary_2_pin_0_debounce,
                                  self.rotary_2_pin_1_debounce, self.gain_0_thresholds, self.gains_callback,
                                  self.commander_gain_move_callback)
-        self.gain1 = gains.Gains(self.gain_1_name, self.gain_1_spi_channel, self.GAIN_1_CS,
+        self.gain1 = Gains(self.gain_1_name, self.gain_1_spi_channel, self.GAIN_1_CS,
                                  self.rotary_3_pins[0], self.rotary_3_pins[1], self.rotary_3_pin_0_debounce,
                                  self.rotary_3_pin_1_debounce, self.gain_1_thresholds, self.gains_callback,
                                  self.commander_gain_move_callback)
@@ -189,7 +191,7 @@ class Commander(object):
         if name == "SPEED0":
             self.speed0.simulate(sim_pins)
         if name == "SPEED1":
-            self.speed0.simulate(sim_pins)
+            self.speed1.simulate(sim_pins)
 
     #****************************************************************************************************************
     def simulate_gain(self, name, sim_pins):
@@ -202,7 +204,7 @@ class Commander(object):
         if name == "SPEED0":
             self.gain0.simulate(sim_pins)
         if name == "SPEED1":
-            self.gain0.simulate(sim_pins)
+            self.gain1.simulate(sim_pins)
 
 
 if __name__ == "__main__":

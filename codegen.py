@@ -1,12 +1,15 @@
+#libraries
+import os
+import pigpio
+import threading
+import logging
+
+#my libraries
 import logger
 import config
 import spi
 import gpio
 import configparser
-import os
-import pigpio
-import threading
-import logging
 
 class Codegen(object):
 
@@ -16,62 +19,174 @@ class Codegen(object):
         self.logger = logger.Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
+        self.log.debug('Starting up Coderate Generator...')
         self.gpio = gpio.Gpio().gpio
         self.spi = spi.SPI()
         self.config = config.Config()
+        self.speed_generation_shape_override = None
+        self.coded_carrier_pin_state = 0
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
-
     def startup_processes(self):
-        #self.coderate_stop()
-        cwd = os.getcwd()
-        self.log.debug('Starting up Coderate Generator...')
-        self.log.debug("CWD: {}".format(cwd))
-        self.config_file_path = "config/coderates.ini"
-        self.log.debug('Loading coderate template configuration from ' + str(self.config_file_path))
-        self.config_coderates = configparser.ConfigParser()
-        self.config_coderates.sections()
-        self.config_coderates.read_file(open(self.config_file_path))
-        # todo: need to open made config ini file
-        self.companies = self.config_coderates.sections()
-        self.carrier_freq = self.config_coderates.items('CARRIERS')
-        self.coderates = self.config_coderates.items('CODERATES')
-        self.company_frequencies_pb = self.config_coderates.items('SIEMENS MOBILITY FREQUENCIES')
-        self.company_frequencies = self.company_frequencies_pb[0]
-        self.company_frequencies = self.company_frequencies[1]
-        self.company_frequencies = self.company_frequencies.split(",")
-        self.company_coderates_pb = self.config_coderates.items('SIEMENS MOBILITY CODERATES')
-        self.company_coderates = self.company_coderates_pb[0]
-        self.company_coderates = self.company_coderates[1]
-        self.company_coderates = self.company_coderates.split(",")
-        self.log.debug("CarrierFreq Length: {}  {}".format(len(self.carrier_freq), self.carrier_freq))
-        self.log.debug("Coderates Length:   {}  {}".format(len(self.coderates), self.coderates, ))
-        self.primary_source_frequency = 4915200
-        self.secondary_source_frequency = 4915200
-        self.companies_list = None
-        self.carrier_freq_list = None
-        self.coderate_list = None
-        self.primary_channel_chip_select_pin = 0
-        self.secondary_channel_chip_select_pin = 2
-        self.waveform1 = None
-        self.speed_generation_shape_override = None
-        self.frequency = 0
-        self.duty_cycle = 0
-        self.spi_msg = []
-        self.toggle_pin = self.config.code_rate_generator_toggle_pin
-        self.toggle_pin_state = None
+        self.coderate_stop()
+        self.load_from_config()
+        self.load_from_coderate()
+        self.setup_gpio()
+
+    def setup_gpio(self):
         try:
-            self.gpio.set_mode(self.toggle_pin, pigpio.OUTPUT)
+            self.gpio.set_mode(self.coded_carrier_pin, pigpio.OUTPUT)
         except:
             self.log.exception("EXCEPTION in coderate_initialization")
 
+    def load_from_coderate(self):
+        cwd = os.getcwd()
+        self.log.debug("CWD: {}".format(cwd))
+        config_file_path = "config/coderates.ini"
+        self.log.debug('Loading coderate template configuration from ' + str(config_file_path))
+        config_coderates = configparser.ConfigParser()
+        config_coderates.sections()
+        config_coderates.read_file(open(config_file_path))
+        self.frequencies = config_coderates.items('CODERATES')
+        self.coderates = config_coderates.items('FREQUENCIES')
 
-    def pulsecodes_pb(self, company):
-        self.log.debug("Reading pulsecode PB data from INI file for company  {}".format(company))
+    def load_from_config(self):
+        # todo: need to open made config ini file
+        self.primary_channel_chip_select_pin = 0
+        self.secondary_channel_chip_select_pin = 2
+        self.primary_source_frequency = 4915200
+        self.secondary_source_frequency = 4915200
+        self.shape_sine = 0
+        self.shape_square = 1
+        self.shape_triangle = 2
+        self.duty_cycle_default = 50
+        self.pulses_per_second_default = 1000000.0
+        self.primary_channel_mux_pin = 0
+        self.secondary_channel_mux_pin = 1
+        self.shape_default = self.shape_sine
+        self.coded_carrier_pin = self.config.code_rate_generator_toggle_pin
 
-    def frequencies_pb(self, company):
-        self.log.debug("Reading frequency PB data from INI file for company  {}".format(company))
+    def coderate_generate(self, coderate_data):
+        # todo move to initializiation and place in INI
+        """ coderate selection will send the appropriate coderate to be generated.  to generate a coderate we must
+        program both the primary and secondary carrier frequency generators with the appropriate frequency.  then
+        we must select between the 2 frequencies at the coderate passed to us
+        generates code rate frquency which drives 4 channel multiplexer which is used to select between
+        the code rate signal frequency and the carrier frequency at the appropriate rate.
+        utilizing the PIGPIO library,we build a pulse of desired frequency and duty cycle and send
+        out repeatedly"""
+        coderate_ppm = int(coderate_data[0])
+        primary_freq = int(coderate_data[1])
+        secondary_freq = int(coderate_data[2])
+        self.log.debug("CODERATE :{}ppm  FREQUENCY 1: {}hz   FREQUENCY 2:  {}hz ".format(coderate_ppm, primary_freq, secondary_freq))
+        self.generate_primary_frequency(primary_freq)
+        self.generate_secondary_frequency(secondary_freq)
+        self.generate_coded_carrier(coderate_ppm)
+
+    def generate_primary_frequency(self, frequency, source_frequency=None,chip_select_pin=None, coded_carrier_pin=None, shape=None):
+        """
+        generates primary carrier frequency.  if frequency is greater than 1, then turn on the pin to the mux
+        so that this is the only frequency passed through.  if both frequencies are present then the coded
+        carrier will take over
+        :param frequency:
+        :param source_frequency:
+        :param chip_select_pin:
+        """
+        if source_frequency is None:
+            source_frequency = self.primary_source_frequency
+        if chip_select_pin is None:
+            chip_select_pin = self.primary_channel_chip_select_pin
+        if coded_carrier_pin is None:
+            coded_carrier_pin = self.coded_carrier_pin
+        if shape is None:
+            shape = self.shape_default
+        if frequency is not 0:
+            self.frequency_to_registers(frequency, source_frequency, shape, chip_select_pin)
+            self.gpio.write(coded_carrier_pin, self.primary_channel_mux_pin)
+
+    def generate_secondary_frequency(self, frequency=None, source_frequency=None,chip_select_pin=None, coded_carrier_pin=None, shape=None):
+        """
+        generates primary carrier frequency.  if frequency is greater than 1, then turn on the pin to the mux
+        so that this is the only frequency passed through.  if both frequencies are present then the coded
+        carrier will take over
+        :param frequency:
+        :param source_frequency:
+        :param chip_select_pin:
+        """
+        if source_frequency is None:
+            source_frequency = self.primary_source_frequency
+        if chip_select_pin is None:
+            chip_select_pin = self.primary_channel_chip_select_pin
+        if coded_carrier_pin is None:
+            coded_carrier_pin = self.coded_carrier_pin
+        if shape is None:
+            shape = self.shape_default
+        if frequency is not 0:
+            self.frequency_to_registers(frequency, source_frequency, shape, chip_select_pin)
+            self.gpio.write(coded_carrier_pin, self.secondary_channel_mux_pin)
+
+    def generate_coded_carrier(self, coderate_ppm, duty_cycle=None, pulses_per_second=None):
+        if duty_cycle is None:
+            duty_cycle = self.duty_cycle_default
+        if pulses_per_second is None:
+            pulses_per_second = self.pulses_per_second_default
+        self.gpio.wave_clear()
+        pulse = []
+        if coderate_ppm is not 0:
+            coderate_period_in_microseconds = int((1 / (coderate_ppm / 60.0)) * pulses_per_second)
+            coderate_positive_pulse = int(coderate_period_in_microseconds * (duty_cycle / 100))
+            coderate_negative_pulse = int(coderate_period_in_microseconds * (1 - (duty_cycle / 100)))
+            pulse.append(pigpio.pulse(1 << self.coded_carrier_pin, 0, coderate_positive_pulse))
+            pulse.append(pigpio.pulse(0, 1 << self.coded_carrier_pin, coderate_negative_pulse))
+            self.gpio.wave_add_generic(pulse)  # add waveform
+            self.waveform1 = self.gpio.wave_create()
+            self.gpio.wave_send_repeat(self.waveform1)
+            self.log.debug('Starting code rate')
+            val = threading.current_thread(), threading.current_thread().name
+            self.log.debug("THREAD " + str(val))
+        elif coderate_ppm is 0:
+            self.coderate_stop()
+
+    def coderate_stop(self):
+        if self.gpio.wave_tx_busy():
+            self.gpio.wave_tx_stop()
+            self.gpio.wave_clear()
+
+    def frequency_to_registers(self, frequency, clock_frequency, shape, cs):
+        spi_channel = 2
+        self.spi_msg = []
+        self.log.debug(
+            "FREQ TO REG running with FREQ:{} CLK FREQ:{} SHAPE:{}  CS:{}  SPI CH  {}".format(frequency, clock_frequency, shape,
+                                                                                  cs, spi_channel))
+        word = hex(int(round((frequency * 2 ** 28) / clock_frequency)))  # Calculate frequency word to send
+        if self.speed_generation_shape_override is not None:
+            shape = self.speed_generation_shape_override
+        if shape == self.shape_square:  # square
+            shape_word = 0x2020
+        elif shape == self.shape_triangle:  # triangle
+            shape_word = 0x2002
+        else:
+            shape_word = 0x2000  # sine
+        MSB = (int(word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
+        LSB = int(word, 16) & 0x3FFF
+        MSB |= 0x4000  # Set control bits DB15 = 0 and DB14 = 1; for frequency register 0
+        LSB |= 0x4000
+        self._ad9833_append(0x2100)
+        # Set the frequency
+        self._ad9833_append(LSB)  # lower 14 bits
+        self._ad9833_append(MSB)  # Upper 14 bits
+        self._ad9833_append(shape_word)
+        return (spi_channel, self.spi_msg, cs)
+
+    def _ad9833_append(self, integer):
+        high, low = divmod(integer, 0x100)
+        self.spi_msg.append(high)
+        self.spi_msg.append(low)
+
+    def code_rate_toggle(self):
+        self.coded_carrier_pin_state = not self.coded_carrier_pin_state
+        self.gpio.write(self.coded_carrier_pin, self.coded_carrier_pin_state)
 
     def pulse_codes_from_company(self, company):
         self.log.debug("Reading pulsecode data from INI file for company  {}".format(company))
@@ -226,120 +341,3 @@ class Codegen(object):
         wf = self.gpio.GPIO.wave_create()
         self.gpio.gpio.GPIO.wave_send_repeat(wf)
 
-    def code_rate_toggle(self):
-        self.toggle_pin_state = not self.toggle_pin_state
-        self.gpio.write(self.toggle_pin, self.toggle_pin_state)
-
-    def coderate_generate(self, coderate_data):
-        """ coderate selection will send the appropriate coderate to be generated.  to generate a coderate we must
-        program both the primary and secondary carrier frequency generators with the appropriate frequency.  then
-        we must select between the 2 frequencies at the coderate passed to us
-        generates code rate frquency which drives 4 channel multiplexer which is used to select between
-        the code rate signal frequency and the carrier frequency at the appropriate rate.
-        utilizing the PIGPIO library,we build a pulse of desired frequency and duty cycle and send
-        out repeatedly"""
-        self.log.debug('Generating Coderate: {}'.format(coderate_data))
-        duty_cycle = 50
-        # todo move to initializiation and place in INI
-        pulses_per_second = 1000000.0
-        self.log.debug("Creating Coderate Pulse......")
-        self.gpio.wave_clear()
-        pulse = []
-        coderate_ppm = int(coderate_data[0])
-        primary_freq = int(coderate_data[1])
-        secondary_freq = int(coderate_data[2])
-        self.frequency_to_registers(primary_freq, self.primary_source_frequency, 0,
-                                    self.primary_channel_chip_select_pin)
-        self.frequency_to_registers(secondary_freq, self.secondary_source_frequency, 0,
-                                    self.secondary_channel_chip_select_pin)
-        if primary_freq is not 0:
-            self.gpio.write(self.toggle_pin, 0)
-        elif secondary_freq is not 0:
-            self.gpio.write(self.toggle_pin, 1)
-        self.log.debug(
-            "Received values to generate waveform: CODERATE :{}ppm  FREQUENCY 1: {}hz   FREQUENCY 2:  {}hz ".format(
-                coderate_ppm, primary_freq, secondary_freq))
-        if coderate_ppm is not 1:
-            coderate_period_in_microseconds = int((1 / (coderate_ppm / 60.0)) * pulses_per_second)
-            coderate_positive_pulse = int(coderate_period_in_microseconds * (duty_cycle / 100))
-            coderate_negative_pulse = int(coderate_period_in_microseconds * (1 - (duty_cycle / 100)))
-            pulse.append(pigpio.pulse(1 << self.toggle_pin, 0, coderate_positive_pulse))
-            pulse.append(pigpio.pulse(0, 1 << self.toggle_pin, coderate_negative_pulse))
-            self.gpio.wave_clear()  # clear any existing waveforms
-            self.gpio.wave_add_generic(pulse)  # add waveform
-            self.waveform1 = self.gpio.wave_create()
-            self.gpio.wave_send_repeat(self.waveform1)
-            self.log.debug('Starting code rate')
-            val = threading.current_thread(), threading.current_thread().name
-            self.log.debug("THREAD " + str(val))
-        elif coderate_ppm is 1:
-            self.coderate_stop()
-
-    def coderate_stop(self):
-        self.gpio.wave_tx_stop()
-        self.gpio.wave_clear()
-
-    def frequency_to_registers(self, frequency, clock_frequency, shape, cs):
-        spi_channel = 2
-        self.spi_msg = []
-        self.log.debug(
-            "FREQ TO REG running with FREQ:{} CLK FREQ:{} SHAPE:{}  CS:{}  SPI CH  {}".format(frequency, clock_frequency, shape,
-                                                                                  cs, spi_channel))
-        word = hex(int(round((frequency * 2 ** 28) / clock_frequency)))  # Calculate frequency word to send
-        # TODO REMOVE THIS IS FOR TESTING ONLY
-        # shape = 1
-        if self.speed_generation_shape_override is not None:
-            shape = self.speed_generation_shape_override
-        if shape == 1:  # square
-            shape_word = 0x2020
-        elif shape == 2:  # triangle
-            shape_word = 0x2002
-        else:
-            shape_word = 0x2000  # sine
-
-        MSB = (int(word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
-        LSB = int(word, 16) & 0x3FFF
-        MSB |= 0x4000  # Set control bits DB15 = 0 and DB14 = 1; for frequency register 0
-        LSB |= 0x4000
-        self._ad9833_append(0x2100)
-        # Set the frequency
-        self._ad9833_append(LSB)  # lower 14 bits
-        self._ad9833_append(MSB)  # Upper 14 bits
-        self._ad9833_append(shape_word)
-        return (spi_channel, self.spi_msg, cs)
-
-    def _ad9833_append(self, integer):
-        high, low = divmod(integer, 0x100)
-        self.spi_msg.append(high)
-        self.spi_msg.append(low)
-
-    # # signal generator creates carrier frequency
-    # # TODO :NOT SURE WE ARE USING THIS
-    # def signal_generator_set_carrier_signal(self, freq, cs):
-    #     freq_text = ""
-    #     tmp_reg = 0
-    #     # set FREQ over SPI
-    #     if freq == self.FREQ_60:
-    #         freq_text = '60'
-    #         tmp_reg = self.REG_60
-    #     elif freq == self.FREQ_100:
-    #         freq_text = '100'
-    #         tmp_reg = self.REG_100
-    #     elif freq == self.FREQ_250:
-    #         freq_text = '250'
-    #         tmp_reg = self.REG_250
-    #     elif freq == self.FREQ_2340:
-    #         freq_text = '2340'
-    #         tmp_reg = self.REG_2340
-    #     elif freq == self.FREQ_4550:
-    #         freq_text = '4550'
-    #         tmp_reg = self.REG_4550
-    #     elif freq == self.FREQ_5525:
-    #         freq_text = '5525'
-    #         tmp_reg = self.REG_5525
-    #     elif freq == self.FREQ_OFF:
-    #         freq_text = 'OFF'
-    #         tmp_reg = self.REG_OFF
-    #     self.log.debug('Setting carrier frequency to: ' + freq_text + ' hz with CS:' + str(cs))
-    #     # TODO make sure we do the correct protocol to the AD9833 by resetting it first, etc
-    #     self.spi.write(0, tmp_reg, cs)

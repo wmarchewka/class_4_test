@@ -39,6 +39,9 @@ class Signaling():
         self.window.QDIAL_speed_1.valueChanged.connect(self.qdial_speed_0_value_changed)
         self.window.QDIAL_speed_2.valueChanged.connect(self.qdial_speed_1_value_changed)
 
+        
+        self.logger = logger.Logger(level=logging.CRITICAL)
+
 
     def qdial_speed_0_value_changed(self, value):
         self.log.debug("Qdial Speed 0 changed:{}".format(value))

@@ -30,22 +30,22 @@ class Rotary(object):
         self.pollperm = pollperm.Pollperm()
         self.name = name
         self.callback = callback
-        self.pin0 = pin_0
-        self.pin1 = pin_1
-        self.pin0_debounce = pin_0_debounce
-        self.pin1_debounce = pin_1_debounce
+        self.pin_0 = pin_0
+        self.pin_1 = pin_1
+        self.pin_0_debounce = pin_0_debounce
+        self.pin_1_debounce = pin_1_debounce
         self.rotary_callback_list = []
         self.callback_list = []
         self.create_rotary()
-        self.log.debug("Creating rotary encoder:{} BCM PIN0:{}  BCM PIN1:{}".format(name, pin_0, pin_1))
-        self.log.debug("DEBOUNCE PIN 0:{}  DEBOUNCE PIN 1:{}".format(name, pin_0_debounce, pin_1_debounce))
-        self.log.debug("Callback:{}".format(callback))
+        self.log.debug("Creating rotary encoder:{} BCM PIN0:{}  BCM PIN1:{}".format(self.name, self.pin_0, self.pin_1))
+        self.log.debug("DEBOUNCE PIN 0:{}  DEBOUNCE PIN 1:{}".format(self.name, self.pin_0_debounce, self.pin_1_debounce))
+        self.log.debug("Callback:{}".format(self.callback))
         self.log.debug("{} init complete...".format(__name__))
 
     # ********************************************************************************************************************
     def create_rotary(self):
         # creates a callback for both pins that points to same callback
-        self.create_callback(self.pin0, self.pin1, self.pin0_debounce, self.pin1_debounce)
+        self.create_callback(self.pin_0, self.pin_1, self.pin_0_debounce, self.pin_1_debounce)
 
     # ********************************************************************************************************************
     def create_callback(self, pin0, pin1, pin0_debounce, pin1_debounce):
@@ -78,7 +78,6 @@ class Rotary(object):
         """
         first_pin = 0
         second_pin = 0
-        pin_num = 0
         self.log.debug("#######################################################")
         self.pollperm.polling_prohitied = (True, __name__)
         self.log.debug("BCM PIN:{}  LEVEL:{}   TICK:{}".format(pin_num, level, tick))
@@ -101,10 +100,10 @@ class Rotary(object):
             self.log.debug("Second pin set as {}".format(second_pin))
         if first_pin and second_pin:
             # self.disable_interrupts()
-            if first_pin == self.pin0 and second_pin == self.pin1:
+            if first_pin == self.pin_0 and second_pin == self.pin_1:
                 direction = Rotary.CLOCKWISE
                 self.log.debug("Direction is CLOCKWISE: {}".format(direction))
-            elif first_pin == self.pin1 and second_pin == self.pin0:
+            elif first_pin == self.pin_1 and second_pin == self.pin_0:
                 direction = Rotary.ANTI_CLOCKWISE
                 self.log.debug("Direction is ANTICLOCKWISE: {}".format(direction))
             else:

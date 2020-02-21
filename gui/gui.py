@@ -1184,3 +1184,10 @@ class Mainwindow(QMainWindow):
             self.traces[name] = self.graphWidget.plot(pen='y')
 
 
+# list available fonts
+
+def fonts_list(self):
+    # fonts
+    f_db = QFontDatabase()
+    for family in f_db.families():
+        print(family)
