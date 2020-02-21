@@ -1,10 +1,12 @@
 import configparser
 import ast
 import logging
-import logger
+
+#my libraries
+from logger import Logger
 
 
-class Config(object):
+class Config(Logger):
 
     logging.info("Instantiating {} class...".format(__qualname__))
 
@@ -128,7 +130,8 @@ class Config(object):
 
 
     def __init__(self):
-        self.logger = logger.Logger()
+        super().__init__()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         if not Config._init:
@@ -136,6 +139,10 @@ class Config(object):
             Config._init = True
             self.log.debug("FIRST SETUP OF CONFIG")
         self.log.debug("{} init complete...".format(__name__))
+
+    # **************************************************************************
+    def startup_processes(self):
+        pass
 
     # **************************************************************************
     def configuration_save(self, section, key, value):

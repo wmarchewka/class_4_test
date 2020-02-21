@@ -1,13 +1,16 @@
 import logging
-import logger
 from PySide2 import QtWidgets
 
+#my libraries
+from logger import Logger
+
 # *******************************************************************************
-class SecurityLevel:
+class SecurityLevel(Logger):
 
     logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self, level=None):
+        super().__init__(level)
         self.level = level
         self.logger = logger.Logger()
         self.log = self.logger.log

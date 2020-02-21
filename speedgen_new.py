@@ -1,18 +1,17 @@
 # libraries
 import logging
-import time
 
 # my libraries
-import basiclogger
-import decoder
-import spi
-import rotary_new
-import pollperm
-import logger
-import config
+from logger import Logger
+from config import Config
+from decoder import Decoder
+from spi import SPI
+from rotary_new import Rotary
+from pollperm import Pollperm
 
 
-class Speedgen(object):
+class Speedgen():
+
     logging.info("Instantiating {} class...".format(__qualname__))
 
     PRIMARY_SOURCE_FREQUENCY = None
@@ -33,17 +32,16 @@ class Speedgen(object):
     FREQ_SHAPE = [FREQ_SHAPE_SINE, FREQ_SHAPE_SINE]
     rotaries = []
 
-    def __init__(self, name, shape, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce,
-                 thresholds, callback, commander_speed_move_callback):
-
+    def __init__(self):
+        super().__init__()
         self.new_speed_increment = 0
-        self.logger = logger.Logger()
+        self.logger = Logger()
         self.log = self.logger
         self.log = logging.getLogger()
-        self.config = config.Config()
-        self.decoder = decoder.Decoder()
-        self.pollperm = pollperm.Pollperm()
-        self.spi = spi.SPI()
+        self.config = Config()
+        self.decoder = Decoder()
+        self.pollperm = Pollperm()
+        self.spi = SPI()
         self.polling_prohibited = (True, self.__class__)
         self.spi_channel = spi_channel
         self.chip_select = chip_select
@@ -89,7 +87,7 @@ class Speedgen(object):
         """creates rotary instance and also create global list of rotary encoders create across instances
         so that we can disable or enable all callbacks
         """
-        self.rotary = rotary_new.Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
+        self.rotary = Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
                                         self.pin_0_debounce, self.pin_1_debounce)
         Speedgen.rotaries.append(self.rotary)
 

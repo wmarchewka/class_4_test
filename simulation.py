@@ -1,19 +1,22 @@
 import logging
-import support.support
-import logger
-import config
+
+#my libraries
+from support.support import Support
+from logger import Logger
+from config import Config
 
 
 class Simulation(object):
     logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
-        self.logger = logger.Logger()
+        super().__init__()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.log.info('Starting up simulation routine...')
-        self.support = support.support.Support()
-        self.config = config.Config()
+        self.support = Support()
+        self.config = Config()
         self.log.debug('Simulation initializing...')
         self.speed_0_last_value = 0
         self.speed_1_last_value = 0

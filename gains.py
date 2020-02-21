@@ -3,15 +3,15 @@ import logging
 import time
 
 # my libraries
-import logger
-import config
-import decoder
-import spi
-import rotary_new
-import pollperm
+from logger import Logger
+from config import Config
+from decoder import Decoder
+from spi import SPI
+from rotary_new import Rotary
+from pollperm import Pollperm
 
 
-class Gains(object):
+class Gains(Rotary, Pollperm):
     logging.info("Instantiating {} class...".format(__qualname__))
 
     rotaries = []
@@ -36,7 +36,7 @@ class Gains(object):
 
     def __init__(self, name, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce,
                  thresholds, callback, commander_gain_move_callback):
-
+        super().__init__()
         self.wiper_total_percentage = 0
         self.off = None
         self.wiper = None
@@ -60,13 +60,13 @@ class Gains(object):
         self.thresholds = thresholds
         self.callback = callback
         self.commander_gain_move_callback = commander_gain_move_callback
-        self.logger = logger.Logger()
+        self.logger = Logger()
         self.log = self.logger
         self.log = logging.getLogger()
-        self.config = config.Config()
-        self.decoder = decoder.Decoder()
-        self.pollperm = pollperm.Pollperm()
-        self.spi = spi.SPI()
+        self.config = Config()
+        self.decoder = Decoder()
+        self.pollperm = Pollperm()
+        self.spi = SPI()
         self.spi_channel = spi_channel
         self.polling_prohibited = (True, self.__class__)
         self.startup_processes()
@@ -98,7 +98,7 @@ class Gains(object):
         creats the rotary encoder instance and adds it to global list of encoders.
         """
         self.log.debug("Creating {} Rotary...".format(self.name))
-        self.rotary = rotary_new.Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
+        self.rotary = Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
                                         self.pin_0_debounce, self.pin_1_debounce)
 
         Gains.rotaries.append(self.rotary)

@@ -4,7 +4,6 @@ import logging.config
 
 class Logger(object):
 
-    logging.info("Instantiating {} class...".format(__qualname__))
 
     log = logging.getLogger()
     log.info('Starting up portable tester...')

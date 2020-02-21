@@ -2,13 +2,15 @@ import pigpio
 import logging
 import subprocess
 import time
-import logger
-import config
 
-class Gpio(object):
+#my libraries
+from logger import Logger
+from config import Config
+
+class Gpio():
 
     log = None
-    logging.info("Instantiating {} class...".format(__qualname__))
+    #logging.info("Instantiating {} class...".format(__qualname__))
 
 
     __gpio = None
@@ -46,8 +48,9 @@ class Gpio(object):
         type(self)._name_inst = value
 
     def __init__(self):
-        self.config = config.Config()
-        self.logger = logger.Logger()
+        super().__init__()
+        self.config = Config()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         if not Gpio._init:

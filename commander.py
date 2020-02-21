@@ -3,23 +3,23 @@ import faulthandler
 faulthandler.enable()
 import logging
 import argparse
-import time
 from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import QTimer
 
 # my imports
+from logger import Logger
 from config import Config
+from gui.gui_new import Mainwindow
 from speedgen_new import Speedgen
 from gains import Gains
-from logger import Logger
-from gui.gui_new import Mainwindow
-from codegen import Codegen
+from pollperm import Pollperm
 
-class Commander(object):
+class Commander(Mainwindow, Pollperm, Logger, Config, Gains, Speedgen):
 
     logging.debug("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
+        super().__init__()
         self.gain0_val = 0
         self.gain1_val = 0
         self.speed0_val = 0
@@ -27,7 +27,6 @@ class Commander(object):
         self.logger = Logger(level=logging.DEBUG)
         self.log = self.logger.log
         self.log = logging.getLogger()
-        self.codegen = Codegen()
         self.parser = argparse.ArgumentParser()
         self.parser.add_argument('--debug', '-d', nargs="+", type=str)
         self.args = self.parser.parse_args()

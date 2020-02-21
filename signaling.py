@@ -2,26 +2,25 @@
 import logging
 
 #my libraries
-import config
-import logger
-import support
-import simulation
+# from config import Config
+# from logger import  Logger
+# from support.support import Support
+from simulation import Simulation
 
-
-class Signaling():
+class Signaling(Simulation):
 
     logging.debug("Instantiating {} class...".format(__qualname__))
 
-
-    def __init__(self, window, commander):
-        self.window = window
-        self.config = config.Config()
-        self.logger = logger.Logger()
+    def __init__(self):
+        super().__init__()
+        #self.window = Mainwindow().window
+        self.config = Config()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
-        self.support = support.support.Support()
-        self.simulation = simulation.Simulation()
-        self.commander = commander
+        self.support = Support()
+        self.simulation = Simulation()
+        #self.commander = Commander()
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 

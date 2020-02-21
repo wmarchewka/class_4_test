@@ -3,12 +3,11 @@ import config
 import pigpio
 import logging
 import time
-import digpots
 import decoder
 import logger
-import speedgen
-import pollperm
+from OLD import speedgen, digpots
 import spi
+import pollperm
 import codegen
 
 class Rotary(object):

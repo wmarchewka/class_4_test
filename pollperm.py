@@ -1,7 +1,9 @@
-import logger
 import logging
 
-class Pollperm(object):
+#my libraries
+from logger import Logger
+
+class Pollperm():
 
     logging.info("Instantiating {} class...".format(__qualname__))
 
@@ -16,9 +18,10 @@ class Pollperm(object):
         return cls.instance
 
     def __init__(self):
+        super().__init__()
         self._polling_prohibited = False
         self.init = True
-        self.logger = logger.Logger()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.polling_prohibited = (False, self.__class__)

@@ -3,26 +3,27 @@ import os
 import pigpio
 import threading
 import logging
-
-#my libraries
-import logger
-import config
-import spi
-import gpio
 import configparser
 
-class Codegen(object):
+#my libraries
+from logger import Logger
+from config import Config
+from spi import SPI
+from gpio import Gpio
+
+class Codegen(SPI):
 
     logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
-        self.logger = logger.Logger()
+        super().__init__()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.log.debug('Starting up Coderate Generator...')
-        self.gpio = gpio.Gpio().gpio
-        self.spi = spi.SPI()
-        self.config = config.Config()
+        self.gpio = Gpio().gpio
+        self.spi = SPI()
+        self.config = Config()
         self.speed_generation_shape_override = None
         self.coded_carrier_pin_state = 0
         self.startup_processes()

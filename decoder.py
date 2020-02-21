@@ -1,11 +1,12 @@
 import logging
-
-import logger
-import gpio
 import pigpio
-import config
 
-class Decoder(object):
+#my libraries
+from logger import Logger
+from gpio import Gpio
+from config import Config
+
+class Decoder(Gpio):
 
     logging.info("Instantiating {} class...".format(__qualname__))
 
@@ -28,11 +29,12 @@ class Decoder(object):
                              "Speed Tach 1", "Speed Tach 2", "Current Sense", "Switches"]
 
     def __init__(self):
-        self.logger = logger.Logger()
+        super().__init__()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
-        self.config = config.Config()
-        self.GPIO = gpio.Gpio().gpio
+        self.config = Config()
+        self.GPIO = Gpio().gpio
         self.variables()
         self.log.debug('Decoder initializing....')
         self.startup_processes()

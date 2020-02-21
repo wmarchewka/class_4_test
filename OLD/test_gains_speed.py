@@ -3,15 +3,13 @@ from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import QTimer
 import argparse
 import logging
-import time
 
 #my libraries
-import basiclogger
 import speedgen_new
 import gains
 import logger
 import config
-import gui.gui
+
 
 class TestGainsSpeed(object):
 
@@ -94,7 +92,7 @@ class TestGainsSpeed(object):
 if __name__ == "__main__":
     app = QApplication(['PORTABLE TESTER'])
     # app.setStyle("fusion")
-    start_window = gui.gui.Mainwindow()
+    start_window = OLD.gui.Mainwindow()
     ts = TestGainsSpeed()
     # the timer calls itself every 100ms to allow to break in GUI
     timer = QTimer()

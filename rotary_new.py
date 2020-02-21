@@ -3,13 +3,13 @@ import logging
 import pigpio
 
 # my libraries
-import gpio
-import logger
-import config
-import pollperm
+from gpio import Gpio
+from logger import Logger
+from config import Config
+from pollperm import Pollperm
 
 
-class Rotary(object):
+class Rotary():
     logging.info("Instantiating {} class...".format(__qualname__))
 
     SPEED_FAST = 1
@@ -22,12 +22,13 @@ class Rotary(object):
     second_pin = None
 
     def __init__(self, name, callback, pin_0, pin_1, pin_0_debounce, pin_1_debounce):
-        self.logger = logger.Logger()
+        super().__init__()
+        self.logger = Logger()
         self.log = self.logger
         self.log = logging.getLogger()
-        self.config = config.Config()
-        self.gpio = gpio.Gpio().gpio
-        self.pollperm = pollperm.Pollperm()
+        self.config = Config()
+        self.gpio = Gpio().gpio
+        self.pollperm = Pollperm()
         self.name = name
         self.callback = callback
         self.pin_0 = pin_0

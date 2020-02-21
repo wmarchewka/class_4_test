@@ -3,24 +3,26 @@ import threading
 import collections
 import spidev
 import time
-import logger
-import config
-import decoder
-import pollperm
+
+#my libraries
+from logger import Logger
+from config import Config
+from decoder import Decoder
+from pollperm import Pollperm
 
 #TODO need to make this so that i can instantiate a sperate clas for each channel ?
 
-class SPI(object):
+class SPI(Pollperm):
     logging.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
-
-        self.logger = logger.Logger()
-        self.config = config.Config()
-        self.decoder = decoder.Decoder()
+        super().__init__()
+        self.logger = Logger()
+        self.config = Config()
+        self.decoder = Decoder()
         self.log = self.logger.log
         self.log = logging.getLogger()
-        self.polling = pollperm.Pollperm()
+        self.polling = Pollperm()
         self.log.debug('SPI initializing...')
         self.spi_log_count = 0
         self.last_time = 0

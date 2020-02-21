@@ -3,21 +3,24 @@ import logging.config
 import os
 import platform as pf
 import sys
+import subprocess
 from PyQt5.Qt import PYQT_VERSION_STR
 from PyQt5.QtCore import QT_VERSION_STR
-import subprocess
-import config
-import logger
 
-class Support(object):
+#my libraries
+from config import Config
+from logger import Logger
+
+class Support():
     ostype = ""
 
     logging.debug("Instantiating {} class...".format(__qualname__))
 
 
     def __init__(self):
-        self.config = config.Config()
-        self.logger = logger.Logger()
+        super().__init__()
+        self.config = Config()
+        self.logger = Logger()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.log.info('Starting up portable tester...')

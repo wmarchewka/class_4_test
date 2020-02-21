@@ -1,47 +1,37 @@
 import faulthandler
+
 faulthandler.enable()
-import datetime
 import logging
-import os
-import socket
-import subprocess
 import sys
 import signal
-import threading
-import psutil
-import numpy as np
-from numpy import sin, pi
 from PySide2.QtUiTools import QUiLoader
-from PySide2 import QtCore
 from PySide2.QtCore import QTimer, QFile
 from PySide2.QtGui import QFontDatabase, QFont
 from PySide2.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
 
-#mylibraries
-import config
-import logger
-import support.support
-import signaling
+# mylibraries
+from config import Config
+from logger import Logger
+from support.support import Support
+from signaling import Signaling
+from commander import Commander
 from gui import QTResources  # do not remove this !!!
-import gui.gui_utilities
 
-class Mainwindow(QMainWindow):
 
+class Mainwindow(QMainWindow, Support, Signaling):
     logging.debug("Instantiating {} class...".format(__qualname__))
 
-
-    def __init__(self, commander, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self.window = None
-        self.config = config.Config()
-        self.logger = logger.Logger()
-        self.support = support.support.Support()
-        self.commander = commander
-        self.gui_utilities = gui.gui_utilities.GuiUtilities(self.window)
+        self.config = Config()
+        self.logger = Logger()
+        self.support = Support()
+        self.commander = Commander()
         self.log = self.logger.log
         self.log = logging.getLogger()
         self.startup_processes()
-        self.signaling = signaling.Signaling(self.window, self.commander)
+        self.signaling = Signaling(self.window, self.commander)
         self.log.debug("{} init complete...".format(__name__))
 
     # *****************************************************************************
@@ -60,9 +50,10 @@ class Mainwindow(QMainWindow):
         self.fontDB = QFontDatabase()
         self.fontDB.addApplicationFont(":/FONTS/FONTS/digital-7.ttf")
         self.fontDB.addApplicationFont(":/FONTS/FONTS/SiemensSlab_Prof_BlackItalic.ttf")
-        #self.siemensslab = QFont("Siemens Slab", 64, 1)
-        #self.digital7font = QFont("Digital-7", 64, 1)
-        #self.window.LBL_pri_tach_freq.setFont(self.digital7font)
+        # self.siemensslab = QFont("Siemens Slab", 64, 1)
+        # self.digital7font = QFont("Digital-7", 64, 1)
+        # self.window.LBL_pri_tach_freq.setFont(self.digital7font)
+
     # *****************************************************************************
     def screen_fullscreen(self):
         if self.support.ostype == 'rpi':
