@@ -1,4 +1,3 @@
-import logging
 import pigpio
 
 #my libraries
@@ -6,9 +5,9 @@ from logger import Logger
 from gpio import Gpio
 from config import Config
 
-class Decoder(Gpio):
+class Decoder():
 
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     @classmethod
     def variables(cls):
@@ -31,8 +30,7 @@ class Decoder(Gpio):
     def __init__(self):
         super().__init__()
         self.logger = Logger()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.config = Config()
         self.GPIO = Gpio().gpio
         self.variables()

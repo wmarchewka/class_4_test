@@ -1,7 +1,6 @@
 import faulthandler
 
 faulthandler.enable()
-import logging
 import sys
 import signal
 from PySide2.QtUiTools import QUiLoader
@@ -14,23 +13,27 @@ from config import Config
 from logger import Logger
 from support.support import Support
 from signaling import Signaling
-from commander import Commander
+from securitylevel import SecurityLevel
+from gui_coderates import Guicoderate
+from gui_frequencies import GuiFrequencies
 from gui import QTResources  # do not remove this !!!
 
 
-class Mainwindow(QMainWindow, Support, Signaling):
-    logging.debug("Instantiating {} class...".format(__qualname__))
+class Mainwindow(object):
 
-    def __init__(self):
-        super().__init__()
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
+
+    def __init__(self, commander):
         self.window = None
         self.config = Config()
         self.logger = Logger()
         self.support = Support()
-        self.commander = Commander()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.securitylevel = SecurityLevel()
+        self.log = Logger.log
+        self.commander = commander
         self.startup_processes()
+        self.guicode = Guicoderate(self.window)
+        self.freqcode = GuiFrequencies(self.window)
         self.signaling = Signaling(self.window, self.commander)
         self.log.debug("{} init complete...".format(__name__))
 
@@ -41,6 +44,7 @@ class Mainwindow(QMainWindow, Support, Signaling):
         self.exit_signalling()
         self.screen_fullscreen()
         self.fonts_list()
+        self.securitylevel.set_security_level("technician",self.window)
 
     # *****************************************************************************
     def fonts_list(self):
@@ -116,5 +120,5 @@ class Mainwindow(QMainWindow, Support, Signaling):
         # self.log.info('Turning off screen saver forced on')
         # subprocess.call('xset dpms force off', shell=True)
         self.log.info("Goodbye...")
-        logging.shutdown()
+        #self.log.shutdown()
         sys.exit(0)

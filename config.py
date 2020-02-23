@@ -1,19 +1,18 @@
 import configparser
 import ast
-import logging
 
 #my libraries
 from logger import Logger
 
 
-class Config(Logger):
+class Config():
 
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     _init = None
     config_file_path = "config/config.ini"
-    logging.info("Logging config file path {}".format(config_file_path))
-    logging.info('Loading log configuration from {}'.format(config_file_path))
+    Logger.log.info("Logging config file path {}".format(config_file_path))
+    Logger.log.info('Loading log configuration from {}'.format(config_file_path))
     config = configparser.ConfigParser()
     config.sections()
     config.read_file(open(config_file_path))
@@ -130,10 +129,7 @@ class Config(Logger):
 
 
     def __init__(self):
-        super().__init__()
-        self.logger = Logger()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.log = Logger.log
         if not Config._init:
             Config.read_from_ini()
             Config._init = True

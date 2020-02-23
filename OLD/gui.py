@@ -13,12 +13,11 @@ import numpy as np
 from numpy import sin, pi
 from PySide2.QtUiTools import QUiLoader
 from PySide2 import QtCore
-from PySide2.QtCore import QTimer, QFile
+from PySide2.QtCore import QFile
 from PySide2.QtGui import QFontDatabase
-from PySide2.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
+from PySide2.QtWidgets import QMainWindow, QTableWidgetItem
 
 #my libraries
-import basiclogger
 import gui.signalsslots
 import config
 import gpio
@@ -27,7 +26,6 @@ import logger
 import support.support
 import simulation
 #from communication.communication import ThreadedTCPRequestHandler, ThreadedTCPServer
-from gui import QTResources  # do not remove this !!!
 
 class Mainwindow(QMainWindow):
 

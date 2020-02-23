@@ -1,4 +1,3 @@
-import logging
 import threading
 import collections
 import spidev
@@ -12,16 +11,15 @@ from pollperm import Pollperm
 
 #TODO need to make this so that i can instantiate a sperate clas for each channel ?
 
-class SPI(Pollperm):
-    logging.info("Instantiating {} class...".format(__qualname__))
+class SPI():
+
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
-        super().__init__()
         self.logger = Logger()
         self.config = Config()
         self.decoder = Decoder()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.polling = Pollperm()
         self.log.debug('SPI initializing...')
         self.spi_log_count = 0

@@ -39,6 +39,9 @@ class Signalslots(object):
             lambda: window.code_rate_selector_change("DOWN"))  # coderate selector buttons
         window.PB_coderate_selector_up.clicked.connect(lambda: gui.code_rate_selector_change("UP"))
 
+        #changes logging level
+        window.PB_log_level.clicked.connect(self.commander.PB_log_level_changed)
+
         # CATChES ADC SCALE BUTTON, THIS WILL BE REMOVED
         window.SPIN_adc_scale.valueChanged.connect(gui.adc_scale_change)
 

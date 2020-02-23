@@ -1,5 +1,3 @@
-import logging
-import logging.config
 import os
 import platform as pf
 import sys
@@ -14,15 +12,14 @@ from logger import Logger
 class Support():
     ostype = ""
 
-    logging.debug("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
 
     def __init__(self):
         super().__init__()
         self.config = Config()
         self.logger = Logger()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.log.info('Starting up portable tester...')
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))

@@ -1,11 +1,9 @@
-import logging
-
 #my libraries
 from logger import Logger
 
 class Pollperm():
 
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     def __new__(cls):
         if not hasattr(cls, 'instance') or not cls.instance:
@@ -18,12 +16,10 @@ class Pollperm():
         return cls.instance
 
     def __init__(self):
-        super().__init__()
         self._polling_prohibited = False
         self.init = True
         self.logger = Logger()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.polling_prohibited = (False, self.__class__)
         self.log.debug("{} init complete...".format(__name__))
 

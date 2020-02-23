@@ -1,5 +1,3 @@
-import logging
-
 #my libraries
 from support.support import Support
 from logger import Logger
@@ -7,13 +5,12 @@ from config import Config
 
 
 class Simulation(object):
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
         super().__init__()
         self.logger = Logger()
-        self.log = self.logger.log
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.log.info('Starting up simulation routine...')
         self.support = Support()
         self.config = Config()

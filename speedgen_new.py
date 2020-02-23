@@ -1,5 +1,4 @@
 # libraries
-import logging
 
 # my libraries
 from logger import Logger
@@ -11,8 +10,7 @@ from pollperm import Pollperm
 
 
 class Speedgen():
-
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     PRIMARY_SOURCE_FREQUENCY = None
     SECONDARY_SOURCE_FREQUENCY = None
@@ -32,12 +30,11 @@ class Speedgen():
     FREQ_SHAPE = [FREQ_SHAPE_SINE, FREQ_SHAPE_SINE]
     rotaries = []
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name, shape, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce, thresholds,
+                 callback, commander_speed_move_callback):
         self.new_speed_increment = 0
         self.logger = Logger()
-        self.log = self.logger
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.config = Config()
         self.decoder = Decoder()
         self.pollperm = Pollperm()
@@ -88,7 +85,7 @@ class Speedgen():
         so that we can disable or enable all callbacks
         """
         self.rotary = Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
-                                        self.pin_0_debounce, self.pin_1_debounce)
+                             self.pin_0_debounce, self.pin_1_debounce)
         Speedgen.rotaries.append(self.rotary)
 
     # ***************************************************************************************************************
@@ -111,7 +108,7 @@ class Speedgen():
     # ***************************************************************************************************************
     def bounds_check(self, simulate, speed_increment, direction):
         direction_text = None
-        if not simulate:
+        if simulate == False:
             # this callback will move the dial on the screen.
             self.commander_speed_move_callback(self.name, direction, speed_increment)
         if direction == Speedgen.CLOCKWISE:
@@ -126,7 +123,8 @@ class Speedgen():
                 self.speed_frequency = self.SPEED_FREQUENCY_MIN
         else:
             self.direction_text = "ERROR"
-        self.log.debug("Simulate:{}  Speed Increment:{}  Direction:{}".format(simulate, speed_increment, direction_text))
+        self.log.debug(
+            "Simulate:{}  Speed Increment:{}  Direction:{}".format(simulate, speed_increment, direction_text))
         return self.speed_frequency
 
     # **************************************************************************************************************

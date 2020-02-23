@@ -91,7 +91,7 @@ color: rgb(0, 0, 0);</string>
 </string>
     </property>
     <property name="currentIndex">
-     <number>7</number>
+     <number>1</number>
     </property>
     <property name="iconSize">
      <size>
@@ -1077,6 +1077,30 @@ color: rgb(0, 0, 0);</string>
       </property>
       <property name="checkable">
        <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="PB_log_level">
+      <property name="geometry">
+       <rect>
+        <x>412</x>
+        <y>6</y>
+        <width>97</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Siemens Slab</family>
+        <pointsize>13</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>DEBUG</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>

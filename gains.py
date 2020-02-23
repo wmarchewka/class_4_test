@@ -1,5 +1,4 @@
 # libraries
-import logging
 import time
 
 # my libraries
@@ -11,8 +10,9 @@ from rotary_new import Rotary
 from pollperm import Pollperm
 
 
-class Gains(Rotary, Pollperm):
-    logging.info("Instantiating {} class...".format(__qualname__))
+class Gains():
+
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     rotaries = []
 
@@ -36,7 +36,6 @@ class Gains(Rotary, Pollperm):
 
     def __init__(self, name, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce,
                  thresholds, callback, commander_gain_move_callback):
-        super().__init__()
         self.wiper_total_percentage = 0
         self.off = None
         self.wiper = None
@@ -61,8 +60,7 @@ class Gains(Rotary, Pollperm):
         self.callback = callback
         self.commander_gain_move_callback = commander_gain_move_callback
         self.logger = Logger()
-        self.log = self.logger
-        self.log = logging.getLogger()
+        self.log = Logger.log
         self.config = Config()
         self.decoder = Decoder()
         self.pollperm = Pollperm()
@@ -132,14 +130,14 @@ class Gains(Rotary, Pollperm):
             self.log.debug("Delta:{}".format(delta))
             self.log.debug("Thresholds {}".format(self.thresholds))
             speed_increment = self.threshold_check(delta)
-            value = self.bounds_check(speed_increment, direction)
+            value = self.bounds_check(speed_increment, direction, simulate)
             coarse_hex, fine_hex = value
             self.digitalpots_send_spi(coarse_hex, fine_hex)
         else:
             self.log.debug("Direction error received")
 
     # ***************************************************************************************************************
-    def bounds_check(self, speed_increment, direction):
+    def bounds_check(self, speed_increment, direction, simulate):
         """Each click of the encoder increases the value by approximately 9.7 ohms.  To figure out what values to send
         to each digital pot, i take the total ohms needed divided by the coarse ohms amount.  The remainder then gets
         divided by the fine ohms amount.  Example:  if 210 ohms is needed, then take 210 / 49.7 = 4 coarse bits.  Then
@@ -161,7 +159,8 @@ class Gains(Rotary, Pollperm):
                 self.value = self.value - speed_increment
         elif direction == Gains.DIRECTION_ERROR:
             self.value = self.value
-        self.commander_gain_move_callback(self.name, direction, speed_increment)
+        if simulate == False:
+            self.commander_gain_move_callback(self.name, direction, speed_increment)
         self.log.debug("Gains Locked:{} Direction:{}".format(self.gains_locked, direction))
         self.log.debug("Speed Increment:{}  Value:{}".format(speed_increment, self.value))
         if self.value > Gains.TOTAL_MAX_OHMS:

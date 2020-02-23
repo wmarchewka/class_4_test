@@ -1,4 +1,3 @@
-import basiclogger
 import config
 import speedgen_new
 import time

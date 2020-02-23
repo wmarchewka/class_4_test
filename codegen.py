@@ -1,8 +1,8 @@
 #libraries
 import os
+import ast
 import pigpio
 import threading
-import logging
 import configparser
 
 #my libraries
@@ -11,15 +11,13 @@ from config import Config
 from spi import SPI
 from gpio import Gpio
 
-class Codegen(SPI):
+class Codegen():
 
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self):
-        super().__init__()
         self.logger = Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger()
         self.log.debug('Starting up Coderate Generator...')
         self.gpio = Gpio().gpio
         self.spi = SPI()
@@ -49,8 +47,14 @@ class Codegen(SPI):
         config_coderates = configparser.ConfigParser()
         config_coderates.sections()
         config_coderates.read_file(open(config_file_path))
-        self.frequencies = config_coderates.items('CODERATES')
-        self.coderates = config_coderates.items('FREQUENCIES')
+        self.frequencies = config_coderates.get('CODERATES','coderates')
+        self.frequencies = ast.literal_eval(self.frequencies)
+        self.coderates = config_coderates.get('FREQUENCIES','frequencies')
+        self.coderates = ast.literal_eval(self.coderates)
+
+        self.coderate_ppm = None
+        self.primary_frequency = None
+        self.secondary_frequency = None
 
     def load_from_config(self):
         # todo: need to open made config ini file
@@ -68,7 +72,8 @@ class Codegen(SPI):
         self.shape_default = self.shape_sine
         self.coded_carrier_pin = self.config.code_rate_generator_toggle_pin
 
-    def coderate_generate(self, coderate_data):
+
+    def coderate_generate(self):
         # todo move to initializiation and place in INI
         """ coderate selection will send the appropriate coderate to be generated.  to generate a coderate we must
         program both the primary and secondary carrier frequency generators with the appropriate frequency.  then
@@ -77,13 +82,16 @@ class Codegen(SPI):
         the code rate signal frequency and the carrier frequency at the appropriate rate.
         utilizing the PIGPIO library,we build a pulse of desired frequency and duty cycle and send
         out repeatedly"""
-        coderate_ppm = int(coderate_data[0])
-        primary_freq = int(coderate_data[1])
-        secondary_freq = int(coderate_data[2])
+        coderate_ppm = self.coderate_ppm
+        primary_freq = self.primary_frequency
+        secondary_freq = self.secondary_frequency
         self.log.debug("CODERATE :{}ppm  FREQUENCY 1: {}hz   FREQUENCY 2:  {}hz ".format(coderate_ppm, primary_freq, secondary_freq))
-        self.generate_primary_frequency(primary_freq)
-        self.generate_secondary_frequency(secondary_freq)
-        self.generate_coded_carrier(coderate_ppm)
+        if coderate_ppm and primary_freq and secondary_freq:
+            self.generate_primary_frequency(primary_freq)
+            self.generate_secondary_frequency(secondary_freq)
+            self.generate_coded_carrier(coderate_ppm)
+        else:
+            self.log.debug("Cound not generate coderate")
 
     def generate_primary_frequency(self, frequency, source_frequency=None,chip_select_pin=None, coded_carrier_pin=None, shape=None):
         """

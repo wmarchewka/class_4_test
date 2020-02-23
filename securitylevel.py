@@ -1,20 +1,17 @@
-import logging
 from PySide2 import QtWidgets
 
 #my libraries
 from logger import Logger
 
 # *******************************************************************************
-class SecurityLevel(Logger):
+class SecurityLevel():
 
-    logging.info("Instantiating {} class...".format(__qualname__))
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     def __init__(self, level=None):
-        super().__init__(level)
         self.level = level
-        self.logger = logger.Logger()
+        self.logger = Logger()
         self.log = self.logger.log
-        self.log = logging.getLogger()
         self.tab_pages = []
     # *******************************************************************************
     def set_security_level(self, level, window):
@@ -103,16 +100,14 @@ class SecurityLevel(Logger):
             window.LBL_cal_average.setVisible(False)
             window.LBL_cal_complete.setVisible(False)
             window.LBL_cal_average_2.setVisible(False)
-        # *******************************************************************************
-
+    # *******************************************************************************
     def tabWidget_remove(self, tabname, window):
         page = window.tabWidget.findChild(QtWidgets.QWidget, tabname)
         self.log.debug("PAGE={}".format(page))
         index = window.tabWidget.indexOf(page)
         window.tabWidget.removeTab(index)
 
-        # *******************************************************************************
-
+    # *******************************************************************************
     def tabWidget_change(self, tabname, window):
         page = window.tabWidget.findChild(QtWidgets.QWidget, tabname)
         self.log.debug("PAGE={}".format(page))
@@ -120,8 +115,7 @@ class SecurityLevel(Logger):
         window.tabWidget.setCurrentIndex(index)
         self.log.debug("Changed to TAB {}".format(page))
 
-        # *******************************************************************************
-
+     # *******************************************************************************
     def tabWidget_add(self, tabname, window):
         for page, title in self.tab_pages:
             if window.tabWidget.indexOf(page) < 0:
