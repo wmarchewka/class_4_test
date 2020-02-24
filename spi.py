@@ -3,24 +3,25 @@ import collections
 import spidev
 import time
 
-#my libraries
+# my libraries
 from logger import Logger
 from config import Config
 from decoder import Decoder
 from pollperm import Pollperm
 
-#TODO need to make this so that i can instantiate a sperate clas for each channel ?
+
+# TODO need to make this so that i can instantiate a sperate clas for each channel ?
 
 class SPI():
-
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self):
-        self.logger = Logger()
-        self.config = Config()
-        self.decoder = Decoder()
+    def __init__(self, config, logger, decoder, pollperm):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.logger = logger
+        self.config = config
+        self.decoder = decoder
         self.log = Logger.log
-        self.polling = Pollperm()
+        self.polling = pollperm
         self.log.debug('SPI initializing...')
         self.spi_log_count = 0
         self.last_time = 0
@@ -29,10 +30,10 @@ class SPI():
         self.log.debug('Using SPI BUS: {}'.format(self.spi_bus))
         self.log.debug("{} init complete...".format(__name__))
 
-    #************************************************************************************************************
+    # ************************************************************************************************************
     def startup_processes(self):
         self.load_from_config()
-        self.setup_spi()
+        self.create_channels()
         self.setup_datalog()
 
     # ************************************************************************************************************
@@ -40,7 +41,7 @@ class SPI():
         self.data_log = collections.deque(maxlen=500)
 
     # ************************************************************************************************************
-    def setup_spi(self):
+    def create_channels(self):
         # SPI1_0 uses SPI1 and CE0 (BCM18)
         self.spi1_0 = spidev.SpiDev()
         self.spi1_0.open(self.spi_bus, self.spi_chip_select[0])
@@ -56,22 +57,22 @@ class SPI():
         self.log.debug('SPI1_2 using CE2 as CS: Pin 16')
 
     # ************************************************************************************************************
-    def write(self, channel, msg, chip_select):
-        self.log.debug("SPI Write received Channel:{}  MSG:{}  CHIP SELECT:{}".format(channel, msg, chip_select))
+    def send_message(self, channel, message, chip_select):
+        self.log.debug("SPI Write received Channel:{}  MSG:{}  CHIP SELECT:{}".format(channel, message, chip_select))
         self.polling.polling_prohitied = (True, __name__)
         chip_select_name = self.decoder.chip_select_names[chip_select]
         try:
-            self.decoder.chip_select(chip_select)
+            self.decoder.chip_select(chip_select_pin=chip_select)
             if channel == 0:
-                self.spi1_0.xfer2(msg)
+                self.spi1_0.xfer2(message)
             elif channel == 2:
-                self.spi1_2.xfer2(msg)
+                self.spi1_2.xfer2(message)
         except Exception:
             self.log.exception("Exception in SPI write", exc_info=True)
         self.polling.polling_prohitied = (False, "SPI WRITE")
 
     # ************************************************************************************************************
-    def spi_debug_log(self, channel, msg, chip_select_name):
+    def write_debug_log(self, channel, msg, chip_select_name):
         hex_data = []
         val = threading.currentThread(), threading.current_thread().name
         thread_value = str(val)
@@ -89,7 +90,7 @@ class SPI():
         self.data_logger(str_data)
 
     # ************************************************************************************************************
-    def read(self, channel, number_bytes, chip_select, data=None):
+    def read_message(self, channel, number_bytes, chip_select, data=None):
         val = threading.currentThread(), threading.current_thread().name
         thread_value = str(val)
         self.log.debug("SPI read thread: {}".format(thread_value))
@@ -117,7 +118,7 @@ class SPI():
                 bin_data))
         self.data_logger(str_data)
         try:
-            self.decoder.chip_select(chip_select)
+            self.decoder.chip_select(chip_select_pin=chip_select)
             if channel == 0:
                 return_val = self.spi1_0.xfer(data)
             elif channel == 2:

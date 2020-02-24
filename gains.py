@@ -3,15 +3,10 @@ import time
 
 # my libraries
 from logger import Logger
-from config import Config
-from decoder import Decoder
-from spi import SPI
 from rotary_new import Rotary
-from pollperm import Pollperm
+from gpio import Gpio
 
-
-class Gains():
-
+class Gains(object):
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     rotaries = []
@@ -34,8 +29,11 @@ class Gains():
     SPI_NVRAM_TO_WIPER_COMMAND = [0b00110000]
     FINE_DIVISOR = FINE_MAX_OHMS / FINE_MAX_BITS
 
-    def __init__(self, name, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce,
+    def __init__(self, config, pollperm, logger, decoder, spi, name, spi_channel, chip_select, pin_0,
+                 pin_1, pin_0_debounce,
+                 pin_1_debounce,
                  thresholds, callback, commander_gain_move_callback):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.wiper_total_percentage = 0
         self.off = None
         self.wiper = None
@@ -49,6 +47,7 @@ class Gains():
         self.speed_value = 0
         self.value = 0
         self.name = name
+        self.gpio = Gpio(config=config, logger=logger)
         self.rotary = None
         self.pin_0 = pin_0
         self.pin_1 = pin_1
@@ -59,18 +58,16 @@ class Gains():
         self.thresholds = thresholds
         self.callback = callback
         self.commander_gain_move_callback = commander_gain_move_callback
-        self.logger = Logger()
+        self.logger = logger
         self.log = Logger.log
-        self.config = Config()
-        self.decoder = Decoder()
-        self.pollperm = Pollperm()
-        self.spi = SPI()
+        self.config = config
+        self.decoder = decoder
+        self.pollperm = pollperm
+        self.spi = spi
         self.spi_channel = spi_channel
         self.polling_prohibited = (True, self.__class__)
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
-
-
 
     # ***************************************************************************************************************
     def startup_processes(self):
@@ -93,11 +90,13 @@ class Gains():
     # ***************************************************************************************************************
     def create_rotary(self):
         """
-        creats the rotary encoder instance and adds it to global list of encoders.
+        creates the rotary encoder instance and adds it to global list of encoders.
         """
         self.log.debug("Creating {} Rotary...".format(self.name))
-        self.rotary = Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
-                                        self.pin_0_debounce, self.pin_1_debounce)
+        self.rotary = Rotary(config=self.config, pollperm=self.pollperm, logger=self.logger,
+                             name=self.name,
+                             callback=self.interrupt_callback, pin_0=self.pin_0, pin_1=self.pin_1,
+                             pin_0_debounce=self.pin_0_debounce, pin_1_debounce=self.pin_1_debounce)
 
         Gains.rotaries.append(self.rotary)
 
@@ -129,10 +128,10 @@ class Gains():
             delta = delta / 1000
             self.log.debug("Delta:{}".format(delta))
             self.log.debug("Thresholds {}".format(self.thresholds))
-            speed_increment = self.threshold_check(delta)
-            value = self.bounds_check(speed_increment, direction, simulate)
+            speed_increment = self.threshold_check(delta=delta)
+            value = self.bounds_check(speed_increment=speed_increment, direction=direction, simulate=simulate)
             coarse_hex, fine_hex = value
-            self.digitalpots_send_spi(coarse_hex, fine_hex)
+            self.digitalpots_send_spi(coarse_hex=coarse_hex, fine_hex=fine_hex)
         else:
             self.log.debug("Direction error received")
 
@@ -160,7 +159,7 @@ class Gains():
         elif direction == Gains.DIRECTION_ERROR:
             self.value = self.value
         if simulate == False:
-            self.commander_gain_move_callback(self.name, direction, speed_increment)
+            self.commander_gain_move_callback(name=self.name, direction=direction, speed_increment=speed_increment)
         self.log.debug("Gains Locked:{} Direction:{}".format(self.gains_locked, direction))
         self.log.debug("Speed Increment:{}  Value:{}".format(speed_increment, self.value))
         if self.value > Gains.TOTAL_MAX_OHMS:
@@ -191,7 +190,7 @@ class Gains():
         coarse_hex, fine_hex = self.int2hex(self.coarse_wiper, self.fine_wiper)
         self.actual_ohms = int(self.fine_wiper_ohms + self.coarse_wiper_ohms)
         self.wiper_total_percentage = self.actual_ohms / Gains.TOTAL_MAX_OHMS
-        self.callback(self.name, self.wiper_total_percentage)
+        self.callback(name=self.name, gain=self.wiper_total_percentage)
         self.log.info("NAME:{}  TOTAL GAIN % {}".format(self.name, self.wiper_total_percentage * 100))
         self.log.info(
             "RAW:{} ohms ACTUAL:{} ohms COARSE bits:{} FINE bits:{} COARSE ohms:{} FINE ohms:{} ".format(
@@ -212,11 +211,11 @@ class Gains():
         self.log.debug('Gain:{} Coarse HEX:{}  Fine HEX{}'.format(self.name, coarse_hex[0:2], fine_hex[0:2]))
         data = Gains.SPI_WRITE_COMMAND + fine_hex[0:2]
         self.log.debug('Data{}'.format(data))
-        self.spi.write(self.spi_channel, data, self.decoder.chip_select_primary_fine_gain)
+        self.spi.send_message(channel=self.spi_channel, data=data, chipselect=self.decoder.chip_select_primary_fine_gain)
         # time.sleep(0.010)
         data = Gains.SPI_WRITE_COMMAND + coarse_hex[0:2]
         self.log.debug('Data{}'.format(data))
-        self.spi.write(self.spi_channel, data, self.decoder.chip_select_primary_coarse_gain)
+        self.spi.send_message(channel=self.spi_channel, data=data, chip_select=self.decoder.chip_select_primary_coarse_gain)
 
     # ***************************************************************************************************************
     # support routine to convert intergers to hex
@@ -238,16 +237,16 @@ class Gains():
         self.log.debug("COPY NVRAM TO WIPER")
 
         spi_msg = Gains.SPI_NVRAM_TO_WIPER_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_primary_coarse_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_primary_coarse_gain)
         time.sleep(0.020)  # delay per data sheet
         spi_msg = Gains.SPI_NVRAM_TO_WIPER_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_primary_fine_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_primary_fine_gain)
         time.sleep(0.020)
         spi_msg = Gains.SPI_NVRAM_TO_WIPER_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_secondary_coarse_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_secondary_coarse_gain)
         time.sleep(0.020)
         spi_msg = Gains.SPI_NVRAM_TO_WIPER_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_secondary_fine_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_secondary_fine_gain)
         time.sleep(0.020)
 
     # ***************************************************************************************************************
@@ -260,16 +259,16 @@ class Gains():
         """
         self.log.debug("COPY WIPER TO NVRAM")
         spi_msg = Gains.SPI_WIPER_TO_NVRAM_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_primary_coarse_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_primary_coarse_gain)
         time.sleep(0.020)
         spi_msg = Gains.SPI_WIPER_TO_NVRAM_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_primary_fine_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_primary_fine_gain)
         time.sleep(0.020)
         spi_msg = Gains.SPI_WIPER_TO_NVRAM_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_secondary_coarse_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_secondary_coarse_gain)
         time.sleep(0.020)
         spi_msg = Gains.SPI_WIPER_TO_NVRAM_COMMAND
-        self.spi.write(2, spi_msg, self.decoder.chip_select_secondary_fine_gain)
+        self.spi.send_message(2, spi_msg, self.decoder.chip_select_secondary_fine_gain)
         time.sleep(0.020)
 
     # ***************************************************************************************************************

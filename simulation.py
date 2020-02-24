@@ -7,13 +7,13 @@ from config import Config
 class Simulation(object):
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self):
-        super().__init__()
-        self.logger = Logger()
+    def __init__(self, support, config, logger):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.logger = logger
         self.log = Logger.log
         self.log.info('Starting up simulation routine...')
-        self.support = Support()
-        self.config = Config()
+        self.support = support
+        self.config = config
         self.log.debug('Simulation initializing...')
         self.speed_0_last_value = 0
         self.speed_1_last_value = 0

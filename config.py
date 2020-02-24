@@ -1,7 +1,7 @@
 import configparser
 import ast
 
-#my libraries
+# my libraries
 from logger import Logger
 
 
@@ -18,8 +18,7 @@ class Config():
     config.read_file(open(config_file_path))
 
     @classmethod
-    def read_from_ini(cls):    
-
+    def read_from_ini(cls):
         # GPIO
         cls.ports = cls.config.get('GPIO', 'ports')  # read in from INI file
         cls.ports = ast.literal_eval(cls.ports)
@@ -28,39 +27,49 @@ class Config():
 
         # DIGITAL POT SECTION
 
-
         # SPEED GENERATOR SECTION
-        cls.freq_regs_max = cls.config.getint('SPEED_GENERATOR', 'freq_regs_max')
-        cls.freq_regs_min = cls.config.getint('SPEED_GENERATOR', 'freq_regs_min')
-        cls.primary_source_frequency = cls.config.getfloat('SPEED_GENERATOR', 'primary_source_frequency')
-        cls.secondary_source_frequency = cls.config.getfloat('SPEED_GENERATOR', 'secondary_source_frequency')
-        cls.primary_freq_gen_constant = cls.config.getfloat('SPEED_GENERATOR', 'primary_freq_gen_constant')
-        cls.secondary_freq_gen_constant = cls.config.getfloat('SPEED_GENERATOR', 'secondary_freq_gen_constant')
-        cls.REG_OFF = cls.config.get('SPEED_GENERATOR', 'REG_OFF')
+        cls.freq_regs_max = cls.config.getint('SPEEDGEN', 'freq_regs_max')
+        cls.freq_regs_min = cls.config.getint('SPEEDGEN', 'freq_regs_min')
+        cls.primary_source_frequency = cls.config.getfloat('SPEEDGEN', 'primary_source_frequency')
+        cls.secondary_source_frequency = cls.config.getfloat('SPEEDGEN', 'secondary_source_frequency')
+        cls.primary_freq_gen_constant = cls.config.getfloat('SPEEDGEN', 'primary_freq_gen_constant')
+        cls.secondary_freq_gen_constant = cls.config.getfloat('SPEEDGEN', 'secondary_freq_gen_constant')
+        cls.REG_OFF = cls.config.get('SPEEDGEN', 'REG_OFF')
         cls.REG_OFF = ast.literal_eval(cls.REG_OFF)
-        cls.speed_generator_set_speed_spi_header = cls.config.get("SPEED_GENERATOR", 'set_speed_spi_header')
+        cls.speed_generator_set_speed_spi_header = cls.config.get("SPEEDGEN", 'set_speed_spi_header')
         cls.speed_generator_set_speed_spi_header = list(ast.literal_eval(cls.speed_generator_set_speed_spi_header))
-
-        cls.SPEED_0_CS = cls.config.getint('SPEED_GENERATOR', 'SPEED_0_CS')
-        cls.SPEED_1_CS = cls.config.getint('SPEED_GENERATOR', 'SPEED_1_CS')
-        cls.SPEED_0_thresholds = cls.config.get('SPEED_GENERATOR', 'speed_0_thresholds')
-        cls.SPEED_1_thresholds = cls.config.get('SPEED_GENERATOR', 'speed_1_thresholds')
+        cls.SPEED_0_CS = cls.config.getint('SPEEDGEN', 'SPEED_0_CS')
+        cls.SPEED_1_CS = cls.config.getint('SPEEDGEN', 'SPEED_1_CS')
+        cls.SPEED_0_thresholds = cls.config.get('SPEEDGEN', 'speed_0_thresholds')
+        cls.SPEED_1_thresholds = cls.config.get('SPEEDGEN', 'speed_1_thresholds')
         cls.SPEED_0_thresholds = ast.literal_eval(cls.SPEED_0_thresholds)
         cls.SPEED_1_thresholds = ast.literal_eval(cls.SPEED_1_thresholds)
-        cls.rotary_0_pins = cls.config.get('SPEED_GENERATOR', 'rotary_0_pins')
+        cls.rotary_0_pins = cls.config.get('SPEEDGEN', 'rotary_0_pins')
         cls.rotary_0_pins = ast.literal_eval(cls.rotary_0_pins)
-        cls.rotary_1_pins = cls.config.get('SPEED_GENERATOR', 'rotary_1_pins')
+        cls.rotary_1_pins = cls.config.get('SPEEDGEN', 'rotary_1_pins')
         cls.rotary_1_pins = ast.literal_eval(cls.rotary_1_pins)
-        cls.rotary_0_pin_0_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_0_pin_0_debounce_microseconds')
-        cls.rotary_0_pin_1_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_0_pin_1_debounce_microseconds')
-        cls.rotary_1_pin_0_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_1_pin_0_debounce_microseconds')
-        cls.rotary_1_pin_1_debounce = cls.config.getint('SPEED_GENERATOR', 'rotary_1_pin_1_debounce_microseconds')
-        cls.speed_0_shape = cls.config.getint('SPEED_GENERATOR', 'speed_0_shape')
-        cls.speed_1_shape = cls.config.getint('SPEED_GENERATOR', 'speed_1_shape')
-        cls.speed_0_spi_channel = cls.config.getint('SPEED_GENERATOR', 'speed_0_spi_channel')
-        cls.speed_1_spi_channel = cls.config.getint('SPEED_GENERATOR', 'speed_1_spi_channel')
-        cls.speed_0_name = cls.config.get('SPEED_GENERATOR', 'speed_0_name')
-        cls.speed_1_name = cls.config.get('SPEED_GENERATOR', 'speed_1_name')
+        cls.rotary_0_pin_0_debounce = cls.config.getint('SPEEDGEN', 'rotary_0_pin_0_debounce_microseconds')
+        cls.rotary_0_pin_1_debounce = cls.config.getint('SPEEDGEN', 'rotary_0_pin_1_debounce_microseconds')
+        cls.rotary_1_pin_0_debounce = cls.config.getint('SPEEDGEN', 'rotary_1_pin_0_debounce_microseconds')
+        cls.rotary_1_pin_1_debounce = cls.config.getint('SPEEDGEN', 'rotary_1_pin_1_debounce_microseconds')
+        cls.speed_0_shape = cls.config.getint('SPEEDGEN', 'speed_0_shape')
+        cls.speed_1_shape = cls.config.getint('SPEEDGEN', 'speed_1_shape')
+        cls.speed_0_spi_channel = cls.config.getint('SPEEDGEN', 'speed_0_spi_channel')
+        cls.speed_1_spi_channel = cls.config.getint('SPEEDGEN', 'speed_1_spi_channel')
+        cls.speed_0_name = cls.config.get('SPEEDGEN', 'speed_0_name')
+        cls.speed_1_name = cls.config.get('SPEEDGEN', 'speed_1_name')
+        cls.SPEED_FREQUENCY_MIN = cls.config.getint('SPEEDGEN', 'SPEED_FREQUENCY_MIN')
+        cls.SPEED_FREQUENCY_MAX = cls.config.getint('SPEEDGEN', 'SPEED_FREQUENCY_MAX')
+        cls.FREQ_SHAPE_SINE = cls.config.getint('SPEEDGEN', 'FREQ_SHAPE_SINE')
+        cls.FREQ_SHAPE_SQUARE = cls.config.getint('SPEEDGEN', 'FREQ_SHAPE_SQUARE')
+        cls.FREQ_SHAPE_TRIANGLE = cls.config.getint('SPEEDGEN', 'FREQ_SHAPE_TRIANGLE')
+        cls.CLOCKWISE = cls.config.getint('SPEEDGEN', 'CLOCKWISE')
+        cls.ANTI_CLOCKWISE = cls.config.getint('SPEEDGEN', 'ANTI_CLOCKWISE')
+        cls.DIRECTION_ERROR = cls.config.getint('SPEEDGEN', 'DIRECTION_ERROR')
+        cls.ERROR = cls.config.getint('SPEEDGEN', 'ERROR')
+        cls.SPEED_REG = cls.config.getint('SPEEDGEN', 'SPEED_REG')
+        cls.FREQ_SHAPE = cls.config.get('SPEEDGEN', 'FREQ_SHAPE')
+        cls.FREQ_SHAPE = ast.literal_eval(cls.FREQ_SHAPE)
 
         # DECODER SECTION
         cls.decoder_pin_select = cls.config.get('DECODER', 'pin_select')
@@ -96,8 +105,7 @@ class Config():
         cls.primary_channel_mux_pin = cls.config.getint('CODE RATE', 'primary_channel_mux_pin')
         cls.secondary_channel_mux_pin = cls.config.getint('CODE RATE', 'secondary_channel_mux_pin')
 
-        
-        #GUI
+        # GUI
         cls.display_brightness = cls.config.getint('MAIN', 'screen_brightness')
         cls.guiname = cls.config.get('MAIN', 'gui')
         cls.poll_timer_interval = cls.config.getint('MAIN', 'poll_timer_interval')
@@ -107,7 +115,7 @@ class Config():
         cls.screen_brightness_max = cls.config.getint('MAIN', 'screen_brightness_max')
         cls.screen_brightness_min = cls.config.getint('MAIN', 'screen_brightness_min')
 
-        #GAINS
+        # GAINS
         cls.rotary_2_pins = cls.config.get('GAINS', 'rotary_2_pins')
         cls.rotary_2_pins = ast.literal_eval(cls.rotary_2_pins)
         cls.rotary_3_pins = cls.config.get('GAINS', 'rotary_3_pins')
@@ -127,13 +135,11 @@ class Config():
         cls.gain_0_name = cls.config.get('GAINS', 'gain_0_name')
         cls.gain_1_name = cls.config.get('GAINS', 'gain_1_name')
 
-
-    def __init__(self):
-        self.log = Logger.log
-        if not Config._init:
-            Config.read_from_ini()
-            Config._init = True
-            self.log.debug("FIRST SETUP OF CONFIG")
+    def __init__(self, logger):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.logger=logger
+        self.log = self.logger.log
+        Config.read_from_ini()
         self.log.debug("{} init complete...".format(__name__))
 
     # **************************************************************************

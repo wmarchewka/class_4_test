@@ -4,11 +4,9 @@ import pigpio
 # my libraries
 from gpio import Gpio
 from logger import Logger
-from config import Config
-from pollperm import Pollperm
 
 
-class Rotary():
+class Rotary(object):
 
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
@@ -21,13 +19,14 @@ class Rotary():
     first_pin = None
     second_pin = None
 
-    def __init__(self, name, callback, pin_0, pin_1, pin_0_debounce, pin_1_debounce):
-        super().__init__()
-        self.logger = Logger()
+    def __init__(self, config, logger, pollperm, name, callback, pin_0, pin_1, pin_0_debounce, pin_1_debounce):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.logger = logger
         self.log = Logger.log
-        self.config = Config()
-        self.gpio = Gpio().gpio
-        self.pollperm = Pollperm()
+        self.config = config
+        self.gpio = Gpio(config=self.config,logger=self.logger)
+        self.pi_gpio = self.gpio.gpio
+        self.pollperm = pollperm
         self.name = name
         self.callback = callback
         self.pin_0 = pin_0
@@ -37,13 +36,12 @@ class Rotary():
         self.rotary_callback_list = []
         self.callback_list = []
         self.create_rotary()
-
         self.log.debug("{} init complete...".format(__name__))
 
     # ********************************************************************************************************************
     def create_rotary(self):
         # creates a callback for both pins that points to same callback
-        self.create_callback(self.pin_0, self.pin_1, self.pin_0_debounce, self.pin_1_debounce)
+        self.create_callback(pin0= self.pin_0, pin1= self.pin_1, pin0_debounce= self.pin_0_debounce, pin1_debounce= self.pin_1_debounce)
         self.log.debug("Creating rotary encoder:{} BCM PIN0:{}  BCM PIN1:{}".format(self.name, self.pin_0, self.pin_1))
         self.log.debug("DEBOUNCE PIN 0:{}  DEBOUNCE PIN 1:{}".format(self.pin_0_debounce, self.pin_1_debounce))
         self.log.debug("Callback:{}".format(self.callback))
@@ -58,10 +56,10 @@ class Rotary():
 
     # ********************************************************************************************************************
     def pin_setup(self, pin, pin_debounce):
-        self.gpio.set_mode(pin, pigpio.INPUT)
-        self.gpio.set_pull_up_down(pin, pigpio.PUD_OFF)
-        self.gpio.set_glitch_filter(pin, pin_debounce)  # microseconds
-        cb = self.gpio.callback(pin, pigpio.EITHER_EDGE, self.interrupt_callback)
+        self.pi_gpio.set_mode(pin, pigpio.INPUT)
+        self.pi_gpio.set_pull_up_down(pin, pigpio.PUD_OFF)
+        self.pi_gpio.set_glitch_filter(pin, pin_debounce)  # microseconds
+        cb = self.pi_gpio.callback(pin, pigpio.EITHER_EDGE, self.interrupt_callback)
         self.callback_list.append((pin, pigpio.EITHER_EDGE, self.interrupt_callback))
         return cb
 
@@ -77,7 +75,7 @@ class Rotary():
         :param simulate: do you want to simlulate the pins generating an interrupt
         :param sim_pins: what pins to send simulate an interrupt occured
         """
-        self.pollperm.polling_prohitied = (True, __name__)
+        self.pollperm.polling_prohibited = (True, __name__)
         if self.first_pin is None:
             if simulate:
                 pin_num = sim_pins[0]
@@ -118,7 +116,7 @@ class Rotary():
             self.last_interrupt_time = tick
             self.log.debug("Delta time : {} ms".format(delta / 1000))
             self.log.debug("Last saved time : {}".format(self.last_interrupt_time))
-            self.callback(delta, direction, simulate)
+            self.callback(delta=delta, direction=direction, simulate=simulate)
 
     # ********************************************************************************************************************
     def disable_interrupts(self):
@@ -129,4 +127,4 @@ class Rotary():
     def enable_interrupts(self):
         pass
         # for cb in self.callback_list:
-        #     self.gpio.callback(cb[0],cb[1],cb[2])
+        #     self.pi_pgio.callback(cb[0],cb[1],cb[2])

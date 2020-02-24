@@ -15,10 +15,10 @@ class Support():
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
 
-    def __init__(self):
-        super().__init__()
-        self.config = Config()
-        self.logger = Logger()
+    def __init__(self, config, logger):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.config = config
+        self.logger = logger
         self.log = Logger.log
         self.log.info('Starting up portable tester...')
         self.startup_processes()

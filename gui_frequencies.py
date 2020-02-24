@@ -6,10 +6,11 @@ from codegen import Codegen
 class GuiFrequencies(object):
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, window):
-        self.config = Config()
-        self.logger = Logger()
-        self.codegen = Codegen()
+    def __init__(self, window, codegen, config, logger):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.config = config
+        self.logger = logger
+        self.codegen = codegen
         self.window = window
         self.log = Logger.log
         self.pb_frequencies_state = []
@@ -33,7 +34,7 @@ class GuiFrequencies(object):
         frequency_pushbutton_change routine.
         """
         counter = 0
-        self.log.debug("CODERATES:{}".format(self.codegen.frequencies))
+        self.log.debug("FREQUENCIES:{}".format(self.codegen.frequencies))
         for frequency in self.codegen.frequencies:
             button = getattr(self.window, 'PB_freq_%s' % counter)
             button.released.connect(lambda idx=counter: self.frequency_pushbutton_change(idx))
@@ -66,53 +67,61 @@ class GuiFrequencies(object):
             self.pri_freq_pb = buttonid
             self.window.LBL_current_pri_carrier.setText(str(self.codegen.frequencies[buttonid]))
             self.pri_freq_value = self.codegen.frequencies[buttonid]
+            self.log.debug("PRIMARY FEQ button set")
         elif self.pri_freq_pb is None and self.sec_freq_pb is not None:
             if buttonid is self.sec_freq_pb:
                 button.setStyleSheet('background-color: red;border-radius:10px')
                 self.sec_freq_pb = None
                 self.window.LBL_current_sec_carrier.setText("OFF")
                 self.sec_freq_value = 0
+                self.log.debug("SECONDARY FEQ button unset")
             elif buttonid is not self.sec_freq_pb:
                 button.setStyleSheet('background-color: green;border-radius:10px')
                 self.pri_freq_pb = buttonid
                 self.window.LBL_current_pri_carrier.setText(str(self.codegen.frequencies[buttonid]))
                 self.pri_freq_value = self.codegen.frequencies[buttonid]
+                self.log.debug("PRIMARY FREQ button set")
         elif self.pri_freq_pb is not None and self.sec_freq_pb is None:
             if buttonid is self.pri_freq_pb:
                 button.setStyleSheet('background-color: red;border-radius:10px')
                 self.pri_freq_pb = None
                 self.window.LBL_current_pri_carrier.setText("OFF")
-                self.window.pri_freq_value = 0
+                self.pri_freq_value = 0
+                self.log.debug("PRIMARY FREQ button unset")
             elif buttonid is not self.pri_freq_pb:
                 button.setStyleSheet('background-color: yellow;border-radius:10px')
                 self.sec_freq_pb = buttonid
                 self.window.LBL_current_sec_carrier.setText(str(self.codegen.frequencies[buttonid]))
                 self.sec_freq_value = self.codegen.frequencies[buttonid]
+                self.log.debug("SECONDARY FREQ button Set")
         elif self.pri_freq_pb is not None and self.sec_freq_pb is not None:
             if buttonid is self.pri_freq_pb:
                 button.setStyleSheet('background-color: red;border-radius:10px')
                 self.pri_freq_pb = None
                 self.window.LBL_current_pri_carrier.setText("OFF")
                 self.pri_freq_value = 0
+                self.log.debug("PRIMARY FREQ button unset")
             elif buttonid is self.sec_freq_pb:
                 button.setStyleSheet('background-color: red;border-radius:10px')
                 self.sec_freq_pb = None
                 self.window.LBL_current_sec_carrier.setText("OFF")
-                self.window.sec_freq_value = 0
+                self.sec_freq_value = 0
+                self.log.debug("SECONDARY FREQ button unset")
         elif self.sec_freq_pb is None and self.pri_freq_pb is None:
-            pass
+            self.log.debug("Sec freq is none: Pri freq is none")
         elif self.sec_freq_pb is None and self.pri_freq_pb is not None:
-            pass
+            self.log.debug("Sec freq is none: Pri freq is NOT none")
         elif self.sec_freq_pb is not None and self.pri_freq_pb is None:
             if buttonid is self.sec_freq_pb:
                 button.setStyleSheet('background-color: red;border-radius:10px')
                 self.sec_freq_pb = None
                 self.window.LBL_current_sec_carrier.setText("OFF")
                 self.sec_freq_value = 0
+                self.log.debug("SECONDARY FREQ button unset")
         elif self.sec_freq_pb is not None and self.pri_freq_pb is not None:
-            pass
-        self.codegen.primary_frequency = self.pri_freq_value
-        self.codegen.secondary_frequency = self.sec_freq_value
+            self.log.debug("Sec freq is NOT none: Pri freq is NOT none")
+        self.codegen.primary_frequency_generate(self.pri_freq_value)
+        self.codegen.secondary_frequency_generate(self.sec_freq_value)
         self.codegen.coderate_generate()
 
     # *******************************************************************************************

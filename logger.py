@@ -1,8 +1,12 @@
 import os
-import logging
 import logging.config
 
 class Logger(object):
+
+    tmplog = logging.getLogger()
+    tmplog.setLevel(logging.DEBUG)
+    tmplog.info("Instantiating {} class...".format(__qualname__))
+    #del tmplog
 
     log_config_file_path = "config/logging.ini"
     log = logging.getLogger(__name__)
@@ -14,6 +18,7 @@ class Logger(object):
     log.info("LOG LEVEL {}".format(log.getEffectiveLevel()))
 
     def __init__(self, level = None):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.log = Logger.log
         self.log.disabled = False
         if level:

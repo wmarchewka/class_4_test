@@ -8,9 +8,10 @@ class SecurityLevel():
 
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, level=None):
+    def __init__(self, logger, level=None):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.level = level
-        self.logger = Logger()
+        self.logger = logger
         self.log = self.logger.log
         self.tab_pages = []
     # *******************************************************************************

@@ -2,14 +2,11 @@
 
 # my libraries
 from logger import Logger
-from config import Config
-from decoder import Decoder
-from spi import SPI
 from rotary_new import Rotary
-from pollperm import Pollperm
+from gpio import Gpio
 
 
-class Speedgen():
+class Speedgen(object):
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
     PRIMARY_SOURCE_FREQUENCY = None
@@ -17,31 +14,36 @@ class Speedgen():
     PRIMARY_FREQ_GEN_CONSTANT = None  # 268435456.00  # 2^28
     SECONDARY_FREQ_GEN_CONSTANT = None  # 268435456.00  # 2^28
     SPEED_GENERATOR_SET_SPEED_SPI_HEADER = None  # [0X20, 0X00]
-    SPEED_FREQUENCY_MIN = 0
-    SPEED_FREQUENCY_MAX = 1000000
-    FREQ_SHAPE_SINE = 0
-    FREQ_SHAPE_SQUARE = 1
-    FREQ_SHAPE_TRIANGLE = 2
-    CLOCKWISE = 1
-    ANTI_CLOCKWISE = -1
-    DIRECTION_ERROR = 0
-    ERROR = 0
-    SPEED_REG = 0
-    FREQ_SHAPE = [FREQ_SHAPE_SINE, FREQ_SHAPE_SINE]
+    SPEED_FREQUENCY_MIN = None
+    SPEED_FREQUENCY_MAX = None
+    FREQ_SHAPE_SINE = None
+    FREQ_SHAPE_SQUARE = None
+    FREQ_SHAPE_TRIANGLE = None
+    CLOCKWISE = None
+    ANTI_CLOCKWISE = None
+    DIRECTION_ERROR = None
+    ERROR = None
+    SPEED_REG = None
+    FREQ_SHAPE = None
     rotaries = []
 
-    def __init__(self, name, shape, spi_channel, chip_select, pin_0, pin_1, pin_0_debounce, pin_1_debounce, thresholds,
+    def __init__(self, config, logger, pollperm, decoder, spi, name, shape, spi_channel, chip_select, pin_0, pin_1,
+                 pin_0_debounce,
+                 pin_1_debounce, thresholds,
                  callback, commander_speed_move_callback):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.new_speed_increment = 0
-        self.logger = Logger()
+        self.logger = logger
         self.log = Logger.log
-        self.config = Config()
-        self.decoder = Decoder()
-        self.pollperm = Pollperm()
-        self.spi = SPI()
+        self.config = config
+        self.decoder = decoder
+        self.pollperm = pollperm
+        self.spi = spi
         self.polling_prohibited = (True, self.__class__)
         self.spi_channel = spi_channel
         self.chip_select = chip_select
+        self.gpio = Gpio(config=self.config, logger=self.logger)
+        self.pi_gpio = self.gpio.gpio
         self.name = name
         self.shape = shape
         self.thresholds = thresholds
@@ -67,7 +69,7 @@ class Speedgen():
         allows simulation of speed signal
         :param sim_pins: pin numbers to simulate
         """
-        tick = self.rotary.gpio.get_current_tick()
+        tick = self.pi_gpio.get_current_tick()
         self.rotary.interrupt_callback(0, 0, tick, True, sim_pins)
 
     # **************************************************************************************************************
@@ -84,9 +86,35 @@ class Speedgen():
         """creates rotary instance and also create global list of rotary encoders create across instances
         so that we can disable or enable all callbacks
         """
-        self.rotary = Rotary(self.name, self.interrupt_callback, self.pin_0, self.pin_1,
-                             self.pin_0_debounce, self.pin_1_debounce)
+        self.rotary = Rotary(config=self.config, logger=self.logger, pollperm=self.pollperm,
+                             name=self.name,
+                             callback=self.interrupt_callback, pin_0=self.pin_0, pin_1=self.pin_1,
+                             pin_0_debounce=self.pin_0_debounce, pin_1_debounce=self.pin_1_debounce)
         Speedgen.rotaries.append(self.rotary)
+
+    # **************************************************************************************************************
+    def interrupt_callback(self, delta: int, direction=None, simulate=None):
+        """
+        This is the callback that is sent to the rotary class and will be called when the rotary pins are
+        interrupted.  The simulate is included so that if in simulation mode, we will not cause the front
+        panel dial to move.
+        :param delta:
+        :param direction:
+        :param simulate:
+        """
+        if direction is not Speedgen.DIRECTION_ERROR:
+            delta = delta / 1000
+            self.log.debug("{} Delta:{}".format(self.name, delta))
+            self.log.debug("Thresholds {}".format(self.thresholds))
+            speed_increment = self.threshold_check(delta)
+            self.log.debug("Speed threshold {}".format(speed_increment))
+            value = self.bounds_check(simulate, speed_increment, direction)
+            self.log.info("{}  FREQ:{}".format(self.name, value))
+            self.callback(self.name, value)
+            spi_msg = self.frequency_to_registers(self.speed_frequency, self.shape)
+            self.spi_send(spi_msg)
+        else:
+            self.log.debug("Direction error received")
 
     # ***************************************************************************************************************
     def threshold_check(self, delta):
@@ -108,7 +136,7 @@ class Speedgen():
     # ***************************************************************************************************************
     def bounds_check(self, simulate, speed_increment, direction):
         direction_text = None
-        if simulate == False:
+        if simulate is False:
             # this callback will move the dial on the screen.
             self.commander_speed_move_callback(self.name, direction, speed_increment)
         if direction == Speedgen.CLOCKWISE:
@@ -127,42 +155,15 @@ class Speedgen():
             "Simulate:{}  Speed Increment:{}  Direction:{}".format(simulate, speed_increment, direction_text))
         return self.speed_frequency
 
-    # **************************************************************************************************************
-    def interrupt_callback(self, delta: int, direction=None, simulate=None):
-        """
-        This is the callback that is sent to the rotary class and will be called when the rotary pins are
-        interrupted.  The simulate is included so that if in simulation mode, we will not cause the front
-        panel dial to move.
-        :param delta:
-        :param direction:
-        :param simulate:
-        """
-        if direction is not Speedgen.DIRECTION_ERROR:
-            delta = delta / 1000
-            self.log.debug("{} Delta:{}".format(self.name, self.delta))
-            self.log.debug("Thresholds {}".format(self.thresholds))
-            speed_increment = self.threshold_check(delta)
-            self.log.debug("Speed threshold {}".format(speed_increment))
-            value = self.bounds_check(simulate, speed_increment, direction)
-            self.log.info("{}  FREQ:{}".format(self.name, value))
-            self.callback(self.name, value)
-            spi_msg = self.frequency_to_registers(self.speed_frequency, self.shape)
-            self.spi_send(spi_msg)
-        else:
-            self.log.debug("Direction error received")
-
-    # **************************************************************************************************************
-    def disable_interrupts(self):
-        pass
-
-    # **************************************************************************************************************
-    def enable_interrupts(self):
-        pass
+    def update_shape(self, shape):
+        self.log.debug("{} Updating shape ".format(self.name))
+        spi_msg = self.frequency_to_registers(self.speed_frequency, shape)
+        self.spi_send(spi_msg)
 
     # **************************************************************************************************************
     def spi_send(self, msg):
         self.log.debug("{} send SPI{}".format(self.name, msg))
-        self.spi.write(self.spi_channel, msg, self.chip_select)
+        self.spi.send_message(channel=self.spi_channel, message=msg, chip_select=self.chip_select)
 
     # **************************************************************************************************************
     def speed_off(self):
@@ -176,19 +177,24 @@ class Speedgen():
         takes a frquency and creates the correct registers to send to the ad9833 freq generating ic
         :param frequency: frequency in
         :param shape: shape in
-        :return: creates return msg to send to ad9833
+        :return: creates return message to send to ad9833
         """
+        if frequency is None:
+            frequency = self.speed_frequency
         msg = []
-        self.log.debug(
-            "FREQ TO REG running with FREQ:{} SHAPE:{}".format(frequency, shape))
+
         word = hex(
             int(round((frequency * 2 ** 28) / Speedgen.PRIMARY_SOURCE_FREQUENCY)))  # Calculate frequency word to send
+        if shape is None:
+            shape = self.shape
         if shape == Speedgen.FREQ_SHAPE_SQUARE:  # square
             shape_word = 0x2020
         elif shape == Speedgen.FREQ_SHAPE_TRIANGLE:  # triangle
             shape_word = 0x2002
         else:
             shape_word = 0x2000  # sine
+        self.log.debug(
+            "FREQ TO REG running with FREQ:{} SHAPE:{}".format(frequency, Speedgen.FREQ_SHAPE[shape]))
         MSB = (int(word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
         LSB = int(word, 16) & 0x3FFF
         MSB |= 0x4000  # Set control bits DB15 = 0 and DB14 = 1; for frequency register 0
@@ -225,3 +231,22 @@ class Speedgen():
         Speedgen.SPEED_GENERATOR_SET_SPEED_SPI_HEADER = self.config.speed_generator_set_speed_spi_header  # [0x20, 0x00]
         Speedgen.SPEED_0_THRESHOLDS = self.config.SPEED_0_thresholds
         Speedgen.SPEED_1_THRESHOLDS = self.config.SPEED_1_thresholds
+        Speedgen.SPEED_FREQUENCY_MIN = self.config.SPEED_FREQUENCY_MIN
+        Speedgen.SPEED_FREQUENCY_MAX = self.config.SPEED_FREQUENCY_MAX
+        Speedgen.FREQ_SHAPE_SINE = self.config.FREQ_SHAPE_SINE
+        Speedgen.FREQ_SHAPE_SQUARE = self.config.FREQ_SHAPE_SQUARE
+        Speedgen.FREQ_SHAPE_TRIANGLE = self.config.FREQ_SHAPE_TRIANGLE
+        Speedgen.CLOCKWISE = self.config.CLOCKWISE
+        Speedgen.ANTI_CLOCKWISE = self.config.ANTI_CLOCKWISE
+        Speedgen.DIRECTION_ERROR = self.config.DIRECTION_ERROR
+        Speedgen.ERROR = self.config.ERROR
+        Speedgen.SPEED_REG = self.config.SPEED_REG
+        Speedgen.FREQ_SHAPE = self.config.FREQ_SHAPE
+
+    # **************************************************************************************************************
+    def disable_interrupts(self):
+        pass
+
+    # **************************************************************************************************************
+    def enable_interrupts(self):
+        pass

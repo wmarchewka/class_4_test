@@ -6,10 +6,11 @@ class Guicoderate(object):
     
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, window):
-        self.config = Config()
-        self.logger = Logger()
-        self.codegen = Codegen()
+    def __init__(self, window, codegen, config, logger):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.config = config
+        self.logger = logger
+        self.codegen = codegen
         self.window = window
         self.log = Logger.log
         self.pb_coderates_state = []
@@ -32,7 +33,7 @@ class Guicoderate(object):
         """
         counter = 0
         coderates = self.codegen.coderates
-        self.log.debug("FREQUENCIES:{}".format(coderates))
+        self.log.debug("CODERATES:{}".format(coderates))
         for coderate in coderates:
             button = getattr(self.window, 'PB_coderate_%s' % counter)
             button.released.connect(lambda idx=counter: self.coderate_pushbutton_change(idx))
@@ -63,12 +64,14 @@ class Guicoderate(object):
             self.window.LBL_current_coderate.setText(str(self.codegen.coderates[buttonid]))
             self.coderate_value = self.codegen.coderates[buttonid]
             self.coderate_pb = buttonid
+            self.log.debug("CODERATE button set")
         elif self.coderate_pb is not None:
             if buttonid is self.coderate_pb:
                 button.setStyleSheet('background-color: red;border-radius:10px')
                 self.window.LBL_current_coderate.setText("OFF")
-                self.coderate_value = 1
+                self.coderate_value = 0
                 self.coderate_pb = None
+                self.log.debug("CODERATE button UNset")
             elif buttonid is not self.coderate_pb:
                 last_button = getattr(self, 'PB_coderate_%s' % self.coderate_pb)
                 last_button.setStyleSheet('background-color: red;border-radius:10px')
@@ -76,6 +79,8 @@ class Guicoderate(object):
                 self.window.LBL_current_coderate.setText(str(self.codegen.coderates[buttonid]))
                 self.coderate_value = self.codegen.coderates[buttonid]
                 self.coderate_pb = buttonid
+                self.log.debug("CODERATE button CHANGED")
+
         self.codegen.coderate_ppm = self.coderate_value
         self.codegen.coderate_generate()
 

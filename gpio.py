@@ -2,56 +2,23 @@ import pigpio
 import subprocess
 import time
 
-#my libraries
+# my libraries
 from logger import Logger
 from config import Config
 
-class Gpio():
 
+class Gpio():
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-
-    __gpio = None
     __mode_input = 0
     __mode_output = 1
-    _class_property = None
-    _init = None
 
-    @classmethod
-    def init_gpio(cls):
-        cls.__gpio = pigpio.pi()
-
-
-    @property
-    def class_property(self):
-        return self._class_property
-
-    @class_property.setter
-    def class_property(self, value):
-        type(self)._class_property = value
-
-    @class_property.deleter
-    def class_property(self):
-        del type(self)._class_property
-
-    @property
-    def name_inst(self):
-        return self._name_inst
-
-    @name_inst.setter
-    def name_inst(self, value):
-        type(self)._name_inst = value
-
-    def __init__(self):
-        self.config = Config()
-        self.logger = Logger()
+    def __init__(self, config, logger):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.config = config
+        self.logger = logger
         self.log = Logger.log
-        if not Gpio._init:
-            __gpio = Gpio.init_gpio()
-            Gpio._init = True
-            self.log.debug("FIRST SETUP OF GPIO")
-        self.gpio = Gpio.__gpio
-        self.log.debug(self.gpio)
+        self.gpio = pigpio.pi()
         self.startup_proccesses()
         self.log.debug("{} init complete...".format(__name__))
 
@@ -59,7 +26,6 @@ class Gpio():
     def startup_proccesses(self):
         self.check_connection()
         self.get_io_status()
-
 
     # ****************************************************************************************************
     def shutdown(self):
@@ -116,8 +82,8 @@ class Gpio():
         try:
             self.logger.log.debug('Getting IO status...')
             self.logger.log.debug("gpio STATUS: Pins(0-31) {}  Pins(32-54)  {}   ".format(bin(self.gpio.read_bank_1()),
-                                                                                   bin(
-                                                                                       self.gpio.read_bank_2())))
+                                                                                          bin(
+                                                                                              self.gpio.read_bank_2())))
         except Exception:
             self.logger.log.exception("EXCEPTION in get_status", exc_info=True)
 

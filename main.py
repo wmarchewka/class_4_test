@@ -7,15 +7,11 @@ from PySide2.QtCore import QTimer
 
 # my imports
 from logger import Logger
-from config import Config
-from gui.gui_new import Mainwindow
-from speedgen_new import Speedgen
-from gains import Gains
-from pollperm import Pollperm
 from commander import Commander
 
 class PortableTester(object):
     def __init__(self):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = Logger()
         self.log = Logger.log
         self.parser = argparse.ArgumentParser()
@@ -27,8 +23,8 @@ class PortableTester(object):
         if self.logging_args:
             self.level_config = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, "CRITICAL": logging.CRITICAL}  # etc.
             self.logging_level = self.level_config[self.logging_args[0]]
-        Logger(level=self.logging_level)
-        self.commander = Commander()
+        self.log.setLevel(self.logging_level)
+        self.commander = Commander(self.logger)
 
 
 if __name__ == "__main__":

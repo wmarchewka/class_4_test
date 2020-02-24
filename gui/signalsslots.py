@@ -27,8 +27,8 @@ class Signalslots(object):
         window.QDIAL_secondary_gain.valueChanged.connect(gui.secondary_gain_change)
 
         # speed 1 and speed2 value change
-        window.QDIAL_speed_1.valueChanged.connect(self.commander.simulate_speed)
-        window.QDIAL_speed_2.valueChanged.connect(self.commander.simulate_speed)
+        window.QDIAL_speed_1.valueChanged.connect(self.commander.speed_simulate)
+        window.QDIAL_speed_2.valueChanged.connect(self.commander.speed_simulate)
 
         # TIMER ON OFF BUTTONS
         window.PB_display_timer_toggle.clicked.connect(gui.display_timer_toggled)  # PB to turn timers on and off

@@ -2,10 +2,9 @@ import pigpio
 
 #my libraries
 from logger import Logger
-from gpio import Gpio
-from config import Config
 
-class Decoder():
+
+class Decoder(object):
 
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
@@ -27,14 +26,13 @@ class Decoder():
                              "Seondary Gain Fine", "Primary Gain Fine",
                              "Speed Tach 1", "Speed Tach 2", "Current Sense", "Switches"]
 
-    def __init__(self):
-        super().__init__()
-        self.logger = Logger()
-        self.log = Logger.log
-        self.config = Config()
-        self.GPIO = Gpio().gpio
+    def __init__(self, config, logger, gpio):
+        Logger.log.debug('{} initializing....'.format(__name__))
+        self.logger = logger
+        self.log = logger.log
+        self.config = config
+        self.GPIO = gpio.gpio
         self.variables()
-        self.log.debug('Decoder initializing....')
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
@@ -60,45 +58,45 @@ class Decoder():
         self.log.debug("Decoder setting pins " + str(self.PIN_A) + " " + str(self.PIN_B) + " " + str(
             self.PIN_C) + " as outputs...")
 
-    def chip_select(self, cs_pin):
+    def chip_select(self, chip_select_pin):
         pin_selection = 0
-        if cs_pin == self.chip_select_primary_freq:
+        if chip_select_pin == self.chip_select_primary_freq:
             self.log.debug('Decoder selecting  CS 0')
             # write 000
             pin_selection = self.pin_select[0]
-        elif cs_pin == self.chip_select_primary_coarse_gain:
+        elif chip_select_pin == self.chip_select_primary_coarse_gain:
             # write 100
             self.log.debug('Decoder selecting  CS 1')
             pin_selection = self.pin_select[1]
-        elif cs_pin == self.chip_select_secondary_freq:
+        elif chip_select_pin == self.chip_select_secondary_freq:
             # write 010
             self.log.debug('Decoder selecting  CS 2')
             pin_selection = self.pin_select[2]
-        elif cs_pin == self.chip_select_secondary_coarse_gain:
+        elif chip_select_pin == self.chip_select_secondary_coarse_gain:
             # write 110
             self.log.debug('Decoder self.selecting CS 3')
             pin_selection = self.pin_select[3]
-        elif cs_pin == self.chip_select_secondary_fine_gain:
+        elif chip_select_pin == self.chip_select_secondary_fine_gain:
             # write 001
             self.log.debug('Decoder selecting CS 4')
             pin_selection = self.pin_select[4]
-        elif cs_pin == self.chip_select_primary_fine_gain:
+        elif chip_select_pin == self.chip_select_primary_fine_gain:
             # write 101
             self.log.debug('Decoder selecting CS 5')
             pin_selection = self.pin_select[5]
-        elif cs_pin == self.chip_select_speed_tach_1:
+        elif chip_select_pin == self.chip_select_speed_tach_1:
             # write 011
             self.log.debug('Decoder selecting CS 6')
             pin_selection = self.pin_select[6]
-        elif cs_pin == self.chip_select_speed_tach_2:
+        elif chip_select_pin == self.chip_select_speed_tach_2:
             # write 111
             self.log.debug('Decoder selecting CS 7')
             pin_selection = self.pin_select[7]
-        elif cs_pin == self.chip_select_current_sense:
+        elif chip_select_pin == self.chip_select_current_sense:
             # write 000
             self.log.debug('Decoder selecting CS 8')
             pin_selection = self.pin_select[8]
-        elif cs_pin == self.chip_select_switches:
+        elif chip_select_pin == self.chip_select_switches:
             # write 100
             self.log.debug('Decoder selecting CS 9')
             pin_selection = self.pin_select[9]

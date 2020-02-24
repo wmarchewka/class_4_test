@@ -20,21 +20,22 @@ from gui import QTResources  # do not remove this !!!
 
 
 class Mainwindow(object):
-
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, commander):
+    def __init__(self, commander, codegen, config, logger, support):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.window = None
-        self.config = Config()
-        self.logger = Logger()
-        self.support = Support()
-        self.securitylevel = SecurityLevel()
+        self.config = config
+        self.logger = logger
+        self.support = support
+        self.securitylevel = SecurityLevel(logger=logger)
         self.log = Logger.log
         self.commander = commander
         self.startup_processes()
-        self.guicode = Guicoderate(self.window)
-        self.freqcode = GuiFrequencies(self.window)
-        self.signaling = Signaling(self.window, self.commander)
+        self.guicode = Guicoderate(window=self.window, codegen=codegen, config=config, logger=logger)
+        self.freqcode = GuiFrequencies(window=self.window, codegen=codegen, config=config, logger=logger)
+        self.signaling = Signaling(window=self.window, commander=self.commander, config=self.config, logger=self.logger,
+                                   support=self.support)
         self.log.debug("{} init complete...".format(__name__))
 
     # *****************************************************************************
@@ -44,7 +45,7 @@ class Mainwindow(object):
         self.exit_signalling()
         self.screen_fullscreen()
         self.fonts_list()
-        self.securitylevel.set_security_level("technician",self.window)
+        self.securitylevel.set_security_level("technician", self.window)
 
     # *****************************************************************************
     def fonts_list(self):
@@ -120,5 +121,5 @@ class Mainwindow(object):
         # self.log.info('Turning off screen saver forced on')
         # subprocess.call('xset dpms force off', shell=True)
         self.log.info("Goodbye...")
-        #self.log.shutdown()
+        # self.log.shutdown()
         sys.exit(0)
