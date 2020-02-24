@@ -94,11 +94,11 @@ class Signaling():
     def qdial_gain_0_value_changed(self, value):
         self.log.debug("Qdial Gain 0 changed:{}".format(value))
         ret_pins = self.simulation.gain_0_value_changed(value)
-        self.commander.gain_simulate('SPEED0', ret_pins)
+        self.commander.gain_simulate('GAIN0', ret_pins)
 
     #  ***************************************************************************************
     def qdial_gain_1_value_changed(self, value):
         self.log.debug("Qdial Gain 1 changed:{}".format(value))
         ret_pins = self.simulation.gain_1_value_changed(value)
-        self.commander.gain_simulate('SPEED1', ret_pins)
+        self.commander.gain_simulate('GAIN1', ret_pins)
 

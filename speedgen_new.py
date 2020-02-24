@@ -115,6 +115,8 @@ class Speedgen(object):
             self.spi_send(spi_msg)
         else:
             self.log.debug("Direction error received")
+        self.pollperm.polling_prohibited = (False, __name__)
+
 
     # ***************************************************************************************************************
     def threshold_check(self, delta):
@@ -155,6 +157,7 @@ class Speedgen(object):
             "Simulate:{}  Speed Increment:{}  Direction:{}".format(simulate, speed_increment, direction_text))
         return self.speed_frequency
 
+    # ***************************************************************************************************************
     def update_shape(self, shape):
         self.log.debug("{} Updating shape ".format(self.name))
         spi_msg = self.frequency_to_registers(self.speed_frequency, shape)

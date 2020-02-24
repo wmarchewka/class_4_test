@@ -26,11 +26,11 @@ class Pollperm(object):
 
     @property
     def polling_prohibited(self):
-        self.log.debug("Polling Prohibited: {}".format(self._polling_prohibited))
+        self.log.debug("Polling Prohibited:{}".format(self._polling_prohibited))
         return self._polling_prohibited
 
     @polling_prohibited.setter
-    def polling_prohibited(self, val):
-        setval, caller = val
-        self.log.debug("Setting Polling Prohibited to:{} from {}".format(setval, caller))
-        self._polling_prohibited = val
+    def polling_prohibited(self, value):
+        setval, caller = value
+        self.log.debug("Polling Prohibited:{} from {}".format(setval, caller))
+        self._polling_prohibited = value

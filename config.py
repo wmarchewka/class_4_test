@@ -106,8 +106,8 @@ class Config():
         cls.secondary_channel_mux_pin = cls.config.getint('CODE RATE', 'secondary_channel_mux_pin')
 
         # GUI
-        cls.display_brightness = cls.config.getint('MAIN', 'screen_brightness')
-        cls.guiname = cls.config.get('MAIN', 'gui')
+        cls.display_brightness = cls.config.getint('MAIN', 'display_brightness')
+        cls.guiname = cls.config.get('MAIN', 'guiname')
         cls.poll_timer_interval = cls.config.getint('MAIN', 'poll_timer_interval')
         cls.local_timer_interval = cls.config.getint('MAIN', 'local_timer_interval')
         cls.sense_timer_interval = cls.config.getfloat('MAIN', 'sense_timer_interval')
@@ -134,6 +134,10 @@ class Config():
         cls.gain_1_spi_channel = cls.config.getint('GAINS', 'gain_1_spi_channel')
         cls.gain_0_name = cls.config.get('GAINS', 'gain_0_name')
         cls.gain_1_name = cls.config.get('GAINS', 'gain_1_name')
+
+        #SWITCHES
+        cls.switch_chip_select = cls.config.getint('SWITCH', 'switch_chip_select')
+
 
     def __init__(self, logger):
         Logger.log.debug('{} initializing....'.format(__name__))

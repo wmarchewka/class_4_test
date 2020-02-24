@@ -48,6 +48,7 @@ class Gains(object):
         self.value = 0
         self.name = name
         self.gpio = Gpio(config=config, logger=logger)
+        self.pi_gpio = self.gpio.gpio
         self.rotary = None
         self.pin_0 = pin_0
         self.pin_1 = pin_1
@@ -85,7 +86,8 @@ class Gains(object):
         allows simulation of speed signal
         :param sim_pins: pin numbers to simulate
         """
-        self.rotary.interrupt_callback(0, 0, time.time(), True, sim_pins)
+        tick = self.pi_gpio.get_current_tick()
+        self.rotary.interrupt_callback(0, 0, tick, True, sim_pins)
 
     # ***************************************************************************************************************
     def create_rotary(self):
@@ -134,6 +136,7 @@ class Gains(object):
             self.digitalpots_send_spi(coarse_hex=coarse_hex, fine_hex=fine_hex)
         else:
             self.log.debug("Direction error received")
+        self.pollperm.polling_prohibited = (False, __name__)
 
     # ***************************************************************************************************************
     def bounds_check(self, speed_increment, direction, simulate):
@@ -158,7 +161,7 @@ class Gains(object):
                 self.value = self.value - speed_increment
         elif direction == Gains.DIRECTION_ERROR:
             self.value = self.value
-        if simulate == False:
+        if not simulate:
             self.commander_gain_move_callback(name=self.name, direction=direction, speed_increment=speed_increment)
         self.log.debug("Gains Locked:{} Direction:{}".format(self.gains_locked, direction))
         self.log.debug("Speed Increment:{}  Value:{}".format(speed_increment, self.value))
@@ -211,11 +214,11 @@ class Gains(object):
         self.log.debug('Gain:{} Coarse HEX:{}  Fine HEX{}'.format(self.name, coarse_hex[0:2], fine_hex[0:2]))
         data = Gains.SPI_WRITE_COMMAND + fine_hex[0:2]
         self.log.debug('Data{}'.format(data))
-        self.spi.send_message(channel=self.spi_channel, data=data, chipselect=self.decoder.chip_select_primary_fine_gain)
+        self.spi.send_message(channel=self.spi_channel, message=data, chip_select=self.decoder.chip_select_primary_fine_gain)
         # time.sleep(0.010)
         data = Gains.SPI_WRITE_COMMAND + coarse_hex[0:2]
         self.log.debug('Data{}'.format(data))
-        self.spi.send_message(channel=self.spi_channel, data=data, chip_select=self.decoder.chip_select_primary_coarse_gain)
+        self.spi.send_message(channel=self.spi_channel, message=data, chip_select=self.decoder.chip_select_primary_coarse_gain)
 
     # ***************************************************************************************************************
     # support routine to convert intergers to hex

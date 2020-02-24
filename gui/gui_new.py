@@ -4,23 +4,21 @@ faulthandler.enable()
 import sys
 import signal
 from PySide2.QtUiTools import QUiLoader
-from PySide2.QtCore import QTimer, QFile
-from PySide2.QtGui import QFontDatabase, QFont
-from PySide2.QtWidgets import QMainWindow, QTableWidgetItem, QWidget
+from PySide2.QtCore import QFile
+from PySide2.QtGui import QFontDatabase
 
 # mylibraries
-from config import Config
 from logger import Logger
-from support.support import Support
 from signaling import Signaling
 from securitylevel import SecurityLevel
-from gui_coderates import Guicoderate
-from gui_frequencies import GuiFrequencies
-from gui import QTResources  # do not remove this !!!
+from gui.gui_coderates import Guicoderate
+from gui.gui_frequencies import GuiFrequencies
 
 
 class Mainwindow(object):
+
     Logger.log.info("Instantiating {} class...".format(__qualname__))
+    guiname = None
 
     def __init__(self, commander, codegen, config, logger, support):
         Logger.log.debug('{} initializing....'.format(__name__))
@@ -42,7 +40,6 @@ class Mainwindow(object):
     def startup_processes(self):
         self.config_file_load()
         self.loadscreen()
-        self.exit_signalling()
         self.screen_fullscreen()
         self.fonts_list()
         self.securitylevel.set_security_level("technician", self.window)
@@ -77,12 +74,6 @@ class Mainwindow(object):
         Mainwindow.screen_brightness_min = self.config.screen_brightness_min
 
     # ******************************************************************************
-    def exit_signalling(self):
-        signal.signal(signal.SIGINT, self.exit_application)
-        signal.signal(signal.SIGTERM, self.exit_application)
-        self.log.debug("Setting up exit signaling...")
-
-    # ******************************************************************************
     def loadscreen(self):
         try:
             ui_file = QFile(Mainwindow.guiname)
@@ -95,31 +86,10 @@ class Mainwindow(object):
         except FileNotFoundError:
             self.log.debug("Could not find {}".format(self.guiname))  # CATCHES EXIT SHUTDOWN
 
-    def exit_application(self, signum, frame):
-        self.log.info("Starting shutdown")
-        self.log.debug("Received signal from signum: {} with frame:{}".format(signum, frame))
-        self.shutdown()
+
 
     # ************************************************************************************
     # TODO: only allow items that have previsouly run. items here are running that havent been perfromed
     # TODO: try "ATEXIT"
 
-    def shutdown(self):
-        # self.gains.setval_and_store(0)
-        # self.gains.primary_gain_off()
-        # self.gains.secondary_gain_off()
-        # self.coderategenerator.coderate_stop()
-        # self.speed_generator.speed_1_off()
-        # self.speed_generator.speed_2_off()
-        # self.local_timer.stop()
-        # self.switch_timer.stop()
-        # self.sense_timer.stop()
-        try:
-            self.server.server_close()
-        except:
-            print("Error")
-        # self.log.info('Turning off screen saver forced on')
-        # subprocess.call('xset dpms force off', shell=True)
-        self.log.info("Goodbye...")
-        # self.log.shutdown()
-        sys.exit(0)
+
