@@ -97,8 +97,7 @@ class SPI():
         # todo fix to allow no data to be sent, as if you were only doing a read instead of a transfer
         return_val = None
         self.polling.polling_prohitied = (True, "SPI READ")
-        hex_data = []
-        bin_data = []
+        hex_data = [], bin_data = []
         chip_select_name = self.decoder.chip_select_names[chip_select]
         if data is not None:
             for item in data:

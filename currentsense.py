@@ -1,9 +1,11 @@
-import logging
+from logger import Logger
+
 
 # **********************************************************************************************
 class CurrentSense(object):
-    def __init__(self, spi,decoder,logger, gui):
-        self.adc_scale = 10.83
+    Logger.log.info("Instantiating {} class...".format(__qualname__))
+
+    def __init__(self, spi, decoder, logger, gui):
         self.spi = spi
         self.decoder = decoder
         self.logger = logger
@@ -17,11 +19,13 @@ class CurrentSense(object):
     # **********************************************************************************************
     def startup_processes(self):
         pass
+
     # **********************************************************************************************
     def poll_callback_change_value(self, raw_analog_digital_value):
         self.log.debug('GUI received sense values...')
         analog_digital_volts, scaled_value = self.adc_process_values(raw_analog_digital_value)
-        self.log.debug("RAW A/D:{}  Volts:{}  Scaled:{}".format(raw_analog_digital_value, analog_digital_volts, scaled_value))
+        self.log.debug(
+            "RAW A/D:{}  Volts:{}  Scaled:{}".format(raw_analog_digital_value, analog_digital_volts, scaled_value))
         self.display_amps = (self.adc_scale * analog_digital_volts)
         self.display_amps = self.display_amps / 1000
         self.display_amps = self.display_amps / 1000
@@ -36,23 +40,17 @@ class CurrentSense(object):
         :return: 
         :return: 
         """
-        return_data = self.spi.read_message(0, 2, self.decoder.chip_select_current_sense, [0xFF, 0xFF])
+        return_data = self.spi.read_message(channel=0, number_bytes=2,
+                                            chip_select=self.decoder.chip_select_current_sense, data=[0xFF, 0xFF])
         return return_data
 
     # **********************************************************************************************
     def adc_process_values(self, raw_analog_digital_value):
-        self.sense_amp_max_amps = 25
-        self.sense_ad_vin = 3.299  # LM4128CQ1MF3.3/NOPB voltage reference
-        self.sense_ad_max_bits = 14  # AD7940 ADC
-        self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
-        self.sense_scaling_factor_mv_amp = 0.110  # 55 milivolts per amp
+
         analog_digital_volts = self.sense_ad_vin * (raw_analog_digital_value / self.sense_ad_max_scaled_value)
         scaled_value = ((analog_digital_volts - (self.sense_ad_vin / 2)) / self.sense_scaling_factor_mv_amp)
         self.log.debug(
             "Analog_Digital converter value: {} Scaled Value({})".format(analog_digital_volts, scaled_value))
-        # self.sense_changedValue.emit(raw_analog_digital_value, analog_digital_volts, scaled_value)
-        #val = QtCore.QThread.currentThreadId(), threading.current_thread().name
-        #self.log.debug("THREAD " + str(val))
         return analog_digital_volts, scaled_value
 
     # **********************************************************************************************
@@ -63,3 +61,9 @@ class CurrentSense(object):
         self.sense_ad_vin = 3.299  # LM4128CQ1MF3.3/NOPB voltage reference
         self.sense_ad_max_bits = 14  # AD7940 ADC
         self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
+        self.adc_scale = 10.83
+        self.sense_amp_max_amps = 25
+        self.sense_ad_vin = 3.299  # LM4128CQ1MF3.3/NOPB voltage reference
+        self.sense_ad_max_bits = 14  # AD7940 ADC
+        self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
+        self.sense_scaling_factor_mv_amp = 0.110  # 55 milivolts per amp

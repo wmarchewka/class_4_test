@@ -45,11 +45,11 @@ class Commander(object):
                                      currentsense=self.currentsense, switches=self.switches)
         self.window = self.gui.window
         self.log = self.logger.log
+        self.knob_values = None
         self.gain0_val = 0
         self.gain1_val = 0
         self.speed0_val = 0
         self.speed1_val = 0
-        self.knob_values = 0
         self.GAIN_0_CS = self.config.GAIN_0_CS
         self.GAIN_1_CS = self.config.GAIN_1_CS
         self.GAIN_0_THRESHOLDS = self.config.gain_0_thresholds
@@ -156,8 +156,6 @@ class Commander(object):
         self.poll_timer = QTimer()
         self.poll_timer.setObjectName("POLL TIMER")
         self.poll_timer.timeout.connect(self.pollvalues.poll_read_values)
-        # self.pollvalues.switch_changedValue.connect(self.switch_changed_value)
-        # self.pollvalues.sense_changedValue.connect(self.sense_changed_value)
         self.poll_timer.start(self.config.poll_timer_interval)
 
     # ****************************************************************************************************************

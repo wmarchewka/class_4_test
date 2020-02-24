@@ -73,7 +73,7 @@ class Guicoderate(object):
                 self.coderate_pb = None
                 self.log.debug("CODERATE button UNset")
             elif buttonid is not self.coderate_pb:
-                last_button = getattr(self, 'PB_coderate_%s' % self.coderate_pb)
+                last_button = getattr(self.window, 'PB_coderate_%s' % self.coderate_pb)
                 last_button.setStyleSheet('background-color: red;border-radius:10px')
                 button.setStyleSheet('background-color: green;border-radius:10px')
                 self.window.LBL_current_coderate.setText(str(self.codegen.coderates[buttonid]))

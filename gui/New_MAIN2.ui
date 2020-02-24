@@ -4856,7 +4856,7 @@ color: rgb(252, 1, 7);</string>
        <string>AUTO</string>
       </property>
      </widget>
-     <widget class="QDial" name="QDIAL_speed_2">
+     <widget class="QDial" name="QDIAL_speed_1">
       <property name="geometry">
        <rect>
         <x>530</x>
@@ -4875,7 +4875,7 @@ color: rgb(252, 1, 7);</string>
        <bool>true</bool>
       </property>
      </widget>
-     <widget class="QDial" name="QDIAL_speed_1">
+     <widget class="QDial" name="QDIAL_speed_0">
       <property name="geometry">
        <rect>
         <x>100</x>
@@ -5267,12 +5267,12 @@ color: rgb(252, 1, 7);</string>
   </property>
  </designerdata>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

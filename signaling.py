@@ -18,6 +18,7 @@ class Signaling():
         self.simulation = Simulation(config=self.config, support = self.support, logger=self.logger)
         self.commander = commander
         self.startup_processes()
+        self.knob_values = 0
         self.log.debug("{} init complete...".format(__name__))
 
     #  ***************************************************************************************
@@ -31,8 +32,8 @@ class Signaling():
         self.window.QDIAL_secondary_gain.valueChanged.connect(self.qdial_gain_1_value_changed)
 
         # speed 1 and speed2 value change
-        self.window.QDIAL_speed_1.valueChanged.connect(self.qdial_speed_0_value_changed)
-        self.window.QDIAL_speed_2.valueChanged.connect(self.qdial_speed_1_value_changed)
+        self.window.QDIAL_speed_0.valueChanged.connect(self.qdial_speed_0_value_changed)
+        self.window.QDIAL_speed_1.valueChanged.connect(self.qdial_speed_1_value_changed)
 
         # changes logging level
         self.window.PB_log_level.clicked.connect(self.commander.log_level_PB_changed)
@@ -51,7 +52,21 @@ class Signaling():
         self.window.BUTTON_speed1_triangle.toggled.connect(
             lambda: self.speed1_buttonstate_change(self.window.BUTTON_speed1_triangle))
 
+        # primary and secondary gain encoders slide pressed
+        self.window.QDIAL_primary_gain.sliderPressed.connect(self.primary_gain_dial_pressed)
+        self.window.QDIAL_secondary_gain.sliderPressed.connect(self.secondary_gain_dial_pressed)
 
+        # primary and secondary gain encoders slide pressed
+        self.window.QDIAL_primary_gain.sliderReleased.connect(self.primary_gain_dial_released)
+        self.window.QDIAL_secondary_gain.sliderReleased.connect(self.secondary_gain_dial_released)
+
+        # primary and secondary gain encoders slide pressed
+        self.window.QDIAL_speed_0.sliderPressed.connect(self.speed_0_dial_pressed)
+        self.window.QDIAL_speed_1.sliderPressed.connect(self.speed_1_dial_pressed)
+
+        # primary and secondary gain encoders slide pressed
+        self.window.QDIAL_speed_0.sliderReleased.connect(self.speed_0_dial_released)
+        self.window.QDIAL_speed_1.sliderReleased.connect(self.speed_1_dial_released)
     #  ***************************************************************************************
     def speed0_buttonstate_change(self, button):
         freq_shape = None
@@ -102,3 +117,58 @@ class Signaling():
         ret_pins = self.simulation.gain_1_value_changed(value)
         self.commander.gain_simulate('GAIN1', ret_pins)
 
+    # ************************************************************************************
+    # CATCHES SPEED 1 KNOB released
+    def speed_0_dial_released(self):
+        self.log.debug('Speed 1 GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 2, 0)
+
+    # ************************************************************************************
+    # CATCHES SPEED 2 KNOB released
+    def speed_1_dial_released(self):
+        self.log.debug('Speed 2 GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 3, 0)
+
+    # ************************************************************************************
+    # CATCHES SPEED 1 KNOB released
+    def speed_0_dial_pressed(self):
+        self.log.debug('Speed 1 GUI knob PRESSED')
+        self.modifyBit(self.knob_values, 2, 1)
+
+    # ************************************************************************************
+    # CATCHES SPEED 2 KNOB PUSHED
+    def speed_1_dial_pressed(self):
+        self.log.debug('Speed 2 GUI knob PRESSED')
+        self.modifyBit(self.knob_values, 3, 1)
+
+    # ************************************************************************************
+    # CATCHES PRIMARY KNOB PUSHED
+    def primary_gain_dial_released(self):
+        self.log.debug('Primary Gain GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 0, 0)
+
+    # ************************************************************************************
+    # CATCHES PRIMARY KNOB PUSHED
+    def primary_gain_dial_pressed(self):
+        self.log.debug('Primary Gain GUI knob PRESSED')
+        self.modifyBit(self.knob_values, 0, 1)
+
+    # ************************************************************************************
+    # CATCHES SECONDARY KNOB PUSHED
+    def secondary_gain_dial_released(self):
+        self.log.debug('Secondary Gain GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 1, 0)
+
+    # ************************************************************************************
+    # CATCHES SECONDARY KNOB PUSHED
+    def secondary_gain_dial_pressed(self):
+        self.log.debug('Secondary Gain GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 1, 1)
+
+    # ************************************************************************************
+    # Returns modified n.
+    def modifyBit(self, n, p, b):
+        mask = 1 << p
+        self.knob_values = (n & ~mask) | ((b << p) & mask)
+        self.log.debug("ModifyBits value {:08b}".format(self.knob_values))
+        self.commander.knob_values = self.knob_values

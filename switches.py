@@ -1,6 +1,9 @@
 import time
 from PySide2 import QtGui
-#*******************************************************
+
+
+# *******************************************************
+
 class Switches(object):
     def __init__(self, config, logger, spi, gui):
         # todo: place info in ini file
@@ -21,19 +24,18 @@ class Switches(object):
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
-
     # cs9  address:0 0x00
-    # reg 1-1    addr:0  leave as configured
-    # reg 1-2    addr:1  leave as set
-    # reg 1-3    addr:2  not used
-    # reg 1-4    addr:3  not used
-    # reg 1-5    addr:4  not used
-    # reg 1-6    addr:5  set bit 5 to 1 to disable seq operation, bit 3 to 1 enable address pins
-    # reg 1-7    addr:6  leave as configured
-    # reg 1-8    addr:7  not used
-    # reg 1-9    addr:8  reflects state of port, read this
-    # reg 1-10   addr:9  not used
-
+    # reg 1-1    addr:00  leave as configured   Change this to 0b00001111 to set pin 0,1,2,3 as input and 4,5,6,7 as output
+    # reg 1-2    addr:01  leave as set
+    # reg 1-3    addr:02  not used
+    # reg 1-4    addr:03  not used
+    # reg 1-5    addr:04  not used
+    # reg 1-6    addr:05  set bit 5 to 1 to disable seq operation, bit 3 to 1 enable address pins
+    # reg 1-7    addr:06  leave as configured
+    # reg 1-8    addr:07  not used
+    # reg 1-9    addr:08  not used
+    # reg 1-10   addr:09  reflects state of port, read this
+    # reg 1-11   addr:0A  output latch, write to this to set pin values
     def startup_processes(self):
         self.read_from_config()
 
@@ -49,6 +51,17 @@ class Switches(object):
         spi_msg = [switch_sent_op_code] + [switch_register_address] + [switch_register_write_value]
         ret = self.spi.write(self.switch_channel, spi_msg, self.config.switch_chip_select)
         self.log.debug("Returned value from SWITCH disable SEQUENTIAL READ {}".format(ret))
+
+    #TODO make sure this is tested
+    def spi_write_values(self):
+        # read switch register
+        self.log.debug("Writing spi switch for values")
+        switch_register_address = 0x0A
+        number_of_bytes = 2
+        switch_sent_op_code = self.switch_op_code | self.switch_address | self.switch_spi_read
+        spi_msg = [switch_sent_op_code] + [switch_register_address] + [0x00]
+        ret = self.spi.write_message(self.switch_channel, number_of_bytes, self.config.switch_chip_select, spi_msg)
+
 
     def spi_read_values(self):
         # read switch register
@@ -94,10 +107,9 @@ class Switches(object):
         else:
             self.window.switch6_green.setVisible(False)
             self.window.switch6_red.setVisible(True)
+
     def read_from_config(self):
         pass
-
-
 
         # self.register_setup_address_5()
         # self.speed1_start_time = 0
