@@ -26,6 +26,22 @@ class Codegen():
         self.coderate_ppm = 0
         self.primary_frequency = 0
         self.secondary_frequency = 0
+        self.primary_channel_chip_select_pin = None
+        self.secondary_channel_chip_select_pin = None
+        self.primary_source_frequency = None
+        self.secondary_source_frequency = None
+        self.shape_sine = None
+        self.shape_sine_word = None
+        self.shape_square = None
+        self.shape_square_word = None
+        self.shape_triangle = None
+        self.shape_triangle_word = None
+        self.duty_cycle_default = None
+        self.pulses_per_second_default = None
+        self.primary_channel_mux_pin = None
+        self.secondary_channel_mux_pin = None
+        self.shape_default = self.shape_sine
+        self.coded_carrier_pin = None
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
@@ -60,19 +76,24 @@ class Codegen():
     # **************************************************************************************************
     def load_from_config(self):
         # todo: need to open made config ini file
-        self.primary_channel_chip_select_pin = 0
-        self.secondary_channel_chip_select_pin = 2
-        self.primary_source_frequency = 4915200
-        self.secondary_source_frequency = 4915200
-        self.shape_sine = 0
-        self.shape_square = 1
-        self.shape_triangle = 2
-        self.duty_cycle_default = 50
-        self.pulses_per_second_default = 1000000.0
-        self.primary_channel_mux_pin = 0
-        self.secondary_channel_mux_pin = 1
-        self.shape_default = self.shape_sine
-        self.coded_carrier_pin = self.config.code_rate_generator_toggle_pin
+        self.primary_channel_chip_select_pin = self.config.primary_channel_chip_select_pin
+        self.secondary_channel_chip_select_pin = self.config.secondary_channel_chip_select_pin
+        self.primary_source_frequency = self.config.primary_source_frequency
+        self.secondary_source_frequency = self.config.secondary_source_frequency
+        self.shape_sine = self.config.shape_sine
+        self.shape_square = self.config.shape_square
+        self.shape_triangle = self.config.shape_triangle
+        self.duty_cycle_default = self.config.duty_cycle_default
+        self.pulses_per_second_default = self.config.pulses_per_second_default
+        self.primary_channel_mux_pin = self.config.primary_channel_mux_pin
+        self.secondary_channel_mux_pin = self.config.secondary_channel_mux_pin
+        self.coded_carrier_pin = self.config.coded_carrier_pin
+        self.shape_sine_word = self.config.shape_sine_word
+        self.shape_sine_word = int(self.shape_sine_word, 16)
+        self.shape_square_word = self.config.shape_square_word
+        self.shape_square_word = int(self.shape_square_word, 16)
+        self.shape_triangle_word = self.config.shape_triangle_word
+        self.shape_triangle_word = int(self.shape_triangle_word, 16)
 
     # **************************************************************************************************
     def coderate_generate(self):
@@ -90,7 +111,7 @@ class Codegen():
 
         if coderate_ppm is not None and primary_freq is not None and secondary_freq is not None:
             self.log.debug(
-                "GENERATING CODERATE :{}ppm  FREQUENCY 1: {}hz   FREQUENCY 2:  {}hz ".format(coderate_ppm, primary_freq,
+                "GENERATING CODERATE :{}ppm  FREQUENCY 0: {}hz   FREQUENCY 0:  {}hz ".format(coderate_ppm, primary_freq,
                                                                                              secondary_freq))
             self.primary_frequency_generate(frequency=primary_freq)
             self.secondary_frequency_generate(frequency=secondary_freq)
@@ -188,38 +209,46 @@ class Codegen():
             self.coderate_stop()
 
     # **************************************************************************************************
+    def off(self):
+        self.coderate_stop()
+        self.coderate_ppm = 0
+        self.primary_frequency = 0
+        self.secondary_frequency = 0
+        self.coderate_generate()
+
+    # **************************************************************************************************
     def coderate_stop(self):
+        self.log.debug("Stopping CODERATE")
         if self.pi_gpio.wave_tx_busy():
             self.pi_gpio.wave_tx_stop()
-            self.pi_gpio.wave_clear()
+            #self.pi_gpio.wave_clear()
 
     # **************************************************************************************************
     def frequency_to_registers(self, frequency, source_frequency, shape, chip_select):
-        spi_channel = 2
+
         self.spi_msg = []
         self.log.debug(
-            "FREQ TO REG running with FREQ:{} CLK FREQ:{} SHAPE:{}  CS:{}  SPI CH  {}".format(frequency,
+            "FREQ TO REG running with FREQ:{} CLK FREQ:{} SHAPE:{}  CS:{}".format(frequency,
                                                                                               source_frequency, shape,
-                                                                                              chip_select, spi_channel))
+                                                                                              chip_select))
         word = hex(int(round((frequency * 2 ** 28) / source_frequency)))  # Calculate frequency word to send
         if self.speed_generation_shape_override is not None:
             shape = self.speed_generation_shape_override
         if shape == self.shape_square:  # square
-            shape_word = 0x2020
+            shape_word = self.shape_square_word
         elif shape == self.shape_triangle:  # triangle
-            shape_word = 0x2002
+            shape_word = self.shape_triangle_word
         else:
-            shape_word = 0x2000  # sine
+            shape_word = self.shape_sine_word  # sine
         MSB = (int(word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
         LSB = int(word, 16) & 0x3FFF
         MSB |= 0x4000  # Set control bits DB15 = 0 and DB14 = 1; for frequency register 0
         LSB |= 0x4000
         self._ad9833_append(0x2100)
-        # Set the frequency
         self._ad9833_append(LSB)  # lower 14 bits
         self._ad9833_append(MSB)  # Upper 14 bits
         self._ad9833_append(shape_word)
-        return (spi_channel, self.spi_msg, chip_select)
+        return (self.spi_msg, chip_select)
 
     # **************************************************************************************************
     def _ad9833_append(self, integer):
@@ -265,125 +294,125 @@ class Codegen():
     #     return values
 
     # **************************************************************************************************
-    def generate_test_pulse(self, values):
-        # This is used to generate the pulses from RPI pins.  This is not implemented currently.  We are using a
-        # freq generator for each carrier and then switching between them to generate the coderate.
-        # TODO  when we talk about shifting the duty cycle, are we shifting the duty cycle for each carriers freqeuency
-        # TODO or are we shiting the carrier for the code rate, meaning less or more of each carrier?
-
-        # we are passed a coderate (in pulses per miunute) and a frequency for one or two of the carrier frequencies.
-        # the pulse train is generated by taking the coderate frequency (in hertz) and then switching on an euen portion
-        # of each carrier.  if a carrier is missing, it will be turned off for that portion.
-        # if we are sent a 180 coderate with a 100hz primary freq and a 250hz secondary freq, the pulse waveform would
-        # look like this:  180 coderate = 180 pulses per minute or 3 pulses per second (3hz). each period is 333ms.
-        # that means each positive wave is 1/2 of that at 50 % duty cycle, or 166.66 ms.
-        # next we have to generate so many pulses of each waveform for the amount of the pos and neg time so since
-        # the pos period is 166.66ms we take the primary freq period (100hz at 1/100 = 0.010 or 10 ms. so dividing the
-        # pos period of 166.66 / 10ms we get 16.66 waveforms we need to make.  each positive will be 1/2 that for 50%
-        # duty cycle, or 8.33ms for each positive and 8.33ms for each negative.
-        duty_cycle = 50
-        pulses_per_second = 1000000.0
-        primary_code_rate_generator_toggle_pin = 27
-        secondary_code_rate_generator_toggle_pin = 22
-
-        self.log.debug("Generating Test Pulse")
-        self.pi_gpio.wave_clear()
-        coderate1_ppm = values[0]
-        carrier_freq1 = values[1]
-        coderate2_ppm = values[2]
-        carrier_freq2 = values[3]
-
-        self.pi_gpio.set_mode(primary_code_rate_generator_toggle_pin, pigpio.OUTPUT)
-        self.pi_gpio.set_mode(secondary_code_rate_generator_toggle_pin, pigpio.OUTPUT)
-        self.pi_gpio.wave_tx_stop()
-
-        self.log.debug(
-            "Received values to generate waveform: CODERATE 1:{}ppm  FREQUENCY 1: {}hz   CODERATE 2: {}ppm  FREQUENCY 2:  {}hz ".format(
-                coderate1_ppm, carrier_freq1, coderate2_ppm, carrier_freq2))
-        coderate1_period_in_microseconds = int((1 / (coderate1_ppm / 60.0)) * pulses_per_second)
-        coderate2_period_in_microseconds = int((1 / (coderate2_ppm / 60.0)) * pulses_per_second)
-        self.log.debug("Calculated CODERATE 1 PERIOD: {}usecs   CODERATE 2 PERIOD:  {}usecs".format(
-            coderate1_period_in_microseconds, coderate2_period_in_microseconds))
-        coderate1_positive_pulse = int(coderate1_period_in_microseconds * (duty_cycle / 100))
-        coderate1_negative_pulse = int(coderate1_period_in_microseconds * (1 - (duty_cycle / 100)))
-        coderate2_positive_pulse = int(coderate1_period_in_microseconds * (duty_cycle / 100))
-        coderate2_negative_pulse = int(coderate1_period_in_microseconds * (1 - (duty_cycle / 100)))
-        self.log.debug(
-            'CODERATE 1 POS PULSE:{}Usecs   CODERATE 1 NEG PULSE:{}uSecs   CODERATE 2 POS PULSE:{}Usecs   CODERATE 2 NEG PULSE"{}Usecs'.format(
-                coderate1_positive_pulse, coderate1_negative_pulse, coderate2_positive_pulse, coderate2_negative_pulse))
-        # generate primary carrier frequency
-        # assuming 50% duty cycle
-        primary_carrier_positive_pulse_microseconds = int(((1 / carrier_freq1) / 2) * pulses_per_second)
-        primary_carrier_negative_pulse_microseconds = int(((1 / carrier_freq1) / 2) * pulses_per_second)
-        secondary_carrier_positive_pulse_microseconds = int(((1 / carrier_freq2) / 2) * pulses_per_second)
-        secondary_carrier_negative_pulse_microseconds = int(((1 / carrier_freq2) / 2) * pulses_per_second)
-        self.log.debug(
-            "PRI CARRIER POS PULSE {}uSec PRI CARRIER NEG PULSE {}uSec   SEC CARRIER POS PULSE {}uSec SEC CARRIER NEG PULSE {}uSec".format(
-                primary_carrier_positive_pulse_microseconds, primary_carrier_negative_pulse_microseconds,
-                secondary_carrier_positive_pulse_microseconds, secondary_carrier_negative_pulse_microseconds))
-
-        pulse = []
-        wavelength = coderate1_positive_pulse
-        while wavelength is not 0:
-            # prim car pos
-            if wavelength > primary_carrier_positive_pulse_microseconds:
-                pulse.append(
-                    pigpio.pulse(1 << primary_code_rate_generator_toggle_pin, 0,
-                                 primary_carrier_positive_pulse_microseconds))
-                wavelength = wavelength - primary_carrier_positive_pulse_microseconds
-                self.log.debug('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(
-                    primary_carrier_positive_pulse_microseconds))
-            else:
-                pulse.append(pigpio.pulse(1 << primary_code_rate_generator_toggle_pin, 0, wavelength))
-                self.log.debug('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
-                wavelength = wavelength - wavelength
-
-            # pri car neg
-            if wavelength > primary_carrier_negative_pulse_microseconds:
-                pulse.append(
-                    pigpio.pulse(0, 1 << primary_code_rate_generator_toggle_pin,
-                                 primary_carrier_negative_pulse_microseconds))
-                wavelength = wavelength - primary_carrier_negative_pulse_microseconds
-                self.log.debug('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(
-                    primary_carrier_negative_pulse_microseconds))
-            else:
-                pulse.append(pigpio.pulse(0, 1 << primary_code_rate_generator_toggle_pin, wavelength))
-                self.log.debug('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
-                wavelength = wavelength - wavelength
-            self.log.debug('Wavelength {}'.format(wavelength))
-
-        wavelength = coderate2_positive_pulse
-        while wavelength is not 0:
-            # sec car pos
-            if wavelength > secondary_carrier_positive_pulse_microseconds:
-                pulse.append(
-                    pigpio.pulse(1 << secondary_code_rate_generator_toggle_pin, 0,
-                                 secondary_carrier_positive_pulse_microseconds))
-                wavelength = wavelength - secondary_carrier_positive_pulse_microseconds
-                self.log.debug('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(
-                    secondary_carrier_positive_pulse_microseconds))
-            else:
-                pulse.append(pigpio.pulse(1 << secondary_code_rate_generator_toggle_pin, 0, wavelength))
-                self.log.debug('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(wavelength))
-                wavelength = wavelength - wavelength
-
-            # sec car neg
-            if wavelength > secondary_carrier_negative_pulse_microseconds:
-                pulse.append(
-                    pigpio.pulse(0, 1 << secondary_code_rate_generator_toggle_pin,
-                                 secondary_carrier_negative_pulse_microseconds))
-                wavelength = wavelength - secondary_carrier_negative_pulse_microseconds
-                self.log.debug('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
-                    secondary_carrier_negative_pulse_microseconds))
-            else:
-                pulse.append(pigpio.pulse(0, 1 << secondary_code_rate_generator_toggle_pin, wavelength))
-                self.log.debug('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
-                    wavelength))
-                wavelength = wavelength - wavelength
-            self.log.debug('Wavelength {}'.format(wavelength))
-        self.pi_gpio.wave_add_generic(pulse)  # add waveform
-        pulses = self.pi_gpio.wave_get_pulses()
-        micros = self.pi_gpio.wave_get_micros()
-        self.log.debug("Waveform PULSES {}   MICROS {}".format(pulses, micros))
-        wf = self.pi_gpio.GPIO.wave_create()
-        self.pi_gpio.GPIO.wave_send_repeat(wf)
+    # def generate_test_pulse(self, values):
+    #     # This is used to generate the pulses from RPI pins.  This is not implemented currently.  We are using a
+    #     # freq generator for each carrier and then switching between them to generate the coderate.
+    #     # TODO  when we talk about shifting the duty cycle, are we shifting the duty cycle for each carriers freqeuency
+    #     # TODO or are we shiting the carrier for the code rate, meaning less or more of each carrier?
+    #
+    #     # we are passed a coderate (in pulses per miunute) and a frequency for one or two of the carrier frequencies.
+    #     # the pulse train is generated by taking the coderate frequency (in hertz) and then switching on an euen portion
+    #     # of each carrier.  if a carrier is missing, it will be turned off for that portion.
+    #     # if we are sent a 180 coderate with a 100hz primary freq and a 250hz secondary freq, the pulse waveform would
+    #     # look like this:  180 coderate = 180 pulses per minute or 3 pulses per second (3hz). each period is 333ms.
+    #     # that means each positive wave is 1/2 of that at 50 % duty cycle, or 166.66 ms.
+    #     # next we have to generate so many pulses of each waveform for the amount of the pos and neg time so since
+    #     # the pos period is 166.66ms we take the primary freq period (100hz at 1/100 = 0.010 or 10 ms. so dividing the
+    #     # pos period of 166.66 / 10ms we get 16.66 waveforms we need to make.  each positive will be 1/2 that for 50%
+    #     # duty cycle, or 8.33ms for each positive and 8.33ms for each negative.
+    #     duty_cycle = 50
+    #     pulses_per_second = 1000000.0
+    #     primary_code_rate_generator_toggle_pin = 27
+    #     secondary_code_rate_generator_toggle_pin = 22
+    #
+    #     self.log.debug("Generating Test Pulse")
+    #     self.pi_gpio.wave_clear()
+    #     coderate1_ppm = values[0]
+    #     carrier_freq1 = values[1]
+    #     coderate2_ppm = values[2]
+    #     carrier_freq2 = values[3]
+    #
+    #     self.pi_gpio.set_mode(primary_code_rate_generator_toggle_pin, pigpio.OUTPUT)
+    #     self.pi_gpio.set_mode(secondary_code_rate_generator_toggle_pin, pigpio.OUTPUT)
+    #     self.pi_gpio.wave_tx_stop()
+    #
+    #     self.log.debug(
+    #         "Received values to generate waveform: CODERATE 1:{}ppm  FREQUENCY 1: {}hz   CODERATE 2: {}ppm  FREQUENCY 2:  {}hz ".format(
+    #             coderate1_ppm, carrier_freq1, coderate2_ppm, carrier_freq2))
+    #     coderate1_period_in_microseconds = int((1 / (coderate1_ppm / 60.0)) * pulses_per_second)
+    #     coderate2_period_in_microseconds = int((1 / (coderate2_ppm / 60.0)) * pulses_per_second)
+    #     self.log.debug("Calculated CODERATE 1 PERIOD: {}usecs   CODERATE 2 PERIOD:  {}usecs".format(
+    #         coderate1_period_in_microseconds, coderate2_period_in_microseconds))
+    #     coderate1_positive_pulse = int(coderate1_period_in_microseconds * (duty_cycle / 100))
+    #     coderate1_negative_pulse = int(coderate1_period_in_microseconds * (1 - (duty_cycle / 100)))
+    #     coderate2_positive_pulse = int(coderate1_period_in_microseconds * (duty_cycle / 100))
+    #     coderate2_negative_pulse = int(coderate1_period_in_microseconds * (1 - (duty_cycle / 100)))
+    #     self.log.debug(
+    #         'CODERATE 1 POS PULSE:{}Usecs   CODERATE 1 NEG PULSE:{}uSecs   CODERATE 2 POS PULSE:{}Usecs   CODERATE 2 NEG PULSE"{}Usecs'.format(
+    #             coderate1_positive_pulse, coderate1_negative_pulse, coderate2_positive_pulse, coderate2_negative_pulse))
+    #     # generate primary carrier frequency
+    #     # assuming 50% duty cycle
+    #     primary_carrier_positive_pulse_microseconds = int(((1 / carrier_freq1) / 2) * pulses_per_second)
+    #     primary_carrier_negative_pulse_microseconds = int(((1 / carrier_freq1) / 2) * pulses_per_second)
+    #     secondary_carrier_positive_pulse_microseconds = int(((1 / carrier_freq2) / 2) * pulses_per_second)
+    #     secondary_carrier_negative_pulse_microseconds = int(((1 / carrier_freq2) / 2) * pulses_per_second)
+    #     self.log.debug(
+    #         "PRI CARRIER POS PULSE {}uSec PRI CARRIER NEG PULSE {}uSec   SEC CARRIER POS PULSE {}uSec SEC CARRIER NEG PULSE {}uSec".format(
+    #             primary_carrier_positive_pulse_microseconds, primary_carrier_negative_pulse_microseconds,
+    #             secondary_carrier_positive_pulse_microseconds, secondary_carrier_negative_pulse_microseconds))
+    #
+    #     pulse = []
+    #     wavelength = coderate1_positive_pulse
+    #     while wavelength is not 0:
+    #         # prim car pos
+    #         if wavelength > primary_carrier_positive_pulse_microseconds:
+    #             pulse.append(
+    #                 pigpio.pulse(1 << primary_code_rate_generator_toggle_pin, 0,
+    #                              primary_carrier_positive_pulse_microseconds))
+    #             wavelength = wavelength - primary_carrier_positive_pulse_microseconds
+    #             self.log.debug('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(
+    #                 primary_carrier_positive_pulse_microseconds))
+    #         else:
+    #             pulse.append(pigpio.pulse(1 << primary_code_rate_generator_toggle_pin, 0, wavelength))
+    #             self.log.debug('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
+    #             wavelength = wavelength - wavelength
+    #
+    #         # pri car neg
+    #         if wavelength > primary_carrier_negative_pulse_microseconds:
+    #             pulse.append(
+    #                 pigpio.pulse(0, 1 << primary_code_rate_generator_toggle_pin,
+    #                              primary_carrier_negative_pulse_microseconds))
+    #             wavelength = wavelength - primary_carrier_negative_pulse_microseconds
+    #             self.log.debug('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(
+    #                 primary_carrier_negative_pulse_microseconds))
+    #         else:
+    #             pulse.append(pigpio.pulse(0, 1 << primary_code_rate_generator_toggle_pin, wavelength))
+    #             self.log.debug('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
+    #             wavelength = wavelength - wavelength
+    #         self.log.debug('Wavelength {}'.format(wavelength))
+    #
+    #     wavelength = coderate2_positive_pulse
+    #     while wavelength is not 0:
+    #         # sec car pos
+    #         if wavelength > secondary_carrier_positive_pulse_microseconds:
+    #             pulse.append(
+    #                 pigpio.pulse(1 << secondary_code_rate_generator_toggle_pin, 0,
+    #                              secondary_carrier_positive_pulse_microseconds))
+    #             wavelength = wavelength - secondary_carrier_positive_pulse_microseconds
+    #             self.log.debug('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(
+    #                 secondary_carrier_positive_pulse_microseconds))
+    #         else:
+    #             pulse.append(pigpio.pulse(1 << secondary_code_rate_generator_toggle_pin, 0, wavelength))
+    #             self.log.debug('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(wavelength))
+    #             wavelength = wavelength - wavelength
+    #
+    #         # sec car neg
+    #         if wavelength > secondary_carrier_negative_pulse_microseconds:
+    #             pulse.append(
+    #                 pigpio.pulse(0, 1 << secondary_code_rate_generator_toggle_pin,
+    #                              secondary_carrier_negative_pulse_microseconds))
+    #             wavelength = wavelength - secondary_carrier_negative_pulse_microseconds
+    #             self.log.debug('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
+    #                 secondary_carrier_negative_pulse_microseconds))
+    #         else:
+    #             pulse.append(pigpio.pulse(0, 1 << secondary_code_rate_generator_toggle_pin, wavelength))
+    #             self.log.debug('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
+    #                 wavelength))
+    #             wavelength = wavelength - wavelength
+    #         self.log.debug('Wavelength {}'.format(wavelength))
+    #     self.pi_gpio.wave_add_generic(pulse)  # add waveform
+    #     pulses = self.pi_gpio.wave_get_pulses()
+    #     micros = self.pi_gpio.wave_get_micros()
+    #     self.log.debug("Waveform PULSES {}   MICROS {}".format(pulses, micros))
+    #     wf = self.pi_gpio.GPIO.wave_create()
+    #     self.pi_gpio.GPIO.wave_send_repeat(wf)

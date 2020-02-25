@@ -40,17 +40,17 @@ class Signaling():
 
         # BUTTONS TO CHHANGE SHAPE OF SPEED OUTPUTS
         self.window.BUTTON_speed0_sine.toggled.connect(
-            lambda: self.speed0_buttonstate_change(self.window.BUTTON_speed0_sine))
+            lambda: self.speed0_shapestate_change(self.window.BUTTON_speed0_sine))
         self.window.BUTTON_speed0_square.toggled.connect(
-            lambda: self.speed0_buttonstate_change(self.window.BUTTON_speed0_square))
+            lambda: self.speed0_shapestate_change(self.window.BUTTON_speed0_square))
         self.window.BUTTON_speed0_triangle.toggled.connect(
-            lambda: self.speed0_buttonstate_change(self.window.BUTTON_speed0_triangle))
+            lambda: self.speed0_shapestate_change(self.window.BUTTON_speed0_triangle))
         self.window.BUTTON_speed1_sine.toggled.connect(
-            lambda: self.speed1_buttonstate_change(self.window.BUTTON_speed1_sine))
+            lambda: self.speed1_shapestate_change(self.window.BUTTON_speed1_sine))
         self.window.BUTTON_speed1_square.toggled.connect(
-            lambda: self.speed1_buttonstate_change(self.window.BUTTON_speed1_square))
+            lambda: self.speed1_shapestate_change(self.window.BUTTON_speed1_square))
         self.window.BUTTON_speed1_triangle.toggled.connect(
-            lambda: self.speed1_buttonstate_change(self.window.BUTTON_speed1_triangle))
+            lambda: self.speed1_shapestate_change(self.window.BUTTON_speed1_triangle))
 
         # primary and secondary gain encoders slide pressed
         self.window.QDIAL_primary_gain.sliderPressed.connect(self.primary_gain_dial_pressed)
@@ -67,8 +67,13 @@ class Signaling():
         # primary and secondary gain encoders slide pressed
         self.window.QDIAL_speed_0.sliderReleased.connect(self.speed_0_dial_released)
         self.window.QDIAL_speed_1.sliderReleased.connect(self.speed_1_dial_released)
+
+        self.window.PB_gpio_manual_toggle.toggled.connect(self.gpio_manual_toggled)
+
+        self.window.PB_chip_select_manual_toggle.toggled.connect(self.commander.manual_chip_select_toggled)
+
     #  ***************************************************************************************
-    def speed0_buttonstate_change(self, button):
+    def speed0_shapestate_change(self, button):
         freq_shape = None
         self.log.info("SPEED 0 button pushed{}".format(button.text()))
         if button.text() == "SINE":
@@ -81,7 +86,7 @@ class Signaling():
         self.commander.speed_buttonstate_change(name, freq_shape)
 
     #  ***************************************************************************************
-    def speed1_buttonstate_change(self, button):
+    def speed1_shapestate_change(self, button):
         freq_shape = None
         self.log.info("SPEED 1 button pushed{}".format(button.text()))
         if button.text() == "SINE":
@@ -92,6 +97,10 @@ class Signaling():
             freq_shape = 2
         name ="SPEED1"
         self.commander.speed_buttonstate_change(name, freq_shape)
+
+    #  ***************************************************************************************
+    def gpio_manual_toggled(self, value):
+        self.commander.gpio_manual_toggled(value)
 
     #  ***************************************************************************************
     def qdial_speed_0_value_changed(self, value):
@@ -118,34 +127,28 @@ class Signaling():
         self.commander.gain_simulate('GAIN1', ret_pins)
 
     # ************************************************************************************
-    # CATCHES SPEED 1 KNOB released
-    def speed_0_dial_released(self):
-        self.log.debug('Speed 0 GUI knob RELEASED')
-        self.modifyBit(self.knob_values, 2, 0)
-
-    # ************************************************************************************
-    # CATCHES SPEED 2 KNOB released
-    def speed_1_dial_released(self):
-        self.log.debug('Speed 1 GUI knob RELEASED')
-        self.modifyBit(self.knob_values, 3, 0)
-
-    # ************************************************************************************
-    # CATCHES SPEED 1 KNOB released
+    # CATCHES SPEED 0 KNOB pressed
     def speed_0_dial_pressed(self):
         self.log.debug('Speed 0 GUI knob PRESSED')
         self.modifyBit(self.knob_values, 2, 1)
 
     # ************************************************************************************
-    # CATCHES SPEED 2 KNOB PUSHED
+    # CATCHES SPEED 0 KNOB released
+    def speed_0_dial_released(self):
+        self.log.debug('Speed 0 GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 2, 0)
+
+    # ************************************************************************************
+    # CATCHES SPEED 1 KNOB PUSHED
     def speed_1_dial_pressed(self):
         self.log.debug('Speed 1 GUI knob PRESSED')
         self.modifyBit(self.knob_values, 3, 1)
 
     # ************************************************************************************
-    # CATCHES PRIMARY KNOB PUSHED
-    def primary_gain_dial_released(self):
-        self.log.debug('Primary Gain GUI knob RELEASED')
-        self.modifyBit(self.knob_values, 0, 0)
+    # CATCHES SPEED 1 KNOB released
+    def speed_1_dial_released(self):
+        self.log.debug('Speed 1 GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 3, 0)
 
     # ************************************************************************************
     # CATCHES PRIMARY KNOB PUSHED
@@ -154,10 +157,10 @@ class Signaling():
         self.modifyBit(self.knob_values, 0, 1)
 
     # ************************************************************************************
-    # CATCHES SECONDARY KNOB PUSHED
-    def secondary_gain_dial_released(self):
-        self.log.debug('Secondary Gain GUI knob RELEASED')
-        self.modifyBit(self.knob_values, 1, 0)
+    # CATCHES PRIMARY KNOB PUSHED
+    def primary_gain_dial_released(self):
+        self.log.debug('Primary Gain GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 0, 0)
 
     # ************************************************************************************
     # CATCHES SECONDARY KNOB PUSHED
@@ -166,9 +169,16 @@ class Signaling():
         self.modifyBit(self.knob_values, 1, 1)
 
     # ************************************************************************************
+    # CATCHES SECONDARY KNOB released
+    def secondary_gain_dial_released(self):
+        self.log.debug('Secondary Gain GUI knob RELEASED')
+        self.modifyBit(self.knob_values, 1, 0)
+
+    # ************************************************************************************
     # Returns modified n.
     def modifyBit(self, n, p, b):
         mask = 1 << p
         self.knob_values = (n & ~mask) | ((b << p) & mask)
         self.log.debug("ModifyBits value {:08b}".format(self.knob_values))
         self.commander.knob_values = self.knob_values
+        #self.commander.switches_callback_change_value(0)

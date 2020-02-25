@@ -81,6 +81,14 @@ class Gains(object):
         # self.speed_off(1)
 
     # ***************************************************************************************************************
+    def set_value(self, value):
+        self.log.debug("{} set to {}".format(self.name, value))
+        self.value = value
+        value = self.bounds_check(speed_increment=0, direction=0, simulate=False)
+        coarse_hex, fine_hex = value
+        self.digitalpots_send_spi(coarse_hex=coarse_hex, fine_hex=fine_hex)
+
+    # ***************************************************************************************************************
     def simulate(self, sim_pins):
         """
         allows simulation of speed signal

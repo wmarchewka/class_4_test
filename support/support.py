@@ -24,6 +24,7 @@ class Support():
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
+    # *****************************************************************************************
     def startup_processes(self):
         self.config_file_path = "config/config.ini"
         self.ostype = None
@@ -56,20 +57,25 @@ class Support():
             self.log.info('Using pigpio as gpio')
         self.ostype = os_type
 
+    #*****************************************************************************************
     def brightness_get(self):
         screen_brightness = self.brightness_query()
         return screen_brightness
 
+    # *****************************************************************************************
     def qt_version_query(self):
         self.log.info("Qt version: {}".format(QT_VERSION_STR))
 
+    # *****************************************************************************************
     def pyqt_version_query(self):
         self.log.info("PyQt version: {}".format(PYQT_VERSION_STR))
 
+    # *****************************************************************************************
     def gen4_touchscreen_status(self):
         if self.ostype == 'rpi':
             self.log.info('Checking for Gen4 Touchscreen...')
 
+    # *****************************************************************************************
     def rpi_touchscreen_status(self):
         if self.ostype == 'rpi':
             my_cmd = os.popen('sudo dmesg | grep -i ft5406').read()
@@ -78,6 +84,7 @@ class Support():
                 self.log.info('Found TOUCHSCREEN')
                 self.config.configuration_save('DISPLAY', 'touchscreen', self.ostype)
 
+    # *****************************************************************************************
     def rpi_version_query(self):
         try:
             if self.ostype == 'rpi':
@@ -87,6 +94,7 @@ class Support():
         except:
             self.log.exception("EXCEPTION in rpi_version_query", exc_info=True)
 
+    # *****************************************************************************************
     def spi_device_query(self):
         if self.ostype == 'rpi':
             try:
@@ -103,6 +111,7 @@ class Support():
             except Exception:
                 self.log.error('ERROR')
 
+    # *****************************************************************************************
     def brightness_set(self, value):
         try:
             if self.ostype == 'rpi':
@@ -116,6 +125,7 @@ class Support():
         except Exception as inst:
             self.log.critical(inst)
 
+    # *****************************************************************************************
     def brightness_query(self):
         try:
             if self.ostype == 'rpi':
@@ -129,6 +139,7 @@ class Support():
         except Exception as inst:
             self.log.critical(inst)
 
+    #*****************************************************************************************
     # called premade script to create ramdrive
     # TODO see why ramdrive is getting created upon reboot.
     def ram_drive_create(self):

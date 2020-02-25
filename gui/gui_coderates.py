@@ -60,14 +60,14 @@ class Guicoderate(object):
             self.log.debug("Button: {} Set to: {} ".format(buttonid, "TRUE"))
             # button.setStyleSheet('background-color: green;border-radius:10px')
         if self.coderate_pb is None:
-            button.setStyleSheet('background-color: green;border-radius:10px')
+            button.setStyleSheet('background-color: blue;border-radius:10px')
             self.window.LBL_current_coderate.setText(str(self.codegen.coderates[buttonid]))
             self.coderate_value = self.codegen.coderates[buttonid]
             self.coderate_pb = buttonid
             self.log.debug("CODERATE button set")
         elif self.coderate_pb is not None:
             if buttonid is self.coderate_pb:
-                button.setStyleSheet('background-color: red;border-radius:10px')
+                button.setStyleSheet('background-color: green;border-radius:10px')
                 self.window.LBL_current_coderate.setText("OFF")
                 self.coderate_value = 0
                 self.coderate_pb = None
@@ -75,7 +75,7 @@ class Guicoderate(object):
             elif buttonid is not self.coderate_pb:
                 last_button = getattr(self.window, 'PB_coderate_%s' % self.coderate_pb)
                 last_button.setStyleSheet('background-color: red;border-radius:10px')
-                button.setStyleSheet('background-color: green;border-radius:10px')
+                button.setStyleSheet('background-color: blue;border-radius:10px')
                 self.window.LBL_current_coderate.setText(str(self.codegen.coderates[buttonid]))
                 self.coderate_value = self.codegen.coderates[buttonid]
                 self.coderate_pb = buttonid

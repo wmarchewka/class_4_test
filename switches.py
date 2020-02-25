@@ -4,7 +4,7 @@ from logger import Logger
 class Switches(object):
     Logger.log.debug("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, config, logger, spi, gui):
+    def __init__(self, config, logger, spi, gui, switch_callback):
         Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = logger
         self.config = config
@@ -12,6 +12,7 @@ class Switches(object):
         self.gui = gui
         self.window = gui.window
         self.log = logger.log
+        self.switch_callback = switch_callback
         self.log.debug("Switches initializing...")
         self.switch_address = 0
         self.switch_address = self.switch_address << 1
@@ -37,11 +38,22 @@ class Switches(object):
     # **************************************************************************
     def startup_processes(self):
         self.read_from_config()
+        self.device_present_check()
 
     # **************************************************************************
-    def poll_callback_change_value(self, switchvalue):
-        self.switches_callback_change_value(switchvalue)
-
+    def device_present_check(self):
+        """the MCP23S08 register 1-1 (addr 0x00) will be 0xFF at starup.
+        read this value to ensure the device is present.
+        :rtype: object
+        """
+        self.log.debug("Performing Switches device present check...")
+        ret=self.spi_read_values(0x00)
+        if ret is not 0xFF:
+            self.log.critical("SPI IO EXPANDER:DEVICE NOT PRESENT")
+            return 0
+        elif ret is 0xFF:
+            self.log.critical("SPI IO EXPANDER:DEVICE PRESENT")
+            return 1
     # **************************************************************************
     def register_setup_address_5(self):
         # disable sequential operation bit 5 on
@@ -55,31 +67,46 @@ class Switches(object):
 
     # **************************************************************************
     # TODO make sure this is tested
-    def spi_write_values(self):
+    def spi_write_values(self, pinvalue):
+        """
+        the switch io expander ic has 8 pins configurable as input or output, the first
+        4 (pins 0-3) are set as input and wired to the 4 rotary encoders push buttons.
+        the last 4 (4-7) are set as outputs
+        :param pinvalue:
+        """
         # read switch register
-        self.log.debug("Writing spi switch for values")
-        switch_register_address = 0x0A
-        number_of_bytes = 2
-        switch_sent_op_code = self.switch_op_code | self.switch_address | self.switch_spi_read
-        spi_msg = [switch_sent_op_code] + [switch_register_address] + [0x00]
-        ret = self.spi.write_message(self.switch_channel, number_of_bytes, self.config.switch_chip_select, spi_msg)
+        if pinvalue >= 0 and pinvalue <= 7:
+            self.log.debug("Writing spi switch for values")
+            switch_register_address = 0x0A
+            number_of_bytes = 2
+            switch_sent_op_code = self.switch_op_code | self.switch_address | self.switch_spi_write
+            spi_msg = [switch_sent_op_code] + [switch_register_address] + [pinvalue]
+            ret = self.spi.send_message(channel=self.switch_channel, chip_select=self.config.switch_chip_select,
+                                        message=spi_msg)
+        else:
+            self.log.debug("SPI WRITE PINVALUE OUT OF RANGE")
+            return 0
 
     # **************************************************************************
-    def spi_read_values(self):
+    def spi_value_register(self):
+        self.spi_read_values(0x09)
+
+    # **************************************************************************
+    def spi_read_values(self, register_address):
         # read switch register
         self.log.debug("Polling spi switch for values")
-        switch_register_address = 0x09
+        #switch_register_address = 0x09
         number_of_bytes = 2
         switch_sent_op_code = self.switch_op_code | self.switch_address | self.switch_spi_read
-        spi_msg = [switch_sent_op_code] + [switch_register_address] + [0x00]
-        ret = self.spi.read_message(self.switch_channel, number_of_bytes, self.config.switch_chip_select, spi_msg)
+        spi_msg = [switch_sent_op_code] + [register_address] + [0x00]
+        ret = self.spi.read_message(self.switch_channel, self.config.switch_chip_select, spi_msg)
         self.log.debug(
             "Returned value from SWITCH spi read{} | BITS {}".format(ret, bin(ret[2])))
         return ret[2]
 
     # **************************************************************************
     # call back from switch_polling
-    def switches_callback_change_value(self, value):
+    def switch_poll_callback(self, value):
         self.knob_values = 0
         self.log.debug("onSwitchChangeValues     :{:08b}".format(value))
         self.log.debug("knob values              :{:08b}".format(value))
@@ -110,6 +137,7 @@ class Switches(object):
         else:
             self.window.switch6_green.setVisible(False)
             self.window.switch6_red.setVisible(True)
+        self.switch_callback(value)
 
     # **************************************************************************
     def read_from_config(self):

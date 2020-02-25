@@ -2,12 +2,11 @@ from PySide2.QtCore import QThread, Signal
 
 #mylibraries
 
-
-
 class Pollvalues(QThread):
 
     sense_changedValue = Signal(float)  # signal to send to awaiting slot
     switch_changedValue = Signal(int)  # signal to send to awaiting slot
+
 
     def __init__(self, pollperm, logger, config, switches, currentsense):
         super().__init__()
@@ -23,8 +22,8 @@ class Pollvalues(QThread):
 
     # ********************************************************************************
     def startup_processes(self):
-        self.sense_changedValue.connect(self.currentsense.poll_callback_change_value)
-        self.switch_changedValue.connect(self.switches.poll_callback_change_value)
+        self.sense_changedValue.connect(self.currentsense.sense_poll_callback)
+        self.switch_changedValue.connect(self.switches.switch_poll_callback)
 
     # ********************************************************************************
     # runs both sense and switches polling
@@ -42,7 +41,7 @@ class Pollvalues(QThread):
     def sense_read_value(self):
         # TODO get values from INI file
         self.log.debug('Running Sense Polling')
-        data = self.currentsense.read_spi()
+        data = self.currentsense.read_spi_value_register()
         raw_analog_digital_value = data[0] * 256 + data[1]
         self.log.debug("Data received {0:X}h {1:X}h".format(data[0], data[1]))
         self.log.debug("ADC Value:{}".format( raw_analog_digital_value))
@@ -52,7 +51,7 @@ class Pollvalues(QThread):
     # retrieves value from switch mutiplexer via spi  (U20)
     def switch_read_values(self):
         self.log.debug('Running Switch Polling')
-        returned_data = self.switches.spi_read_values()
+        returned_data = self.switches.spi_value_register()
         self.log.debug("Switch value:{}".format(returned_data))
         return returned_data
 

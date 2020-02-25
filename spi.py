@@ -90,7 +90,7 @@ class SPI():
         self.data_logger(str_data)
 
     # ************************************************************************************************************
-    def read_message(self, channel, number_bytes, chip_select, data=None):
+    def read_message(self, channel, chip_select, data=None):
         val = threading.currentThread(), threading.current_thread().name
         thread_value = str(val)
         self.log.debug("SPI read thread: {}".format(thread_value))
@@ -108,10 +108,9 @@ class SPI():
                 bin_data.append(format(item, '08b'))
         str_data = [channel, chip_select_name, data, hex_data, bin_data]
         self.log.debug(
-            "Reading SPI from Channel: {} | Number of bytes: {} | Chip Select: {} |"
+            "Reading SPI from Channel: {} | Chip Select: {} |"
             " DEC data: {}| HEX data: {}| BIN data: {}".format(
                 channel,
-                number_bytes,
                 chip_select_name,
                 data,
                 hex_data,

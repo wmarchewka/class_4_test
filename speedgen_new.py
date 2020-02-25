@@ -73,6 +73,11 @@ class Speedgen(object):
         self.rotary.interrupt_callback(0, 0, tick, True, sim_pins)
 
     # **************************************************************************************************************
+    def set_value(self, speed_frequency, shape = None):
+        spi_msg = self.frequency_to_registers(speed_frequency, self.shape)
+        self.spi_send(spi_msg)
+
+    # **************************************************************************************************************
     def startup_processes(self):
         """
         run any process that you need to at startup
@@ -187,7 +192,7 @@ class Speedgen(object):
             frequency = self.speed_frequency
         msg = []
 
-        word = hex(
+        frequency_word = hex(
             int(round((frequency * 2 ** 28) / Speedgen.PRIMARY_SOURCE_FREQUENCY)))  # Calculate frequency word to send
         if shape is None:
             shape = self.shape
@@ -199,14 +204,25 @@ class Speedgen(object):
             shape_word = 0x2000  # sine
         self.log.debug(
             "FREQ TO REG running with FREQ:{} SHAPE:{}".format(frequency, Speedgen.FREQ_SHAPE[shape]))
-        MSB = (int(word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
-        LSB = int(word, 16) & 0x3FFF
+
+        self.log.info('FREQUENCY WORD:{}'.format(bin(int(frequency_word,16))))
+        MSB = (int(frequency_word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
+        self.log.debug('MSB           :{}'.format(bin(MSB)))
+        LSB = int(frequency_word, 16) & 0x3FFF
+        self.log.debug('LSB           :{}'.format(bin(LSB)))
         MSB |= 0x4000  # Set control bits DB15 = 0 and DB14 = 1; for frequency register 0
+        self.log.debug('MSB | 0X4000:  {}'.format(bin(MSB)))
         LSB |= 0x4000
+        self.log.debug('LSB | 0X4000   {}'.format(bin(LSB)))
+
         msg = self._ad9833_append(0x2100, msg)
+        self.log.debug('MSG 0X2100     {}'.format(msg))
         msg = self._ad9833_append(LSB, msg)  # lower 14 bits
+        self.log.debug('MSG            {}'.format(msg))
         msg = self._ad9833_append(MSB, msg)  # Upper 14 bits
+        self.log.debug('MSG            {}'.format(msg))
         msg = self._ad9833_append(shape_word, msg)
+        self.log.debug('SHAPE WORD     {}'.format(msg))
         return msg
 
     # **************************************************************************************************************

@@ -60,11 +60,11 @@ class Signalslots(object):
 
         # BUTTONS TO CHHANGE SHAPE OF SPEED OUTPUTS
         window.BUTTON_speed1_sine.toggled.connect(
-            lambda: window.speed1_buttonstate_change(gui.BUTTON_speed1_sine))
+            lambda: window.speed1_shapestate_change(gui.BUTTON_speed1_sine))
         window.BUTTON_speed1_square.toggled.connect(
-            lambda: window.speed1_buttonstate_change(gui.BUTTON_speed1_square))
+            lambda: window.speed1_shapestate_change(gui.BUTTON_speed1_square))
         window.BUTTON_speed1_triangle.toggled.connect(
-            lambda: window.speed1_buttonstate_change(gui.BUTTON_speed1_triangle))
+            lambda: window.speed1_shapestate_change(gui.BUTTON_speed1_triangle))
         window.BUTTON_speed2_sine.toggled.connect(
             lambda: window.speed2_buttonstate_change(gui.BUTTON_speed2_sine))
         window.BUTTON_speed2_square.toggled.connect(

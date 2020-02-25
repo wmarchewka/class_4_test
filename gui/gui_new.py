@@ -38,7 +38,7 @@ class Mainwindow(object):
     def startup_processes(self):
         self.config_file_load()
         self.loadscreen()
-        self.screen_fullscreen(False)
+        self.screen_fullscreen()
         self.fonts_list()
         self.securitylevel.set_security_level("technician", self.window)
 
@@ -55,11 +55,10 @@ class Mainwindow(object):
         self.window.LBL_loop_current.setFont(self.digital7font)
 
     # *****************************************************************************
-    def screen_fullscreen(self, fullscreen):
-        if fullscreen:
-            if self.support.ostype == 'rpi':
-                self.window.showFullScreen()
-                self.log.debug("Window set to fullscreen...")
+    def screen_fullscreen(self, fullscreen=None):
+        if self.support.ostype == 'rpi' or fullscreen:
+            self.window.showFullScreen()
+            self.log.debug("Window set to fullscreen...")
         else:
             self.window.showNormal()
 
@@ -67,10 +66,6 @@ class Mainwindow(object):
     def config_file_load(self):
         Mainwindow.display_brightness = self.config.display_brightness
         Mainwindow.guiname = self.config.guiname
-        Mainwindow.poll_timer_interval = self.config.poll_timer_interval
-        Mainwindow.local_timer_interval = self.config.local_timer_interval
-        Mainwindow.sense_timer_interval = self.config.sense_timer_interval
-        Mainwindow.switch_timer_interval = self.config.switch_timer_interval
         Mainwindow.screen_brightness_max = self.config.screen_brightness_max
         Mainwindow.screen_brightness_min = self.config.screen_brightness_min
 
