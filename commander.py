@@ -586,6 +586,11 @@ class Commander(object):
 
     # *******************************************************************************************
     def exit_application(self, signum, frame):
+        self.log.info("***********************************************************************************************************")
+        self.log.info("***********************************************************************************************************")
+        self.log.info("***********************************************************************************************************")
+        self.log.info("***********************************************************************************************************")
+        self.log.info("***********************************************************************************************************")
         self.log.info("Starting shutdown")
         self.log.debug("Received signal from signum: {} with frame:{}".format(signum, frame))
         self.shutdown()
@@ -606,6 +611,6 @@ class Commander(object):
             print("Error")
         # self.log.info('Turning off screen saver forced on')
         # subprocess.call('xset dpms force off', shell=True)
-        self.log.info("Goodbye...")
+        self.log.debug("Goodbye...")
         # self.log.shutdown()
         sys.exit(0)
