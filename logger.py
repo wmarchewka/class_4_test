@@ -6,7 +6,7 @@ class Logger(object):
     tmplog = logging.getLogger()
     tmplog.setLevel(logging.DEBUG)
     tmplog.info("Instantiating {} class...".format(__qualname__))
-    #del tmplog
+    del tmplog
 
     log_config_file_path = "config/logging.ini"
     log = logging.getLogger(__name__)

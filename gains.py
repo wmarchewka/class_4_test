@@ -162,7 +162,8 @@ class Gains(object):
         elif direction == Gains.DIRECTION_ERROR:
             self.value = self.value
         if not simulate:
-            self.commander_gain_move_callback(name=self.name, direction=direction, speed_increment=speed_increment)
+            pass
+            #self.commander_gain_move_callback(name=self.name, direction=direction, speed_increment=speed_increment)
         self.log.debug("Gains Locked:{} Direction:{}".format(self.gains_locked, direction))
         self.log.debug("Speed Increment:{}  Value:{}".format(speed_increment, self.value))
         if self.value > Gains.TOTAL_MAX_OHMS:

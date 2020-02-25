@@ -1,11 +1,9 @@
 import faulthandler
 
 faulthandler.enable()
-import sys
-import signal
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile
-from PySide2.QtGui import QFontDatabase
+from PySide2.QtGui import QFontDatabase, QFont
 
 # mylibraries
 from logger import Logger
@@ -40,7 +38,7 @@ class Mainwindow(object):
     def startup_processes(self):
         self.config_file_load()
         self.loadscreen()
-        self.screen_fullscreen()
+        self.screen_fullscreen(False)
         self.fonts_list()
         self.securitylevel.set_security_level("technician", self.window)
 
@@ -52,15 +50,18 @@ class Mainwindow(object):
         self.fontDB = QFontDatabase()
         self.fontDB.addApplicationFont(":/FONTS/FONTS/digital-7.ttf")
         self.fontDB.addApplicationFont(":/FONTS/FONTS/SiemensSlab_Prof_BlackItalic.ttf")
-        # self.siemensslab = QFont("Siemens Slab", 64, 1)
-        # self.digital7font = QFont("Digital-7", 64, 1)
-        # self.window.LBL_pri_tach_freq.setFont(self.digital7font)
+        self.siemensslab = QFont("Siemens Slab", 64, 1)
+        self.digital7font = QFont("Digital-7", 64, 1)
+        self.window.LBL_loop_current.setFont(self.digital7font)
 
     # *****************************************************************************
-    def screen_fullscreen(self):
-        if self.support.ostype == 'rpi':
-            self.window.showFullScreen()
-            self.log.debug("Window set to fullscreen...")
+    def screen_fullscreen(self, fullscreen):
+        if fullscreen:
+            if self.support.ostype == 'rpi':
+                self.window.showFullScreen()
+                self.log.debug("Window set to fullscreen...")
+        else:
+            self.window.showNormal()
 
     # ******************************************************************************
     def config_file_load(self):

@@ -1,15 +1,16 @@
 import faulthandler
+faulthandler.enable()
 import sys
 import signal
 
-faulthandler.enable()
-import argparse
-from PySide2.QtWidgets import QApplication
 from PySide2.QtCore import QTimer
+from PySide2.QtWidgets import QApplication
+
 
 # my imports
 from logger import Logger
 from config import Config
+from support import Support
 from gui.gui_new import Mainwindow
 from speedgen_new import Speedgen
 from gains import Gains
@@ -18,11 +19,9 @@ from codegen import Codegen
 from gpio import Gpio
 from spi import SPI
 from decoder import Decoder
-from support.support import Support
 from pollvalues import Pollvalues
 from switches import Switches
 from currentsense import CurrentSense
-
 
 class Commander(object):
     Logger.log.debug("Instantiating {} class...".format(__qualname__))
@@ -40,7 +39,7 @@ class Commander(object):
         self.codegen = Codegen(config=self.config, logger=self.logger, gpio=self.gpio, spi=self.spi)
         self.gui = Mainwindow(self, codegen=self.codegen, config=self.config, logger=self.logger, support=self.support)
         self.switches = Switches(config=self.config, logger=self.logger, spi=self.spi, gui=self.gui)
-        self.currentsense = CurrentSense(logger=self.logger, spi=self.spi, decoder=self.decoder, gui=self.gui)
+        self.currentsense = CurrentSense(logger=self.logger, spi=self.spi, decoder=self.decoder, gui=self.gui, config=self.config)
         self.pollvalues = Pollvalues(pollperm=self.pollperm, logger=logger, config=self.config,
                                      currentsense=self.currentsense, switches=self.switches)
         self.window = self.gui.window
@@ -130,6 +129,7 @@ class Commander(object):
         self.gains_get_values()
         self.shape_get_values()
         self.poll_timer_setup()
+        QApplication.restoreOverrideCursor()
 
     # ****************************************************************************************************************
     def parse_args(self, arguments):
@@ -329,13 +329,13 @@ class Commander(object):
                 self.speed0_val = self.speed0_val + 1
             if direction == -1:
                 self.speed0_val = self.speed0_val - 1
-        self.window.QDIAL_speed_1.setValue(self.speed0_val)
+        self.window.QDIAL_speed_0.setValue(self.speed0_val)
         if name == "SPEED1":
             if direction == 1:
                 self.speed1_val = self.speed1_val + 1
             if direction == -1:
                 self.speed1_val = self.speed1_val - 1
-        self.window.QDIAL_speed_2.setValue(self.speed1_val)
+        self.window.QDIAL_speed_1.setValue(self.speed1_val)
 
     # ****************************************************************************************************************
     def gain_move_callback(self, name, direction, speed_increment):

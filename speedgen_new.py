@@ -139,8 +139,9 @@ class Speedgen(object):
     def bounds_check(self, simulate, speed_increment, direction):
         direction_text = None
         if simulate is False:
+            pass
             # this callback will move the dial on the screen.
-            self.commander_speed_move_callback(self.name, direction, speed_increment)
+            #self.commander_speed_move_callback(self.name, direction, speed_increment)
         if direction == Speedgen.CLOCKWISE:
             direction_text = "CLOCKWISE"
             self.speed_frequency = self.speed_frequency + speed_increment

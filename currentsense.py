@@ -5,20 +5,32 @@ from logger import Logger
 class CurrentSense(object):
     Logger.log.info("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, spi, decoder, logger, gui):
+    def __init__(self, spi, decoder, logger, gui, config):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.spi = spi
         self.decoder = decoder
         self.logger = logger
         self.gui = gui
+        self.config = config
         self.window = self.gui.window
         self.log = self.logger.log
         self.log.debug('Current Sense initializing...')
+        self.display_amps_template = None
+        self.loop_current_template = None
+        self.adc_counts_template = None
+        self.adc_template = None
+        self.adc_scale = 0
+        self.sense_amp_max_amps = 0
+        self.sense_ad_vin = 0  # LM4128CQ1MF3.3/NOPB voltage reference
+        self.sense_ad_max_bits = 0  # AD7940 ADC
+        self.sense_scaling_factor_mv_amp = 0 # 110 milivolts per amp
+        self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
     # **********************************************************************************************
     def startup_processes(self):
-        pass
+        self.read_from_config()
 
     # **********************************************************************************************
     def poll_callback_change_value(self, raw_analog_digital_value):
@@ -28,11 +40,10 @@ class CurrentSense(object):
             "RAW A/D:{}  Volts:{}  Scaled:{}".format(raw_analog_digital_value, analog_digital_volts, scaled_value))
         self.display_amps = (self.adc_scale * analog_digital_volts)
         self.display_amps = self.display_amps / 1000
-        self.display_amps = self.display_amps / 1000
-        self.window.LBL_display_amps.setText("{:2.3f}".format(self.display_amps))
-        self.window.LBL_loop_current_1.setText("{:2.3f}".format(self.display_amps))
-        self.window.LBL_display_adc_counts.setText("{:5.0f}".format(raw_analog_digital_value))
-
+        self.window.LBL_display_amps.setText(self.display_amps_template.format(self.display_amps))
+        self.window.LBL_loop_current.setText(self.loop_current_template.format(self.display_amps))
+        self.window.LBL_display_adc_counts.setText(self.adc_counts_template.format(raw_analog_digital_value))
+        self.window.LBL_display_adc.setText(self.adc_template.format(analog_digital_volts))
     # **********************************************************************************************
     def read_spi(self) -> list:
         """#need to send 2 bytes of dummy data to clock in 
@@ -55,15 +66,7 @@ class CurrentSense(object):
 
     # **********************************************************************************************
     def read_from_config(self):
-        # TODO these need to come from ini file
-        self.sense_scaling_factor_mv_amp = 0.055  # 55 milivolts per amp
-        self.sense_amp_max_amps = 25
-        self.sense_ad_vin = 3.299  # LM4128CQ1MF3.3/NOPB voltage reference
-        self.sense_ad_max_bits = 14  # AD7940 ADC
-        self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
-        self.adc_scale = 10.83
-        self.sense_amp_max_amps = 25
-        self.sense_ad_vin = 3.299  # LM4128CQ1MF3.3/NOPB voltage reference
-        self.sense_ad_max_bits = 14  # AD7940 ADC
-        self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
-        self.sense_scaling_factor_mv_amp = 0.110  # 55 milivolts per amp
+        self.display_amps_template = "{:2.3f}"
+        self.loop_current_template = "{:5.0f}"
+        self.adc_counts_template = "{:2.3f}"
+        self.adc_template = "{:2.3f}"

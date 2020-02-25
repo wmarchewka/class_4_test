@@ -25,7 +25,16 @@ class Config():
 
         # ROTARY SECTION
 
-        # DIGITAL POT SECTION
+        #CURRENT SENSE
+        cls.adc_scale = cls.config.getfloat('CURRENTSENSE', 'adc_scale')
+        cls.sense_amp_max_amps = cls.config.getint('CURRENTSENSE', 'sense_amp_max_amps')
+        cls.sense_ad_vin = cls.config.getfloat('CURRENTSENSE', 'sense_ad_vin')  # LM4128CQ1MF3.3/NOPB voltage reference
+        cls.sense_ad_max_bits = cls.config.getint('CURRENTSENSE', 'sense_ad_max_bits')  # AD7940 ADC
+        cls.sense_scaling_factor_mv_amp = cls.config.getfloat('CURRENTSENSE', 'sense_scaling_factor_mv_amp')  # 110 milivolts per amp
+        cls.display_amps_template = cls.config.get('CURRENTSENSE', 'display_amps_template')
+        cls.loop_current_template = cls.config.get('CURRENTSENSE', 'loop_current_template')
+        cls.adc_counts_template = cls.config.get('CURRENTSENSE', 'adc_counts_template')
+        cls.adc_template = cls.config.get('CURRENTSENSE', 'adc_template')
 
         # SPEED GENERATOR SECTION
         cls.freq_regs_max = cls.config.getint('SPEEDGEN', 'freq_regs_max')

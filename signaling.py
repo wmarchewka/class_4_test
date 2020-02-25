@@ -70,7 +70,7 @@ class Signaling():
     #  ***************************************************************************************
     def speed0_buttonstate_change(self, button):
         freq_shape = None
-        self.log.info(button.text())
+        self.log.info("SPEED 0 button pushed{}".format(button.text()))
         if button.text() == "SINE":
             freq_shape = 0
         if button.text() == "SQUARE":
@@ -83,7 +83,7 @@ class Signaling():
     #  ***************************************************************************************
     def speed1_buttonstate_change(self, button):
         freq_shape = None
-        self.log.info(button.text())
+        self.log.info("SPEED 1 button pushed{}".format(button.text()))
         if button.text() == "SINE":
             freq_shape = 0
         if button.text() == "SQUARE":
@@ -120,25 +120,25 @@ class Signaling():
     # ************************************************************************************
     # CATCHES SPEED 1 KNOB released
     def speed_0_dial_released(self):
-        self.log.debug('Speed 1 GUI knob RELEASED')
+        self.log.debug('Speed 0 GUI knob RELEASED')
         self.modifyBit(self.knob_values, 2, 0)
 
     # ************************************************************************************
     # CATCHES SPEED 2 KNOB released
     def speed_1_dial_released(self):
-        self.log.debug('Speed 2 GUI knob RELEASED')
+        self.log.debug('Speed 1 GUI knob RELEASED')
         self.modifyBit(self.knob_values, 3, 0)
 
     # ************************************************************************************
     # CATCHES SPEED 1 KNOB released
     def speed_0_dial_pressed(self):
-        self.log.debug('Speed 1 GUI knob PRESSED')
+        self.log.debug('Speed 0 GUI knob PRESSED')
         self.modifyBit(self.knob_values, 2, 1)
 
     # ************************************************************************************
     # CATCHES SPEED 2 KNOB PUSHED
     def speed_1_dial_pressed(self):
-        self.log.debug('Speed 2 GUI knob PRESSED')
+        self.log.debug('Speed 1 GUI knob PRESSED')
         self.modifyBit(self.knob_values, 3, 1)
 
     # ************************************************************************************

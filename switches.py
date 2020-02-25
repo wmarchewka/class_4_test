@@ -1,13 +1,11 @@
-import time
-from PySide2 import QtGui
+from logger import Logger
 
-
-# *******************************************************
 
 class Switches(object):
-    def __init__(self, config, logger, spi, gui):
-        # todo: place info in ini file
+    Logger.log.debug("Instantiating {} class...".format(__qualname__))
 
+    def __init__(self, config, logger, spi, gui):
+        Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = logger
         self.config = config
         self.spi = spi
@@ -36,12 +34,15 @@ class Switches(object):
     # reg 1-9    addr:08  not used
     # reg 1-10   addr:09  reflects state of port, read this
     # reg 1-11   addr:0A  output latch, write to this to set pin values
+    # **************************************************************************
     def startup_processes(self):
         self.read_from_config()
 
+    # **************************************************************************
     def poll_callback_change_value(self, switchvalue):
         self.switches_callback_change_value(switchvalue)
 
+    # **************************************************************************
     def register_setup_address_5(self):
         # disable sequential operation bit 5 on
         # hardware address enable bit 3 on
@@ -52,7 +53,8 @@ class Switches(object):
         ret = self.spi.write(self.switch_channel, spi_msg, self.config.switch_chip_select)
         self.log.debug("Returned value from SWITCH disable SEQUENTIAL READ {}".format(ret))
 
-    #TODO make sure this is tested
+    # **************************************************************************
+    # TODO make sure this is tested
     def spi_write_values(self):
         # read switch register
         self.log.debug("Writing spi switch for values")
@@ -62,7 +64,7 @@ class Switches(object):
         spi_msg = [switch_sent_op_code] + [switch_register_address] + [0x00]
         ret = self.spi.write_message(self.switch_channel, number_of_bytes, self.config.switch_chip_select, spi_msg)
 
-
+    # **************************************************************************
     def spi_read_values(self):
         # read switch register
         self.log.debug("Polling spi switch for values")
@@ -75,6 +77,7 @@ class Switches(object):
             "Returned value from SWITCH spi read{} | BITS {}".format(ret, bin(ret[2])))
         return ret[2]
 
+    # **************************************************************************
     # call back from switch_polling
     def switches_callback_change_value(self, value):
         self.knob_values = 0
@@ -108,6 +111,7 @@ class Switches(object):
             self.window.switch6_green.setVisible(False)
             self.window.switch6_red.setVisible(True)
 
+    # **************************************************************************
     def read_from_config(self):
         pass
 

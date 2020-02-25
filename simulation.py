@@ -1,7 +1,5 @@
 #my libraries
-from support.support import Support
 from logger import Logger
-from config import Config
 
 
 class Simulation(object):
