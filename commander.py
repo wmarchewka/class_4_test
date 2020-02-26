@@ -82,6 +82,9 @@ class Commander(object):
         self.speed_1_spi_channel = None
         self.speed_0_thresholds = None
         self.speed_1_thresholds = None
+        self.screen_brightness_max = None
+        self.screen_brightness_min = None
+        self.display_brightness = None
         self.SPEED_0_CS = None # 6  # SPEED SIMULATION TACH 1
         self.SPEED_1_CS = None  # 7  # SPEED SIMULATION TACH 2
         self.load_from_config()
@@ -134,7 +137,16 @@ class Commander(object):
         self.shape_get_values()
         self.poll_timer_setup()
         self.display_timer_setup()
+        self.brightness_check()
         #QApplication.restoreOverrideCursor()
+
+    # ****************************************************************************************************************
+    def gains_lock(self, value):
+        self.log.info("Gains Locked button received {}".format(value))
+        if value:
+            Gains.gains_locked = True
+        else:
+            Gains.gains_locked = False
 
     # ****************************************************************************************************************
     def parse_args(self, arguments):
@@ -385,10 +397,17 @@ class Commander(object):
         self.window.tabWidget.setCurrentIndex(2)
 
     # ****************************************************************************************************************
+    def SLIDER_duty_cycle_changed(self, value):
+        self.codegen.coded_carrier_generate(duty_cycle=value)
+
+    # ****************************************************************************************************************
     def gains_gui_update(self, name, gain):
         if name == "GAIN0":
+            if Gains.gains_locked == True:
+                self.gain1.set_value(self.gain0.value)
             self.window.LBL_primary_gain_percent.setText("{0:.3%}".format(gain))
         if name == "GAIN1":
+            #if Gains.gains_locked == True:
             self.window.LBL_secondary_gain_percent.setText("{0:.3%}".format(gain))
 
     # ****************************************************************************************************************
@@ -527,6 +546,24 @@ class Commander(object):
         return txtlevel
 
     # *******************************************************************************************
+    def brightness_check(self):
+        # check and set brightness of LCD
+        brightness_value = self.support.brightness_query()
+        if brightness_value is not None:
+            self.support.brightness_set(brightness_value)
+            self.window.SPIN_brightness.setValue(int(brightness_value))
+
+    # *******************************************************************************************
+    # CATCH BRIGHTNESS BUTTON CHANGE
+    def brightness_changed(self, value):
+        if value >= self.screen_brightness_max:
+            value = self.screen_brightness_max
+        if value <= self.screen_brightness_min:
+            value = self.screen_brightness_min
+        self.log.debug('GUI brightness changed to ' + str(value))
+        self.support.brightness_set(value)
+
+    # *******************************************************************************************
     def display_update(self):
         cpu_percentage_numeric = psutil.cpu_percent()
         cpu_percentage_string = 'CPU:{}'.format(psutil.getloadavg())
@@ -583,6 +620,9 @@ class Commander(object):
         self.speed_1_thresholds = self.config.SPEED_1_thresholds
         self.display_timer_interval = self.config.display_timer_interval
         self.poll_timer_interval = self.config.poll_timer_interval
+        self.screen_brightness_max = self.config.screen_brightness_max
+        self.screen_brightness_min = self.config.screen_brightness_min
+        self.display_brightness = self.config.display_brightness
 
     # *******************************************************************************************
     def exit_application(self, signum, frame):

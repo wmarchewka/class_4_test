@@ -16,16 +16,16 @@ class Codegen():
         Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = logger
         self.log = self.logger.log
-        self.log.debug('Starting up Coderate Generator...')
+        self.log.info('Starting up Coderate Generator...')
         self.gpio = gpio
         self.pi_gpio = self.gpio.gpio
         self.spi = spi
         self.config = config
         self.speed_generation_shape_override = None
-        self.coded_carrier_pin_state = 0
-        self.coderate_ppm = 0
-        self.primary_frequency = 0
-        self.secondary_frequency = 0
+        self.coded_carrier_pin_state = None
+        self.coderate_ppm = None
+        self.primary_frequency = None
+        self.secondary_frequency = None
         self.primary_channel_chip_select_pin = None
         self.secondary_channel_chip_select_pin = None
         self.primary_source_frequency = None
@@ -36,14 +36,15 @@ class Codegen():
         self.shape_square_word = None
         self.shape_triangle = None
         self.shape_triangle_word = None
-        self.duty_cycle_default = None
+        self.duty_cycle = None
         self.pulses_per_second_default = None
         self.primary_channel_mux_pin = None
         self.secondary_channel_mux_pin = None
-        self.shape_default = self.shape_sine
         self.coded_carrier_pin = None
+        self.coderate_ppm = None
+        self.pulses_per_second = None
         self.startup_processes()
-        self.log.debug("{} init complete...".format(__name__))
+        self.log.info("{} init complete...".format(__name__))
 
     # **************************************************************************************************
     def startup_processes(self):
@@ -62,9 +63,9 @@ class Codegen():
     # **************************************************************************************************
     def load_from_coderate(self):
         cwd = os.getcwd()
-        self.log.debug("CWD: {}".format(cwd))
+        self.log.info("CWD: {}".format(cwd))
         config_file_path = "config/coderates.ini"
-        self.log.debug('Loading coderate template configuration from ' + str(config_file_path))
+        self.log.info('Loading coderate template configuration from ' + str(config_file_path))
         config_coderates = configparser.ConfigParser()
         config_coderates.sections()
         config_coderates.read_file(open(config_file_path))
@@ -72,6 +73,7 @@ class Codegen():
         self.frequencies = ast.literal_eval(self.frequencies)
         self.coderates = config_coderates.get('CODERATES', 'coderates')
         self.coderates = ast.literal_eval(self.coderates)
+        self.shape_default = self.shape_sine
 
     # **************************************************************************************************
     def load_from_config(self):
@@ -83,8 +85,8 @@ class Codegen():
         self.shape_sine = self.config.shape_sine
         self.shape_square = self.config.shape_square
         self.shape_triangle = self.config.shape_triangle
-        self.duty_cycle_default = self.config.duty_cycle_default
-        self.pulses_per_second_default = self.config.pulses_per_second_default
+        self.duty_cycle = self.config.duty_cycle
+        self.pulses_per_second = self.config.pulses_per_second
         self.primary_channel_mux_pin = self.config.primary_channel_mux_pin
         self.secondary_channel_mux_pin = self.config.secondary_channel_mux_pin
         self.coded_carrier_pin = self.config.coded_carrier_pin
@@ -94,10 +96,8 @@ class Codegen():
         self.shape_square_word = int(self.shape_square_word, 16)
         self.shape_triangle_word = self.config.shape_triangle_word
         self.shape_triangle_word = int(self.shape_triangle_word, 16)
-
     # **************************************************************************************************
     def coderate_generate(self):
-        # todo move to initializiation and place in INI
         """ coderate selection will send the appropriate coderate to be generated.  to generate a coderate we must
         program both the primary and secondary carrier frequency generators with the appropriate frequency.  then
         we must select between the 2 frequencies at the coderate passed to us
@@ -110,19 +110,21 @@ class Codegen():
         secondary_freq = self.secondary_frequency
 
         if coderate_ppm is not None and primary_freq is not None and secondary_freq is not None:
-            self.log.debug(
+            self.log.info(
                 "GENERATING CODERATE :{}ppm  FREQUENCY 0: {}hz   FREQUENCY 0:  {}hz ".format(coderate_ppm, primary_freq,
                                                                                              secondary_freq))
-            self.primary_frequency_generate(frequency=primary_freq)
-            self.secondary_frequency_generate(frequency=secondary_freq)
-            self.coded_carrier_generate(coderate_ppm=coderate_ppm)
+            if primary_freq is not 0:
+                self.primary_frequency_generate(frequency=primary_freq)
+            if secondary_freq is not 0:
+                self.secondary_frequency_generate(frequency=secondary_freq)
+            if coderate_ppm is not 0:
+                self.coded_carrier_generate(coderate_ppm=coderate_ppm)
         else:
-            self.log.debug("Cound not generate coderate")
+            self.log.info("Cound not generate coderate")
 
     # **************************************************************************************************
     def primary_frequency_generate(self, frequency=None, source_frequency=None, chip_select_pin=None,
-                                   coded_carrier_pin=None,
-                                   shape=None):
+                                   coded_carrier_pin=None, shape=None):
         """
         generates primary carrier frequency.  if frequency is greater than 1, then turn on the pin to the mux
         so that this is the only frequency passed through.  if both frequencies are present then the coded
@@ -133,26 +135,28 @@ class Codegen():
         """
         if frequency is None:
             frequency = self.primary_frequency
-        if source_frequency is None:
-            source_frequency = self.primary_source_frequency
-        if chip_select_pin is None:
-            chip_select_pin = self.primary_channel_chip_select_pin
-        if coded_carrier_pin is None:
-            coded_carrier_pin = self.coded_carrier_pin
-        if shape is None:
-            shape = self.shape_default
+        else:
+            self.primary_frequency = frequency
         if frequency is not None:
-            self.log.debug(
-                "PRI FREQ ON: FREQ:{}  SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
-                                                                                                              source_frequency,
-                                                                                                              chip_select_pin,
-                                                                                                              coded_carrier_pin,
-                                                                                                              shape))
+            if source_frequency is None:
+                source_frequency = self.primary_source_frequency
+            if chip_select_pin is None:
+                chip_select_pin = self.primary_channel_chip_select_pin
+            if coded_carrier_pin is None:
+                coded_carrier_pin = self.coded_carrier_pin
+            if shape is None:
+                shape = self.shape_default
+            self.log.info(
+                    "PRI FREQ:{}  SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
+                                                                                                                  source_frequency,
+                                                                                                                  chip_select_pin,
+                                                                                                                  coded_carrier_pin,
+                                                                                                                  shape))
             self.frequency_to_registers(frequency=frequency, source_frequency=source_frequency, shape=shape,
                                         chip_select=chip_select_pin)
             self.pi_gpio.write(coded_carrier_pin, self.primary_channel_mux_pin)
         else:
-            self.log.debug("Setting PRIMARY FREQUENCY OFF")
+            self.log.info("Setting PRIMARY FREQUENCY OFF")
 
     # **************************************************************************************************
     def secondary_frequency_generate(self, frequency=None, source_frequency=None, chip_select_pin=None,
@@ -165,18 +169,21 @@ class Codegen():
         :param source_frequency:
         :param chip_select_pin:
         """
-        self.secondary_frequency = frequency
-        if source_frequency is None:
-            source_frequency = self.primary_source_frequency
-        if chip_select_pin is None:
-            chip_select_pin = self.primary_channel_chip_select_pin
-        if coded_carrier_pin is None:
-            coded_carrier_pin = self.coded_carrier_pin
-        if shape is None:
-            shape = self.shape_default
+        if frequency is None:
+            frequency = self.secondary_frequency
+        else:
+            self.secondary_frequency = frequency
         if frequency is not None:
-            self.log.debug(
-                "SEC FREQ ON: FREQ:{}  SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
+            if source_frequency is None:
+                source_frequency = self.primary_source_frequency
+            if chip_select_pin is None:
+                chip_select_pin = self.primary_channel_chip_select_pin
+            if coded_carrier_pin is None:
+                coded_carrier_pin = self.coded_carrier_pin
+            if shape is None:
+                shape = self.shape_default
+            self.log.info(
+                "SEC FREQ:{} SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
                                                                                                               source_frequency,
                                                                                                               chip_select_pin,
                                                                                                               coded_carrier_pin,
@@ -185,16 +192,22 @@ class Codegen():
                                         chip_select=chip_select_pin)
             self.pi_gpio.write(coded_carrier_pin, self.secondary_channel_mux_pin)
 
+        else:
+            self.log.info("Setting SECONDARY FREQUENCY OFF")
     # **************************************************************************************************
-    def coded_carrier_generate(self, coderate_ppm, duty_cycle=None, pulses_per_second=None):
+    def coded_carrier_generate(self, coderate_ppm=None, duty_cycle=None):
+        if coderate_ppm is None:
+            coderate_ppm = self.coderate_ppm
+        else:
+            self.coderate_ppm = coderate_ppm
         if duty_cycle is None:
-            duty_cycle = self.duty_cycle_default
-        if pulses_per_second is None:
-            pulses_per_second = self.pulses_per_second_default
+            duty_cycle = self.duty_cycle
+        else:
+            self.duty_cycle = duty_cycle
         self.pi_gpio.wave_clear()
         pulse = []
-        if coderate_ppm is not 0:
-            coderate_period_in_microseconds = int((1 / (coderate_ppm / 60.0)) * pulses_per_second)
+        if coderate_ppm is not 0 and duty_cycle is not None:
+            coderate_period_in_microseconds = int((1 / (coderate_ppm / 60.0)) * self.pulses_per_second)
             coderate_positive_pulse = int(coderate_period_in_microseconds * (duty_cycle / 100))
             coderate_negative_pulse = int(coderate_period_in_microseconds * (1 - (duty_cycle / 100)))
             pulse.append(pigpio.pulse(1 << self.coded_carrier_pin, 0, coderate_positive_pulse))
@@ -202,12 +215,13 @@ class Codegen():
             self.pi_gpio.wave_add_generic(pulse)  # add waveform
             self.waveform1 = self.pi_gpio.wave_create()
             self.pi_gpio.wave_send_repeat(self.waveform1)
-            self.log.debug('Starting code rate')
+            self.log.info('Starting code rate  DUTY CYCLE:{}   PPM:{}'.format(duty_cycle, coderate_ppm))
             val = threading.current_thread(), threading.current_thread().name
-            self.log.debug("THREAD " + str(val))
-        elif coderate_ppm is 0:
-            self.coderate_stop()
-
+            self.log.info("THREAD " + str(val))
+        # elif coderate_ppm is 0:
+        #     self.coderate_stop()
+        else:
+            self.log.info("COULD NOT GENERATE CODERATE")
     # **************************************************************************************************
     def off(self):
         self.coderate_stop()
@@ -216,9 +230,10 @@ class Codegen():
         self.secondary_frequency = 0
         self.coderate_generate()
 
+
     # **************************************************************************************************
     def coderate_stop(self):
-        self.log.debug("Stopping CODERATE")
+        self.log.info("Stopping CODERATE")
         if self.pi_gpio.wave_tx_busy():
             self.pi_gpio.wave_tx_stop()
             #self.pi_gpio.wave_clear()
@@ -227,13 +242,11 @@ class Codegen():
     def frequency_to_registers(self, frequency, source_frequency, shape, chip_select):
 
         self.spi_msg = []
-        self.log.debug(
+        self.log.info(
             "FREQ TO REG running with FREQ:{} CLK FREQ:{} SHAPE:{}  CS:{}".format(frequency,
                                                                                               source_frequency, shape,
                                                                                               chip_select))
         word = hex(int(round((frequency * 2 ** 28) / source_frequency)))  # Calculate frequency word to send
-        if self.speed_generation_shape_override is not None:
-            shape = self.speed_generation_shape_override
         if shape == self.shape_square:  # square
             shape_word = self.shape_square_word
         elif shape == self.shape_triangle:  # triangle
@@ -264,7 +277,7 @@ class Codegen():
     # **************************************************************************************************
     # # CURRENTLY NOT USED
     # def pulse_codes_from_company(self, company):
-    #     self.log.debug("Reading pulsecode data from INI file for company  {}".format(company))
+    #     self.log.info("Reading pulsecode data from INI file for company  {}".format(company))
     #     good_list = []
     #     values = []
     #     company_data = self.config_coderates.items(company)
@@ -315,7 +328,7 @@ class Codegen():
     #     primary_code_rate_generator_toggle_pin = 27
     #     secondary_code_rate_generator_toggle_pin = 22
     #
-    #     self.log.debug("Generating Test Pulse")
+    #     self.log.info("Generating Test Pulse")
     #     self.pi_gpio.wave_clear()
     #     coderate1_ppm = values[0]
     #     carrier_freq1 = values[1]
@@ -326,18 +339,18 @@ class Codegen():
     #     self.pi_gpio.set_mode(secondary_code_rate_generator_toggle_pin, pigpio.OUTPUT)
     #     self.pi_gpio.wave_tx_stop()
     #
-    #     self.log.debug(
+    #     self.log.info(
     #         "Received values to generate waveform: CODERATE 1:{}ppm  FREQUENCY 1: {}hz   CODERATE 2: {}ppm  FREQUENCY 2:  {}hz ".format(
     #             coderate1_ppm, carrier_freq1, coderate2_ppm, carrier_freq2))
     #     coderate1_period_in_microseconds = int((1 / (coderate1_ppm / 60.0)) * pulses_per_second)
     #     coderate2_period_in_microseconds = int((1 / (coderate2_ppm / 60.0)) * pulses_per_second)
-    #     self.log.debug("Calculated CODERATE 1 PERIOD: {}usecs   CODERATE 2 PERIOD:  {}usecs".format(
+    #     self.log.info("Calculated CODERATE 1 PERIOD: {}usecs   CODERATE 2 PERIOD:  {}usecs".format(
     #         coderate1_period_in_microseconds, coderate2_period_in_microseconds))
     #     coderate1_positive_pulse = int(coderate1_period_in_microseconds * (duty_cycle / 100))
     #     coderate1_negative_pulse = int(coderate1_period_in_microseconds * (1 - (duty_cycle / 100)))
     #     coderate2_positive_pulse = int(coderate1_period_in_microseconds * (duty_cycle / 100))
     #     coderate2_negative_pulse = int(coderate1_period_in_microseconds * (1 - (duty_cycle / 100)))
-    #     self.log.debug(
+    #     self.log.info(
     #         'CODERATE 1 POS PULSE:{}Usecs   CODERATE 1 NEG PULSE:{}uSecs   CODERATE 2 POS PULSE:{}Usecs   CODERATE 2 NEG PULSE"{}Usecs'.format(
     #             coderate1_positive_pulse, coderate1_negative_pulse, coderate2_positive_pulse, coderate2_negative_pulse))
     #     # generate primary carrier frequency
@@ -346,7 +359,7 @@ class Codegen():
     #     primary_carrier_negative_pulse_microseconds = int(((1 / carrier_freq1) / 2) * pulses_per_second)
     #     secondary_carrier_positive_pulse_microseconds = int(((1 / carrier_freq2) / 2) * pulses_per_second)
     #     secondary_carrier_negative_pulse_microseconds = int(((1 / carrier_freq2) / 2) * pulses_per_second)
-    #     self.log.debug(
+    #     self.log.info(
     #         "PRI CARRIER POS PULSE {}uSec PRI CARRIER NEG PULSE {}uSec   SEC CARRIER POS PULSE {}uSec SEC CARRIER NEG PULSE {}uSec".format(
     #             primary_carrier_positive_pulse_microseconds, primary_carrier_negative_pulse_microseconds,
     #             secondary_carrier_positive_pulse_microseconds, secondary_carrier_negative_pulse_microseconds))
@@ -360,11 +373,11 @@ class Codegen():
     #                 pigpio.pulse(1 << primary_code_rate_generator_toggle_pin, 0,
     #                              primary_carrier_positive_pulse_microseconds))
     #             wavelength = wavelength - primary_carrier_positive_pulse_microseconds
-    #             self.log.debug('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(
+    #             self.log.info('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(
     #                 primary_carrier_positive_pulse_microseconds))
     #         else:
     #             pulse.append(pigpio.pulse(1 << primary_code_rate_generator_toggle_pin, 0, wavelength))
-    #             self.log.debug('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
+    #             self.log.info('ADDING  PRI CAR POS PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
     #             wavelength = wavelength - wavelength
     #
     #         # pri car neg
@@ -373,13 +386,13 @@ class Codegen():
     #                 pigpio.pulse(0, 1 << primary_code_rate_generator_toggle_pin,
     #                              primary_carrier_negative_pulse_microseconds))
     #             wavelength = wavelength - primary_carrier_negative_pulse_microseconds
-    #             self.log.debug('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(
+    #             self.log.info('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(
     #                 primary_carrier_negative_pulse_microseconds))
     #         else:
     #             pulse.append(pigpio.pulse(0, 1 << primary_code_rate_generator_toggle_pin, wavelength))
-    #             self.log.debug('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
+    #             self.log.info('ADDING  PRI CAR NEG PULSE WITH LENGTH OF  {}USECS'.format(wavelength))
     #             wavelength = wavelength - wavelength
-    #         self.log.debug('Wavelength {}'.format(wavelength))
+    #         self.log.info('Wavelength {}'.format(wavelength))
     #
     #     wavelength = coderate2_positive_pulse
     #     while wavelength is not 0:
@@ -389,11 +402,11 @@ class Codegen():
     #                 pigpio.pulse(1 << secondary_code_rate_generator_toggle_pin, 0,
     #                              secondary_carrier_positive_pulse_microseconds))
     #             wavelength = wavelength - secondary_carrier_positive_pulse_microseconds
-    #             self.log.debug('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(
+    #             self.log.info('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(
     #                 secondary_carrier_positive_pulse_microseconds))
     #         else:
     #             pulse.append(pigpio.pulse(1 << secondary_code_rate_generator_toggle_pin, 0, wavelength))
-    #             self.log.debug('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(wavelength))
+    #             self.log.info('ADDING  SEC CAR POS PULSE WITH LENGTH OF  {}Usecs'.format(wavelength))
     #             wavelength = wavelength - wavelength
     #
     #         # sec car neg
@@ -402,17 +415,17 @@ class Codegen():
     #                 pigpio.pulse(0, 1 << secondary_code_rate_generator_toggle_pin,
     #                              secondary_carrier_negative_pulse_microseconds))
     #             wavelength = wavelength - secondary_carrier_negative_pulse_microseconds
-    #             self.log.debug('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
+    #             self.log.info('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
     #                 secondary_carrier_negative_pulse_microseconds))
     #         else:
     #             pulse.append(pigpio.pulse(0, 1 << secondary_code_rate_generator_toggle_pin, wavelength))
-    #             self.log.debug('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
+    #             self.log.info('ADDING  SEC CAR NEG PULSE WITH LENGTH OF  {}Usecs'.format(
     #                 wavelength))
     #             wavelength = wavelength - wavelength
-    #         self.log.debug('Wavelength {}'.format(wavelength))
+    #         self.log.info('Wavelength {}'.format(wavelength))
     #     self.pi_gpio.wave_add_generic(pulse)  # add waveform
     #     pulses = self.pi_gpio.wave_get_pulses()
     #     micros = self.pi_gpio.wave_get_micros()
-    #     self.log.debug("Waveform PULSES {}   MICROS {}".format(pulses, micros))
+    #     self.log.info("Waveform PULSES {}   MICROS {}".format(pulses, micros))
     #     wf = self.pi_gpio.GPIO.wave_create()
     #     self.pi_gpio.GPIO.wave_send_repeat(wf)

@@ -132,7 +132,7 @@ class Support(object):
                 return my_cmd
         except Exception as inst:
             self.log.critical(inst)
-
+            return None
     #******************************************************************************************************
     # called premade script to create ramdrive
     # TODO see why ramdrive is getting created upon reboot.

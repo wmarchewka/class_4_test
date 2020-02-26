@@ -20,7 +20,7 @@ class PortableTester(object):
         self.args = self.parser.parse_args()
         self.log.debug("Arguments passed into script: {}".format(self.args))
         self.logging_args = self.args.debug
-        self.log_level = logging.DEBUG
+        self.log_level = logging.INFO
         if self.logging_args:
             self.level_config = {'DEBUG': logging.DEBUG, 'INFO': logging.INFO, "CRITICAL": logging.CRITICAL}  # etc.
             self.logging_level = self.level_config[self.logging_args[0]]

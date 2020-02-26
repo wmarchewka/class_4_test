@@ -109,15 +109,13 @@ class Config():
         cls.shape_sine = cls.config.getint('CODEGEN', 'shape_sine')
         cls.shape_square = cls.config.getint('CODEGEN', 'shape_square')
         cls.shape_triangle = cls.config.getint('CODEGEN', 'shape_triangle')
-        cls.duty_cycle_default = cls.config.getfloat('CODEGEN', 'duty_cycle_default')
-        cls.pulses_per_second_default = cls.config.getfloat('CODEGEN', 'pulses_per_second_default')
+        cls.duty_cycle = cls.config.getfloat('CODEGEN', 'duty_cycle')
+        cls.pulses_per_second = cls.config.getfloat('CODEGEN', 'pulses_per_second')
         cls.primary_channel_mux_pin = cls.config.getint('CODEGEN', 'primary_channel_mux_pin')
         cls.secondary_channel_mux_pin = cls.config.getint('CODEGEN', 'secondary_channel_mux_pin')
         cls.shape_sine_word = cls.config.get('CODEGEN', 'shape_sine_word')
         cls.shape_square_word = cls.config.get('CODEGEN', 'shape_square_word')
-        #cls.shape_square_word = hex(int(cls.shape_square_word, 16))
         cls.shape_triangle_word = cls.config.get('CODEGEN', 'shape_triangle_word')
-        #cls.shape_triangle_word = hex(int(cls.shape_triangle_word, 16))
 
         # GUI
         cls.display_brightness = cls.config.getint('MAIN', 'display_brightness')

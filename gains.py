@@ -28,6 +28,8 @@ class Gains(object):
     SPI_WIPER_TO_NVRAM_COMMAND = [0b00100000]
     SPI_NVRAM_TO_WIPER_COMMAND = [0b00110000]
     FINE_DIVISOR = FINE_MAX_OHMS / FINE_MAX_BITS
+    gains_locked = False
+    global_value = 0
 
     def __init__(self, config, pollperm, logger, decoder, spi, name, spi_channel, chip_select, pin_0,
                  pin_1, pin_0_debounce,
@@ -158,15 +160,11 @@ class Gains(object):
         :param number:
         """
         if direction == Gains.CLOCKWISE:
-            if self.gains_locked:
-                self.value = self.value + speed_increment
-            elif not self.gains_locked:
-                self.value = self.value + speed_increment
+            self.value = self.value + speed_increment
+            Gains.global_value = self.value
         elif direction == Gains.ANTI_CLOCKWISE:
-            if self.gains_locked:
-                self.value = self.value - speed_increment
-            elif not self.gains_locked:
-                self.value = self.value - speed_increment
+            self.value = self.value - speed_increment
+            Gains.global_value = self.value
         elif direction == Gains.DIRECTION_ERROR:
             self.value = self.value
         if not simulate:

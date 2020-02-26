@@ -72,6 +72,13 @@ class Signaling():
 
         self.window.PB_chip_select_manual_toggle.toggled.connect(self.commander.manual_chip_select_toggled)
 
+        # set brightness value
+        self.window.SPIN_brightness.valueChanged.connect(self.commander.brightness_changed)
+
+        # set gain lock
+        self.window.CHK_gain_lock_percent.stateChanged.connect(self.commander.gains_lock)
+
+        self.window.SLIDER_duty_cycle.valueChanged.connect(self.commander.SLIDER_duty_cycle_changed)
     #  ***************************************************************************************
     def speed0_shapestate_change(self, button):
         freq_shape = None
