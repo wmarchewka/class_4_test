@@ -79,6 +79,10 @@ class Signaling():
         self.window.CHK_gain_lock_percent.stateChanged.connect(self.commander.gains_lock)
 
         self.window.SLIDER_duty_cycle.valueChanged.connect(self.commander.SLIDER_duty_cycle_changed)
+
+        self.window.PB_security.clicked.connect(self.commander.security_pressed)
+
+        self.window.PB_spi_log_pause.clicked.connect(self.commander.PB_spi_log_pause)
     #  ***************************************************************************************
     def speed0_shapestate_change(self, button):
         freq_shape = None

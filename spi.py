@@ -26,6 +26,7 @@ class SPI():
         self.spi_log_count = 0
         self.last_time = 0
         self.log_data = True
+        self.data = None
         self.startup_processes()
         self.log.debug('Using SPI BUS: {}'.format(self.spi_bus))
         self.log.debug("{} init complete...".format(__name__))
@@ -150,7 +151,7 @@ class SPI():
                 obj_data = obj_data + str(obj) + "\t"
             obj_data = str(self.spi_log_count) + "\t" + "{:4.3f} \t {:4.3f}".format(time.time(),
                                                                                     time_data) + "\t" + obj_data + "\n"
-            data = str(obj_data) + "\n"
+            self.data = str(obj_data) + "\n"
             # self.mainwindow.window.TE_spi_log.insertPlainText(str(data))
             # self.scrollbar = self.mainwindow.window.TE_spi_log.verticalScrollBar()
             # self.scrollbar.setValue(self.mainwindow.window.TE_spi_log.blockCount() - 25)

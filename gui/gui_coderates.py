@@ -67,7 +67,7 @@ class Guicoderate(object):
             self.log.debug("CODERATE button set")
         elif self.coderate_pb is not None:
             if buttonid is self.coderate_pb:
-                button.setStyleSheet('background-color: green;border-radius:10px')
+                button.setStyleSheet('background-color: red;border-radius:10px')
                 self.window.LBL_current_coderate.setText("OFF")
                 coderate_value = 0
                 self.coderate_pb = None

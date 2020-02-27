@@ -1,4 +1,5 @@
 import faulthandler
+
 faulthandler.enable()
 import sys
 import signal
@@ -9,6 +10,8 @@ import time
 
 from PySide2.QtCore import QTimer
 from PySide2.QtWidgets import QApplication
+from PySide2.QtGui import *
+from PySide2.QtCore import *
 
 # my imports
 from logger import Logger
@@ -25,7 +28,8 @@ from decoder import Decoder
 from pollvalues import Pollvalues
 from switches import Switches
 from currentsense import CurrentSense
-
+from gui.security_window import SecurityWindow
+from securitylevel import SecurityLevel
 
 class Commander(object):
     Logger.log.debug("Instantiating {} class...".format(__qualname__))
@@ -41,12 +45,16 @@ class Commander(object):
         self.decoder = Decoder(config=self.config, logger=self.logger, gpio=self.gpio)
         self.spi = SPI(config=self.config, logger=self.logger, decoder=self.decoder, pollperm=self.pollperm)
         self.codegen = Codegen(config=self.config, logger=self.logger, gpio=self.gpio, spi=self.spi)
-        self.gui = Mainwindow(self, codegen=self.codegen, config=self.config, logger=self.logger, support=self.support)
-        self.switches = Switches(config=self.config, logger=self.logger, spi=self.spi, gui=self.gui, switch_callback=self.poll_switch_callback)
+        self.securitylevel = SecurityLevel(logger=self.logger)
+        self.gui = Mainwindow(self, codegen=self.codegen, config=self.config, logger=self.logger, support=self.support,
+                              securitylevel=self.securitylevel)
+        self.switches = Switches(config=self.config, logger=self.logger, spi=self.spi, gui=self.gui,
+                                 switch_callback=self.poll_switch_callback)
         self.currentsense = CurrentSense(logger=self.logger, spi=self.spi, decoder=self.decoder, gui=self.gui,
                                          config=self.config, sense_callback=self.poll_sense_callback)
         self.pollvalues = Pollvalues(pollperm=self.pollperm, logger=logger, config=self.config,
                                      currentsense=self.currentsense, switches=self.switches)
+        self.securitywindow = SecurityWindow(logger=self.logger, securitylevel=self.securitylevel)
         self.window = self.gui.window
         self.log = self.logger.log
         self.knob_values = 0
@@ -85,7 +93,8 @@ class Commander(object):
         self.screen_brightness_max = None
         self.screen_brightness_min = None
         self.display_brightness = None
-        self.SPEED_0_CS = None # 6  # SPEED SIMULATION TACH 1
+        self.spi_log_pause = False
+        self.SPEED_0_CS = None  # 6  # SPEED SIMULATION TACH 1
         self.SPEED_1_CS = None  # 7  # SPEED SIMULATION TACH 2
         self.load_from_config()
         self.speed0 = Speedgen(pollperm=self.pollperm, logger=self.logger, config=self.config, decoder=self.decoder,
@@ -138,7 +147,7 @@ class Commander(object):
         self.poll_timer_setup()
         self.display_timer_setup()
         self.brightness_check()
-        #QApplication.restoreOverrideCursor()
+        # QApplication.restoreOverrideCursor()
 
     # ****************************************************************************************************************
     def gains_lock(self, value):
@@ -147,6 +156,11 @@ class Commander(object):
             Gains.gains_locked = True
         else:
             Gains.gains_locked = False
+
+    # ****************************************************************************************************************
+    def logging_callback(self, level):
+        self.log.info("Logging callback")
+
 
     # ****************************************************************************************************************
     def parse_args(self, arguments):
@@ -166,15 +180,18 @@ class Commander(object):
     def gpio_manual_read_pin(self):
         pinstate = 0
         gpio_pin = self.window.SPIN_gpio_manual_read_select.value()
-        if gpio_pin <=40:
+        if gpio_pin <= 40:
             pinstate = self.gpio.gpio.read(gpio_pin)
-        elif gpio_pin >40:
+        elif gpio_pin > 40:
             gpio_pin = gpio_pin - 41
             pinstate = self.switch_values & gpio_pin
         if pinstate == 0:
             self.window.LBL_gpio_manual_read_value.setText("LOW")
         elif pinstate == 1:
             self.window.LBL_gpio_manual_read_value.setText("HIGH")
+
+    def PB_spi_log_pause(self, value):
+        self.spi_log_pause = value
 
     # *******************************************************************************
     def gpio_manual_toggled(self, value):
@@ -185,7 +202,7 @@ class Commander(object):
         :param value:
         """
         gpio_pin = self.window.SPIN_gpio_manual_select.value()
-        if gpio_pin <=40:
+        if gpio_pin <= 40:
             try:
                 if value:
                     self.gpio.gpio.write(gpio_pin, True)
@@ -223,7 +240,6 @@ class Commander(object):
             self.gpio.gpio.write(18, value)
         else:
             self.gpio.gpio.write(16, value)
-
 
     # ******************************************************************************
     def exit_signalling(self):
@@ -297,7 +313,6 @@ class Commander(object):
             self.window.switch6_green.setVisible(False)
             self.window.switch6_red.setVisible(True)
             self.window.QDIAL_speed_1.setStyleSheet('background-color: rgb(191, 191, 191)')
-
 
         # if self.switches.primary_gain_pb_status == "ON":
         #     self.window.LBL_primary_gain_pb_status.setText("ON")
@@ -397,8 +412,18 @@ class Commander(object):
         self.window.tabWidget.setCurrentIndex(2)
 
     # ****************************************************************************************************************
+    def security_pressed(self):
+        self.log.debug("Security presssed")
+        self.securitywindow.window.show()
+
+    # ****************************************************************************************************************
+    def msgbtn(self, value):
+        self.log.debug("In MSG Button:{}".format(value))
+
+    # ****************************************************************************************************************
     def SLIDER_duty_cycle_changed(self, value):
         self.codegen.coded_carrier_generate(duty_cycle=value)
+        self.gui.window.LBL_duty_cycle.setText(str(value))
 
     # ****************************************************************************************************************
     def gains_gui_update(self, name, gain):
@@ -407,7 +432,7 @@ class Commander(object):
                 self.gain1.set_value(self.gain0.value)
             self.window.LBL_primary_gain_percent.setText("{0:.3%}".format(gain))
         if name == "GAIN1":
-            #if Gains.gains_locked == True:
+            # if Gains.gains_locked == True:
             self.window.LBL_secondary_gain_percent.setText("{0:.3%}".format(gain))
 
     # ****************************************************************************************************************
@@ -581,11 +606,16 @@ class Commander(object):
             self.log.debug("Memory : {}".format(memory))
             self.log.debug("THREADS RUNNING {0:d}".format(threading.active_count()))
         self.window.LBL_threads_value.setText(str(threading.active_count()))
+        str1 = ""
+        t_list = threading.enumerate()
+        for ele in t_list:
+            str1 += str(ele) + "\r\n"
+        self.window.LBL_t_list.setText(str(str1))
         self.window.LBL_cpu_percent_value.setText("{:3.2f}".format(cpu_percentage_numeric))
         self.window.LBL_cpu_temperature_value.setText("{:3.2f}".format(cpu_temperature_degree))
         self.window.LBL_boot_time_value.setText(boot_time)
-
-
+        if not self.spi_log_pause:
+            self.window.TE_spi_log.insertPlainText(str(self.spi.data))
     # *******************************************************************************************
     def load_from_config(self):
         self.rotary_0_pins = self.config.rotary_0_pins
@@ -626,11 +656,16 @@ class Commander(object):
 
     # *******************************************************************************************
     def exit_application(self, signum, frame):
-        self.log.info("***********************************************************************************************************")
-        self.log.info("***********************************************************************************************************")
-        self.log.info("***********************************************************************************************************")
-        self.log.info("***********************************************************************************************************")
-        self.log.info("***********************************************************************************************************")
+        self.log.info(
+            "***********************************************************************************************************")
+        self.log.info(
+            "***********************************************************************************************************")
+        self.log.info(
+            "***********************************************************************************************************")
+        self.log.info(
+            "***********************************************************************************************************")
+        self.log.info(
+            "***********************************************************************************************************")
         self.log.info("Starting shutdown")
         self.log.debug("Received signal from signum: {} with frame:{}".format(signum, frame))
         self.shutdown()

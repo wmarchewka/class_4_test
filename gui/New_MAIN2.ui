@@ -108,7 +108,7 @@ color: rgb(0, 0, 0);</string>
 </string>
     </property>
     <property name="currentIndex">
-     <number>6</number>
+     <number>0</number>
     </property>
     <property name="iconSize">
      <size>
@@ -145,17 +145,17 @@ color: rgb(0, 0, 0);</string>
        <number>100</number>
       </property>
      </widget>
-     <widget class="QPushButton" name="PB_spi_log_clear">
+     <widget class="QPushButton" name="PB_spi_log_pause">
       <property name="geometry">
        <rect>
         <x>710</x>
-        <y>400</y>
+        <y>394</y>
         <width>71</width>
         <height>28</height>
        </rect>
       </property>
       <property name="text">
-       <string>CLEAR</string>
+       <string>PAUSE</string>
       </property>
       <property name="checkable">
        <bool>true</bool>
@@ -1024,83 +1024,11 @@ color: rgb(0, 0, 0);</string>
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="PB_display_timer_toggle">
-      <property name="geometry">
-       <rect>
-        <x>674</x>
-        <y>34</y>
-        <width>93</width>
-        <height>53</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Siemens Slab</family>
-        <pointsize>13</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>DISPLAY</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="PB_poll_timer_toggle">
-      <property name="geometry">
-       <rect>
-        <x>676</x>
-        <y>94</y>
-        <width>93</width>
-        <height>53</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Siemens Slab</family>
-        <pointsize>13</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>POLL</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="PB_popup_test">
-      <property name="geometry">
-       <rect>
-        <x>676</x>
-        <y>156</y>
-        <width>93</width>
-        <height>53</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Siemens Slab</family>
-        <pointsize>13</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>POPUP</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-     </widget>
      <widget class="QPushButton" name="PB_log_level">
       <property name="geometry">
        <rect>
         <x>412</x>
-        <y>6</y>
+        <y>30</y>
         <width>97</width>
         <height>31</height>
        </rect>
@@ -1118,6 +1046,27 @@ color: rgb(0, 0, 0);</string>
       </property>
       <property name="checkable">
        <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_22">
+      <property name="geometry">
+       <rect>
+        <x>416</x>
+        <y>6</y>
+        <width>91</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Siemens Slab</family>
+        <pointsize>13</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#0000ff;&quot;&gt;LOG LEVEL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
       </property>
      </widget>
     </widget>
@@ -2957,11 +2906,21 @@ TOGGLE</string>
      <attribute name="title">
       <string>MAIN</string>
      </attribute>
+     <widget class="QDial" name="dial">
+      <property name="geometry">
+       <rect>
+        <x>378</x>
+        <y>270</y>
+        <width>50</width>
+        <height>64</height>
+       </rect>
+      </property>
+     </widget>
      <widget class="QFrame" name="FRAME_coderate_alternate">
       <property name="geometry">
        <rect>
-        <x>18</x>
-        <y>18</y>
+        <x>6</x>
+        <y>68</y>
         <width>759</width>
         <height>145</height>
        </rect>
@@ -4355,7 +4314,7 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_primary_gain_pb_status">
       <property name="geometry">
        <rect>
-        <x>536</x>
+        <x>540</x>
         <y>402</y>
         <width>121</width>
         <height>21</height>
@@ -4383,7 +4342,7 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_PRIMARY_GAIN">
       <property name="geometry">
        <rect>
-        <x>548</x>
+        <x>552</x>
         <y>274</y>
         <width>81</width>
         <height>16</height>
@@ -4408,7 +4367,7 @@ color: rgb(252, 1, 7);</string>
      <widget class="QDial" name="QDIAL_primary_gain">
       <property name="geometry">
        <rect>
-        <x>534</x>
+        <x>538</x>
         <y>282</y>
         <width>111</width>
         <height>101</height>
@@ -4445,7 +4404,7 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_primary_gain_percent">
       <property name="geometry">
        <rect>
-        <x>550</x>
+        <x>554</x>
         <y>382</y>
         <width>83</width>
         <height>21</height>
@@ -4573,7 +4532,7 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_cal_average_3">
       <property name="geometry">
        <rect>
-        <x>586</x>
+        <x>630</x>
         <y>134</y>
         <width>137</width>
         <height>31</height>
@@ -4646,8 +4605,8 @@ color: rgb(252, 1, 7);</string>
      <widget class="QDoubleSpinBox" name="SPIN_adc_scale">
       <property name="geometry">
        <rect>
-        <x>476</x>
-        <y>70</y>
+        <x>472</x>
+        <y>32</y>
         <width>71</width>
         <height>22</height>
        </rect>
@@ -4670,8 +4629,8 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_cal_average_4">
       <property name="geometry">
        <rect>
-        <x>478</x>
-        <y>52</y>
+        <x>474</x>
+        <y>14</y>
         <width>51</width>
         <height>16</height>
        </rect>
@@ -4691,8 +4650,8 @@ color: rgb(252, 1, 7);</string>
      <widget class="QCheckBox" name="CHK_gain_lock_percent">
       <property name="geometry">
        <rect>
-        <x>632</x>
-        <y>286</y>
+        <x>636</x>
+        <y>290</y>
         <width>57</width>
         <height>31</height>
        </rect>
@@ -4715,9 +4674,9 @@ indicator { width:50px; height: 50px;};</string>
       <property name="geometry">
        <rect>
         <x>520</x>
-        <y>104</y>
+        <y>138</y>
         <width>22</width>
-        <height>160</height>
+        <height>277</height>
        </rect>
       </property>
       <property name="value">
@@ -4731,6 +4690,25 @@ indicator { width:50px; height: 50px;};</string>
       </property>
       <property name="invertedControls">
        <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="LBL_duty_cycle">
+      <property name="geometry">
+       <rect>
+        <x>520</x>
+        <y>108</y>
+        <width>27</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Siemens Slab</family>
+        <pointsize>16</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>50</string>
       </property>
      </widget>
     </widget>
@@ -5066,6 +5044,22 @@ indicator { width:50px; height: 50px;};</string>
        <string notr="true">buttonGroup_3</string>
       </attribute>
      </widget>
+     <widget class="QPushButton" name="PB_security">
+      <property name="geometry">
+       <rect>
+        <x>702</x>
+        <y>390</y>
+        <width>75</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="flat">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
     <widget class="QWidget" name="CAL">
      <attribute name="title">
@@ -5277,10 +5271,42 @@ indicator { width:50px; height: 50px;};</string>
       </property>
      </widget>
     </widget>
-    <widget class="QWidget" name="VALUES">
+    <widget class="QWidget" name="SETUP">
      <attribute name="title">
-      <string>VALUES</string>
+      <string>SETUP</string>
      </attribute>
+     <widget class="QLabel" name="label_5">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>24</y>
+        <width>373</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>This is the setup page that will display when security level is set to &quot;FACTORY&quot;</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="LBL_t_list">
+      <property name="geometry">
+       <rect>
+        <x>28</x>
+        <y>74</y>
+        <width>735</width>
+        <height>317</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="text">
+       <string>TextLabel</string>
+      </property>
+      <property name="wordWrap">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -5307,12 +5333,12 @@ indicator { width:50px; height: 50px;};</string>
   </property>
  </designerdata>
  <buttongroups>
+  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
   <buttongroup name="buttonGroup_3"/>
-  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

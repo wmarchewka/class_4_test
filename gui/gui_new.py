@@ -3,7 +3,7 @@ import faulthandler
 faulthandler.enable()
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QFile
-from PySide2.QtGui import QFontDatabase, QFont
+from PySide2.QtGui import QFontDatabase, QFont, QWindow
 
 # mylibraries
 from logger import Logger
@@ -13,20 +13,21 @@ from gui.gui_coderates import Guicoderate
 from gui.gui_frequencies import GuiFrequencies
 
 
-class Mainwindow(object):
+class Mainwindow(QWindow):
 
     Logger.log.info("Instantiating {} class...".format(__qualname__))
     guiname = None
 
-    def __init__(self, commander, codegen, config, logger, support):
+    def __init__(self, commander, codegen, config, logger, support, securitylevel, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         Logger.log.debug('{} initializing....'.format(__name__))
         self.window = None
         self.config = config
         self.logger = logger
         self.support = support
-        self.securitylevel = SecurityLevel(logger=logger)
         self.log = Logger.log
         self.commander = commander
+        self.securitylevel = securitylevel
         self.startup_processes()
         self.guicode = Guicoderate(window=self.window, codegen=codegen, config=config, logger=logger)
         self.freqcode = GuiFrequencies(window=self.window, codegen=codegen, config=config, logger=logger)
@@ -40,8 +41,9 @@ class Mainwindow(object):
         self.loadscreen()
         self.screen_fullscreen()
         self.fonts_list()
-        self.securitylevel.set_security_level("technician", self.window)
-
+        self.securitylevel.index_tab_pages(self.window)
+        self.securitylevel.set_security_level("technician")
+        self.securitylevel.update_gui(self.window)
     # *****************************************************************************
     def fonts_list(self):
         """

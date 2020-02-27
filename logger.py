@@ -17,7 +17,7 @@ class Logger(object):
     log.disabled=False
     log.info("LOG LEVEL {}".format(log.getEffectiveLevel()))
 
-    def __init__(self, level = None):
+    def __init__(self, commander_callback=None, level=None):
         Logger.log.debug('{} initializing....'.format(__name__))
         self.log = Logger.log
         self.log.disabled = False

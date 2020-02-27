@@ -27,7 +27,6 @@ class PortableTester(object):
         self.log.setLevel(self.log_level)
         self.commander = Commander(self.logger)
 
-
 if __name__ == "__main__":
     app = QApplication(['PORTABLE TESTER'])
     app.setWheelScrollLines(1)
