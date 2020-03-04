@@ -8,9 +8,6 @@ import datetime
 import threading
 import time
 
-from PySide2.QtCore import QTimer
-from PySide2.QtWidgets import QApplication
-from PySide2.QtGui import *
 from PySide2.QtCore import *
 
 # my imports
@@ -48,12 +45,13 @@ class Commander(object):
         self.securitylevel = SecurityLevel(logger=self.logger)
         self.gui = Mainwindow(self, codegen=self.codegen, config=self.config, logger=self.logger, support=self.support,
                               securitylevel=self.securitylevel)
-        self.switches = Switches(config=self.config, logger=self.logger, spi=self.spi, gui=self.gui,
-                                 switch_callback=self.poll_switch_callback)
+        self.switches = Switches(config=self.config, logger=self.logger, spi=self.spi, gui=self.gui)
         self.currentsense = CurrentSense(logger=self.logger, spi=self.spi, decoder=self.decoder, gui=self.gui,
-                                         config=self.config, sense_callback=self.poll_sense_callback)
+                                         config=self.config)
         self.pollvalues = Pollvalues(pollperm=self.pollperm, logger=logger, config=self.config,
-                                     currentsense=self.currentsense, switches=self.switches)
+                                     currentsense=self.currentsense, switches=self.switches,
+                                     sense_callback=self.poll_sense_callback,
+                                 switch_callback=self.poll_switch_callback)
         self.securitywindow = SecurityWindow(logger=self.logger, securitylevel=self.securitylevel)
         self.window = self.gui.window
         self.log = self.logger.log
@@ -97,6 +95,12 @@ class Commander(object):
         self.SPEED_0_CS = None  # 6  # SPEED SIMULATION TACH 1
         self.SPEED_1_CS = None  # 7  # SPEED SIMULATION TACH 2
         self.load_from_config()
+        self.adc_scale = None
+        self.sense_amp_max_amps = None
+        self.sense_ad_vin = None  # LM4128CQ1MF3.3/NOPB voltage reference
+        self.sense_ad_max_bits = 0  # AD7940 ADC
+        self.sense_scaling_factor_mv_amp = None  # 110 milivolts per amp
+        self.sense_ad_max_scaled_value = None
         self.speed0 = Speedgen(pollperm=self.pollperm, logger=self.logger, config=self.config, decoder=self.decoder,
                                spi=self.spi,
                                name=self.speed_0_name, shape=self.speed_0_shape,
@@ -139,6 +143,7 @@ class Commander(object):
 
     # ****************************************************************************************************************
     def startup_processes(self):
+        self.load_from_config()
         self.exit_signalling()
         self.log_level_first_start()
         self.speed_get_values()
@@ -190,6 +195,7 @@ class Commander(object):
         elif pinstate == 1:
             self.window.LBL_gpio_manual_read_value.setText("HIGH")
 
+    # ****************************************************************************************************************
     def PB_spi_log_pause(self, value):
         self.spi_log_pause = value
 
@@ -262,11 +268,28 @@ class Commander(object):
         self.display.start(self.config.display_timer_interval)
 
     # ****************************************************************************************************************
-    def poll_sense_callback(self, adc_average, display_amps, counts):
-        self.window.LBL_display_adc.setText("{:4.2f}".format(adc_average))
+    def poll_sense_callback(self, raw_analog_digital_value):#adc_average, display_amps, counts):
+
+        analog_digital_volts, scaled_value = self.adc_process_values(raw_analog_digital_value)
+        display_amps = (scaled_value * analog_digital_volts)
+        display_amps = display_amps / 1000
+        adc_millivolts = analog_digital_volts * 1000
+        self.window.LBL_display_adc.setText("{:4.1f}".format(adc_millivolts))
         self.window.LBL_display_amps.setText("{:2.3f}".format(display_amps))
         self.window.LBL_loop_current.setText("{:2.3f}".format(display_amps))
-        self.window.LBL_display_adc_counts.setText("{:5.0f}".format(counts))
+        self.window.LBL_display_adc_counts.setText("{:5.0f}".format(raw_analog_digital_value))
+        self.log.debug('GUI received sense values...')
+        self.log.debug(
+             "RAW A/D:{}  Volts:{}  Scaled:{}  AMPS:{}".format(raw_analog_digital_value, analog_digital_volts, scaled_value, display_amps))
+
+
+    # **********************************************************************************************
+    def adc_process_values(self, raw_analog_digital_value):
+        analog_digital_volts = self.sense_ad_vin * (raw_analog_digital_value / self.sense_ad_max_scaled_value)
+        scaled_value = (analog_digital_volts  / self.sense_scaling_factor_mv_amp)
+        self.log.debug(
+            "Analog_Digital converter switches_value: {} Scaled Value({})".format(analog_digital_volts, scaled_value))
+        return analog_digital_volts, scaled_value
 
     # ****************************************************************************************************************
     def display_timer_run(self):
@@ -275,13 +298,13 @@ class Commander(object):
 
     # ************************************************************************************
     # call back from switch_polling
-    def poll_switch_callback(self, value):
-        self.log.debug("onSwitchChangeValues     :{:08b}".format(value))
+    def poll_switch_callback(self, switches_value):
+        self.log.debug("onSwitchChangeValues     :{:08b}".format(switches_value))
         self.log.debug("knob values              :{:08b}".format(self.knob_values))
-        self.switch_values = value
-        value = (value | self.knob_values)
-        self.log.debug("onSwitchChangeValues ORED:{:08b}".format(value))
-        if value & 0b00000001:
+        self.switch_values = switches_value
+        switches_value = (switches_value | self.knob_values)
+        self.log.debug("onSwitchChangeValues ORED:{:08b}".format(switches_value))
+        if switches_value & 0b00000001:
             self.window.switch3_green.setVisible(True)
             self.window.switch3_red.setVisible(False)
             self.window.QDIAL_primary_gain.setStyleSheet('background-color: rgb(255, 0, 0)')
@@ -289,7 +312,7 @@ class Commander(object):
             self.window.switch3_green.setVisible(False)
             self.window.switch3_red.setVisible(True)
             self.window.QDIAL_primary_gain.setStyleSheet('background-color: rgb(191, 191, 191)')
-        if value & 0b00000010:
+        if switches_value & 0b00000010:
             self.window.switch4_green.setVisible(True)
             self.window.switch4_red.setVisible(False)
             self.window.QDIAL_secondary_gain.setStyleSheet('background-color: rgb(255, 0, 0)')
@@ -297,7 +320,7 @@ class Commander(object):
             self.window.switch4_green.setVisible(False)
             self.window.switch4_red.setVisible(True)
             self.window.QDIAL_secondary_gain.setStyleSheet('background-color: rgb(191, 191, 191)')
-        if value & 0b00000100:
+        if switches_value & 0b00000100:
             self.window.switch5_green.setVisible(True)
             self.window.switch5_red.setVisible(False)
             self.window.QDIAL_speed_0.setStyleSheet('background-color: rgb(255, 0, 0)')
@@ -305,7 +328,7 @@ class Commander(object):
             self.window.switch5_green.setVisible(False)
             self.window.switch5_red.setVisible(True)
             self.window.QDIAL_speed_0.setStyleSheet('background-color: rgb(191, 191, 191)')
-        if value & 0b00001000:
+        if switches_value & 0b00001000:
             self.window.switch6_green.setVisible(True)
             self.window.switch6_red.setVisible(False)
             self.window.QDIAL_speed_1.setStyleSheet('background-color: rgb(255, 0, 0)')
@@ -355,7 +378,7 @@ class Commander(object):
         receives callback from the speed class to update screen
         :rtype: object
         """
-        self.log.debug("Callback received from {} with value of {}".format(name, frequency))
+        self.log.debug("Callback received from {} with switches_value of {}".format(name, frequency))
         if name == "SPEED0":
             self.window.LBL_pri_tach_freq.setText("{:5.0f}".format(frequency))
         if name == "SPEED1":
@@ -407,7 +430,7 @@ class Commander(object):
           receives callback from the speed class to update screen
           :rtype: object
           """
-        self.log.debug("Callback received from {} with value of {}".format(name, gain))
+        self.log.debug("Callback received from {} with switches_value of {}".format(name, gain))
         self.gains_gui_update(name, gain)
         self.window.tabWidget.setCurrentIndex(2)
 
@@ -653,6 +676,16 @@ class Commander(object):
         self.screen_brightness_max = self.config.screen_brightness_max
         self.screen_brightness_min = self.config.screen_brightness_min
         self.display_brightness = self.config.display_brightness
+        self.display_amps_template = self.config.display_amps_template
+        self.loop_current_template = self.config.loop_current_template
+        self.adc_counts_template = self.config.adc_counts_template
+        self.adc_template = self.config.adc_template
+        self.adc_scale = self.config.adc_scale
+        self.sense_amp_max_amps = self.config.sense_amp_max_amps
+        self.sense_ad_vin = self.config.sense_ad_vin
+        self.sense_ad_max_bits = self.config.sense_ad_max_bits
+        self.sense_scaling_factor_mv_amp = self.config.sense_scaling_factor_mv_amp
+        self.sense_ad_max_scaled_value = 2 ** self.sense_ad_max_bits
 
     # *******************************************************************************************
     def exit_application(self, signum, frame):

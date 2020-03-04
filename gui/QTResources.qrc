@@ -27,15 +27,15 @@
       <file>FONTS/SiemensSlab_Prof_BoldItalic.ttf</file>
       <file>FONTS/SiemensSlab_Prof_Italic.ttf</file>
       <file>FONTS/SiemensSlab_Prof_Roman.ttf</file>
-    <file>FONTS/digital-7.ttf</file>
-    <file>FONTS/digital-7 (italic).ttf</file>
-    <file>FONTS/digital-7 (mono).ttf</file>
-    <file>FONTS/digital-7 (mono italic).ttf</file>
-    <file>FONTS/Courier.dfont</file>
-    <file>FONTS/Arial.ttf</file>
-    <file>FONTS/Arial Italic.ttf</file>
-    <file>FONTS/Arial Bold.ttf</file>
-    <file>FONTS/Arial Bold Italic.ttf</file>
+      <file>FONTS/digital-7.ttf</file>
+      <file>FONTS/digital-7 (italic).ttf</file>
+      <file>FONTS/digital-7 (mono).ttf</file>
+      <file>FONTS/digital-7 (mono italic).ttf</file>
+      <file>FONTS/Courier.dfont</file>
+      <file>FONTS/Arial.ttf</file>
+      <file>FONTS/Arial Italic.ttf</file>
+      <file>FONTS/Arial Bold.ttf</file>
+      <file>FONTS/Arial Bold Italic.ttf</file>
   </qresource>
   <qresource prefix="Graphics">
     <file>SiemensGraphics/EPS/Siemens_321.eps</file>

@@ -4,7 +4,7 @@ from logger import Logger
 class Switches(object):
     Logger.log.debug("Instantiating {} class...".format(__qualname__))
 
-    def __init__(self, config, logger, spi, gui, switch_callback):
+    def __init__(self, config, logger, spi, gui):
         Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = logger
         self.config = config
@@ -12,7 +12,6 @@ class Switches(object):
         self.gui = gui
         self.window = gui.window
         self.log = logger.log
-        self.switch_callback = switch_callback
         self.log.debug("Switches initializing...")
         self.switch_address = 0
         self.switch_address = self.switch_address << 1
@@ -43,7 +42,7 @@ class Switches(object):
     # **************************************************************************
     def device_present_check(self):
         """the MCP23S08 register 1-1 (addr 0x00) will be 0xFF at starup.
-        read this value to ensure the device is present.
+        read this switches_value to ensure the device is present.
         :rtype: object
         """
         self.log.debug("Performing Switches device present check...")
@@ -63,7 +62,7 @@ class Switches(object):
         switch_register_write_value = 0b00101000
         spi_msg = [switch_sent_op_code] + [switch_register_address] + [switch_register_write_value]
         ret = self.spi.write(self.switch_channel, spi_msg, self.config.switch_chip_select)
-        self.log.debug("Returned value from SWITCH disable SEQUENTIAL READ {}".format(ret))
+        self.log.debug("Returned switches_value from SWITCH disable SEQUENTIAL READ {}".format(ret))
 
     # **************************************************************************
     # TODO make sure this is tested
@@ -101,43 +100,8 @@ class Switches(object):
         spi_msg = [switch_sent_op_code] + [register_address] + [0x00]
         ret = self.spi.read_message(self.switch_channel, self.config.switch_chip_select, spi_msg)
         self.log.debug(
-            "Returned value from SWITCH spi read{} | BITS {}".format(ret, bin(ret[2])))
+            "Returned switches_value from SWITCH spi read{} | BITS {}".format(ret, bin(ret[2])))
         return ret[2]
-
-    # **************************************************************************
-    # call back from switch_polling
-    def switch_poll_callback(self, value):
-        self.knob_values = 0
-        self.log.debug("onSwitchChangeValues     :{:08b}".format(value))
-        self.log.debug("knob values              :{:08b}".format(value))
-        value = (value | self.knob_values)
-        self.log.debug("onSwitchChangeValues ORED:{:08b}".format(value))
-        if value & 0b00000001:
-            self.window.switch3_green.setVisible(True)
-            self.window.switch3_red.setVisible(False)
-            self.window.QDIAL_speed_1.setStyleSheet('background-color: red')
-        else:
-            self.window.switch3_green.setVisible(False)
-            self.window.switch3_red.setVisible(True)
-        if value & 0b00000010:
-            self.window.switch4_green.setVisible(True)
-            self.window.switch4_red.setVisible(False)
-        else:
-            self.window.switch4_green.setVisible(False)
-            self.window.switch4_red.setVisible(True)
-        if value & 0b00000100:
-            self.window.switch5_green.setVisible(True)
-            self.window.switch5_red.setVisible(False)
-        else:
-            self.window.switch5_green.setVisible(False)
-            self.window.switch5_red.setVisible(True)
-        if value & 0b00001000:
-            self.window.switch6_green.setVisible(True)
-            self.window.switch6_red.setVisible(False)
-        else:
-            self.window.switch6_green.setVisible(False)
-            self.window.switch6_red.setVisible(True)
-        self.switch_callback(value)
 
     # **************************************************************************
     def read_from_config(self):

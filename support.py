@@ -2,8 +2,8 @@ from logger import Logger
 import os
 import platform as pf
 import sys
-from PyQt5.Qt import PYQT_VERSION_STR
-from PyQt5.QtCore import QT_VERSION_STR
+import PySide2
+from PySide2 import QtCore
 import subprocess
 
 class Support(object):
@@ -59,11 +59,11 @@ class Support(object):
 
     #******************************************************************************************************
     def qt_version_query(self):
-        self.log.info("Qt version: {}".format(QT_VERSION_STR))
+        self.log.info("Qt version: {}".format(PySide2.QtCore.__version__))
 
     #******************************************************************************************************
     def pyqt_version_query(self):
-        self.log.info("PyQt version: {}".format(PYQT_VERSION_STR))
+        self.log.info("PyQSide2 version: {}".format(PySide2.__version__))
 
     #******************************************************************************************************
     def gen4_touchscreen_status(self):
@@ -104,7 +104,7 @@ class Support(object):
                         if list == 'spidev1.0' or list == 'spidev1.2':
                             self.log.error('ERROR:  Missing SPI Driver !!!')
             except Exception:
-                self.log.error('ERROR')
+                self.log.error('ERROR finding SPI devices')
 
     #******************************************************************************************************
     def brightness_set(self, value):
@@ -125,11 +125,17 @@ class Support(object):
             if self.ostype == 'rpi':
                 my_cmd = os.popen('sudo cat /sys/class/backlight/4d-hats/actual_brightness', 'r').read()
                 my_cmd = my_cmd.rstrip()
+                #my_cmd = subprocess.call(["sudo", "cat", "/sys/class/backlight/4d-hats/actual_brightness", "r"])
+                t = type(my_cmd)
                 self.log.info('Brightness level returned as {}'.format(my_cmd))
-                return my_cmd
+                if my_cmd is "":
+                    return None
+                else:
+                    value = int(my_cmd)
+                return value
             else:
-                my_cmd = 15
-                return my_cmd
+                value = 15
+                return value
         except Exception as inst:
             self.log.critical(inst)
             return None

@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMessageBox
+from PySide2.QtWidgets import QMessageBox
 
 # ********************************************************************************
 # TODO speed 1 and speed 2 need to be linked and scaled etc

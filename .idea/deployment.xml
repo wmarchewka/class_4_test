@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi" createEmptyFolders="true" autoUploadExternalChanges="true" showAutoUploadSettingsWarning="false">
+  <component name="PublishConfigData" autoUpload="Always" promptOnRemoteOverwrite="CHECK_TIMESTAMP" serverName="pi home" createEmptyFolders="true" autoUploadExternalChanges="true" showAutoUploadSettingsWarning="false">
     <serverData>
-      <paths name="Copy of project-level server 'davePi'">
+      <paths name="pi home">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/pi/Documents/class_4_test" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="davePi">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/Documents/class_4_test" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi">
+      <paths name="pi@10.0.0.111:22">
         <serverdata>
           <mappings>
             <mapping deploy="/Documents/class_4_test" local="$PROJECT_DIR$" web="/" />

@@ -22,11 +22,11 @@ class Signalslots(object):
         window.tabWidget.currentChanged.connect(gui.tabwidget_changed)  # tabwidget get tab change event
         window.TBL_cal_values.cellClicked.connect(gui.cal_values_cell_clicked)
 
-        # primary and secondary gain encoders value change
+        # primary and secondary gain encoders switches_value change
         window.QDIAL_primary_gain.valueChanged.connect(gui.primary_gain_get_pins)
         window.QDIAL_secondary_gain.valueChanged.connect(gui.secondary_gain_change)
 
-        # speed 1 and speed2 value change
+        # speed 1 and speed2 switches_value change
         window.QDIAL_speed_1.valueChanged.connect(self.commander.speed_simulate)
         window.QDIAL_speed_2.valueChanged.connect(self.commander.speed_simulate)
 
@@ -45,7 +45,7 @@ class Signalslots(object):
         # CATChES ADC SCALE BUTTON, THIS WILL BE REMOVED
         window.SPIN_adc_scale.valueChanged.connect(gui.adc_scale_change)
 
-        # set brightness value
+        # set brightness switches_value
         window.SPIN_brightness.valueChanged.connect(gui.brightness_changed)
 
         # shutdown button

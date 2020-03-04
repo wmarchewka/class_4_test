@@ -72,8 +72,8 @@ color: rgb(0, 0, 0);</string>
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>8</y>
+      <x>0</x>
+      <y>0</y>
       <width>800</width>
       <height>480</height>
      </rect>
@@ -108,7 +108,7 @@ color: rgb(0, 0, 0);</string>
 </string>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>6</number>
     </property>
     <property name="iconSize">
      <size>
@@ -3388,9 +3388,9 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
-        <x>576</x>
+        <x>554</x>
         <y>4</y>
-        <width>171</width>
+        <width>197</width>
         <height>21</height>
        </rect>
       </property>
@@ -3415,47 +3415,6 @@ color: rgb(252, 1, 7);</string>
       </property>
       <property name="scaledContents">
        <bool>true</bool>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-     <widget class="QLabel" name="LBL_loop_current">
-      <property name="geometry">
-       <rect>
-        <x>551</x>
-        <y>28</y>
-        <width>240</width>
-        <height>103</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Digital-7</family>
-        <pointsize>64</pointsize>
-        <weight>50</weight>
-        <italic>false</italic>
-        <bold>false</bold>
-        <kerning>true</kerning>
-       </font>
-      </property>
-      <property name="mouseTracking">
-       <bool>true</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">color: rgb(252, 1, 7);</string>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::WinPanel</enum>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:72pt;&quot;&gt;3.299 &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::RichText</enum>
-      </property>
-      <property name="scaledContents">
-       <bool>false</bool>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
@@ -4244,8 +4203,8 @@ color: rgb(252, 1, 7);</string>
      <widget class="QPushButton" name="PB_close">
       <property name="geometry">
        <rect>
-        <x>748</x>
-        <y>2</y>
+        <x>766</x>
+        <y>4</y>
         <width>33</width>
         <height>21</height>
        </rect>
@@ -4344,7 +4303,7 @@ color: rgb(252, 1, 7);</string>
        <rect>
         <x>552</x>
         <y>274</y>
-        <width>81</width>
+        <width>87</width>
         <height>16</height>
        </rect>
       </property>
@@ -4487,7 +4446,7 @@ color: rgb(252, 1, 7);</string>
        <rect>
         <x>686</x>
         <y>274</y>
-        <width>91</width>
+        <width>99</width>
         <height>16</height>
        </rect>
       </property>
@@ -4532,7 +4491,7 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_cal_average_3">
       <property name="geometry">
        <rect>
-        <x>630</x>
+        <x>602</x>
         <y>134</y>
         <width>137</width>
         <height>31</height>
@@ -4561,52 +4520,11 @@ color: rgb(252, 1, 7);</string>
        <set>Qt::AlignCenter</set>
       </property>
      </widget>
-     <widget class="QLabel" name="LBL_display_adc">
-      <property name="geometry">
-       <rect>
-        <x>546</x>
-        <y>166</y>
-        <width>240</width>
-        <height>105</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <family>Digital-7</family>
-        <pointsize>64</pointsize>
-        <weight>50</weight>
-        <italic>false</italic>
-        <bold>false</bold>
-        <kerning>true</kerning>
-       </font>
-      </property>
-      <property name="mouseTracking">
-       <bool>true</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">color: rgb(252, 1, 7);</string>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::WinPanel</enum>
-      </property>
-      <property name="text">
-       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:72pt;&quot;&gt;3.299 &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-      </property>
-      <property name="textFormat">
-       <enum>Qt::RichText</enum>
-      </property>
-      <property name="scaledContents">
-       <bool>false</bool>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
      <widget class="QDoubleSpinBox" name="SPIN_adc_scale">
       <property name="geometry">
        <rect>
-        <x>472</x>
-        <y>32</y>
+        <x>470</x>
+        <y>26</y>
         <width>71</width>
         <height>22</height>
        </rect>
@@ -4629,8 +4547,8 @@ color: rgb(252, 1, 7);</string>
      <widget class="QLabel" name="LBL_cal_average_4">
       <property name="geometry">
        <rect>
-        <x>474</x>
-        <y>14</y>
+        <x>482</x>
+        <y>10</y>
         <width>51</width>
         <height>16</height>
        </rect>
@@ -4709,6 +4627,74 @@ indicator { width:50px; height: 50px;};</string>
       </property>
       <property name="text">
        <string>50</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="LBL_loop_current">
+      <property name="geometry">
+       <rect>
+        <x>552</x>
+        <y>36</y>
+        <width>245</width>
+        <height>95</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Digital-7</family>
+        <pointsize>64</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgb(252, 1, 7);</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="lineWidth">
+       <number>3</number>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::PlainText</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+     <widget class="QLabel" name="LBL_display_adc">
+      <property name="geometry">
+       <rect>
+        <x>552</x>
+        <y>166</y>
+        <width>245</width>
+        <height>95</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>Digital-7</family>
+        <pointsize>64</pointsize>
+       </font>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">color: rgb(252, 1, 7);</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="lineWidth">
+       <number>3</number>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="textFormat">
+       <enum>Qt::PlainText</enum>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
       </property>
      </widget>
     </widget>
@@ -5177,16 +5163,16 @@ indicator { width:50px; height: 50px;};</string>
       <property name="columnCount">
        <number>4</number>
       </property>
-      <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>50</number>
-      </attribute>
       <attribute name="horizontalHeaderMinimumSectionSize">
        <number>50</number>
       </attribute>
-      <attribute name="verticalHeaderDefaultSectionSize">
-       <number>25</number>
+      <attribute name="horizontalHeaderDefaultSectionSize">
+       <number>50</number>
       </attribute>
       <attribute name="verticalHeaderMinimumSectionSize">
+       <number>25</number>
+      </attribute>
+      <attribute name="verticalHeaderDefaultSectionSize">
        <number>25</number>
       </attribute>
       <attribute name="verticalHeaderStretchLastSection">
@@ -5333,12 +5319,12 @@ indicator { width:50px; height: 50px;};</string>
   </property>
  </designerdata>
  <buttongroups>
+  <buttongroup name="buttonGroup_3"/>
   <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup">
    <property name="exclusive">
     <bool>false</bool>
    </property>
   </buttongroup>
-  <buttongroup name="buttonGroup_3"/>
  </buttongroups>
 </ui>

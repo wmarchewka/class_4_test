@@ -64,8 +64,8 @@ class Rotary(object):
         return cb
 
     # *****************************************************************************************************
-    def interrupt_callback(self, pin_num: int, level: int, tick: int, simulate: int = False,
-                           sim_pins: list = None) -> None:
+    def interrupt_callback(self, pin_num, level, tick, simulate = False,
+                           sim_pins = None):
         """receives callback from interrupt on pin pair for a decoder, calls a routine that is passed to the
         class as a callback
         :rtype: list
@@ -112,7 +112,7 @@ class Rotary(object):
             self.second_pin = None
             delta = tick - self.last_interrupt_time
             if self.last_interrupt_time == 0:
-                delta = 1000000  # since first value will have nothing to compare to set at 1000ms
+                delta = 1000000  # since first switches_value will have nothing to compare to set at 1000ms
             self.last_interrupt_time = tick
             self.log.debug("Delta time : {} ms".format(delta / 1000))
             self.log.debug("Last saved time : {}".format(self.last_interrupt_time))

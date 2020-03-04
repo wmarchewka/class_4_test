@@ -26,6 +26,8 @@ class PortableTester(object):
             self.logging_level = self.level_config[self.logging_args[0]]
         self.log.setLevel(self.log_level)
         self.commander = Commander(self.logger)
+        self.log.debug("{} init complete...".format(__name__))
+
 
 if __name__ == "__main__":
     app = QApplication(['PORTABLE TESTER'])

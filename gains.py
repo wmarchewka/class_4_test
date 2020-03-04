@@ -115,7 +115,7 @@ class Gains(object):
     # ***************************************************************************************************************
     def threshold_check(self, delta):
         """
-        converts the delta time between encode clicks into an amount to add/subtract from the speed value
+        converts the delta time between encode clicks into an amount to add/subtract from the speed switches_value
         :rtype: object
         """
         speed = 0
@@ -130,7 +130,7 @@ class Gains(object):
         return speed_increment
 
     # ***************************************************************************************************************
-    def interrupt_callback(self, delta: int, direction=None, simulate=None):
+    def interrupt_callback(self, delta, direction=None, simulate=None):
         """
         this routine is called back from the rotary class when the rotary makes one click
         :rtype: object
@@ -150,13 +150,13 @@ class Gains(object):
 
     # ***************************************************************************************************************
     def bounds_check(self, speed_increment, direction, simulate):
-        """Each click of the encoder increases the value by approximately 9.7 ohms.  To figure out what values to send
+        """Each click of the encoder increases the switches_value by approximately 9.7 ohms.  To figure out what values to send
         to each digital pot, i take the total ohms needed divided by the coarse ohms amount.  The remainder then gets
         divided by the fine ohms amount.  Example:  if 210 ohms is needed, then take 210 / 49.7 = 4 coarse bits.  Then
         subtract the coarse amount from the total, to get the fine amount, ie 210 - 200 = 10.  Then take the 10 ohms
         remaining and divide by fine amount of 10 and you get 1 bit needed for the fine digital pot.
         :rtype: object
-        :param value:
+        :param switches_value:
         :param number:
         """
         if direction == Gains.CLOCKWISE:
@@ -240,7 +240,7 @@ class Gains(object):
     def nvram_to_wiper(self):
         """
         this command when sent to the pots will copy wiper contents to the NV ram,
-        so that on power up the pots will go to the NV ram value.
+        so that on power up the pots will go to the NV ram switches_value.
         i want that to be 0
         """
         # todo make sure this is working
@@ -263,7 +263,7 @@ class Gains(object):
     # todo make sure this is working
     def wiper_to_nvram(self):
         """this command when sent to the pots will copy wiper contents to the NV ram,
-        so that on power up the pots will go to the NV ram value.
+        so that on power up the pots will go to the NV ram switches_value.
         i want that to be 0
         :rtype: object
         """

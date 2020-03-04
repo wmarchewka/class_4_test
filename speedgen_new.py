@@ -98,7 +98,7 @@ class Speedgen(object):
         Speedgen.rotaries.append(self.rotary)
 
     # **************************************************************************************************************
-    def interrupt_callback(self, delta: int, direction=None, simulate=None):
+    def interrupt_callback(self, delta, direction=None, simulate=None):
         """
         This is the callback that is sent to the rotary class and will be called when the rotary pins are
         interrupted.  The simulate is included so that if in simulation mode, we will not cause the front
@@ -126,7 +126,7 @@ class Speedgen(object):
     # ***************************************************************************************************************
     def threshold_check(self, delta):
         """
-        converts the delta time between encode clicks into an amount to add/subtract from the speed value
+        converts the delta time between encode clicks into an amount to add/subtract from the speed switches_value
         :rtype: object
         """
         speed = 0
@@ -158,7 +158,7 @@ class Speedgen(object):
             if self.speed_frequency < self.SPEED_FREQUENCY_MIN:
                 self.speed_frequency = self.SPEED_FREQUENCY_MIN
         else:
-            self.direction_text = "ERROR"
+            self.direction_text = "DIRECTION ERROR"
         self.log.debug(
             "Simulate:{}  Speed Increment:{}  Direction:{}".format(simulate, speed_increment, direction_text))
         return self.speed_frequency

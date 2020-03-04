@@ -27,11 +27,11 @@ class Signaling():
 
     #  ***************************************************************************************
     def signaling(self):
-        # primary and secondary gain encoders value change
+        # primary and secondary gain encoders switches_value change
         self.window.QDIAL_primary_gain.valueChanged.connect(self.qdial_gain_0_value_changed)
         self.window.QDIAL_secondary_gain.valueChanged.connect(self.qdial_gain_1_value_changed)
 
-        # speed 1 and speed2 value change
+        # speed 1 and speed2 switches_value change
         self.window.QDIAL_speed_0.valueChanged.connect(self.qdial_speed_0_value_changed)
         self.window.QDIAL_speed_1.valueChanged.connect(self.qdial_speed_1_value_changed)
 
@@ -72,7 +72,7 @@ class Signaling():
 
         self.window.PB_chip_select_manual_toggle.toggled.connect(self.commander.manual_chip_select_toggled)
 
-        # set brightness value
+        # set brightness switches_value
         self.window.SPIN_brightness.valueChanged.connect(self.commander.brightness_changed)
 
         # set gain lock
@@ -86,7 +86,7 @@ class Signaling():
     #  ***************************************************************************************
     def speed0_shapestate_change(self, button):
         freq_shape = None
-        self.log.info("SPEED 0 button pushed{}".format(button.text()))
+        self.log.info("SPEED 0 button pushed:{}".format(button.text()))
         if button.text() == "SINE":
             freq_shape = 0
         if button.text() == "SQUARE":
@@ -190,6 +190,6 @@ class Signaling():
     def modifyBit(self, n, p, b):
         mask = 1 << p
         self.knob_values = (n & ~mask) | ((b << p) & mask)
-        self.log.debug("ModifyBits value {:08b}".format(self.knob_values))
+        self.log.debug("ModifyBits switches_value {:08b}".format(self.knob_values))
         self.commander.knob_values = self.knob_values
         #self.commander.switches_callback_change_value(0)

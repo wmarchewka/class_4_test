@@ -2,8 +2,8 @@ import os
 import platform as pf
 import sys
 import subprocess
-from PyQt5.Qt import PYQT_VERSION_STR
-from PyQt5.QtCore import QT_VERSION_STR
+import PySide2
+from PySide2 import QtCore
 
 #my libraries
 from config import Config
@@ -16,7 +16,7 @@ class Support():
 
 
     def __init__(self, config, logger):
-        Logger.log.debug('{} initializing....'.format(__name__))
+        self.log.debug("{} init complete...".format(__name__))
         self.config = config
         self.logger = logger
         self.log = Logger.log
@@ -64,11 +64,11 @@ class Support():
 
     # *****************************************************************************************
     def qt_version_query(self):
-        self.log.info("Qt version: {}".format(QT_VERSION_STR))
+        self.log.info("Qt version: {}".format(PySide2.QtCore.__version__))
 
     # *****************************************************************************************
     def pyqt_version_query(self):
-        self.log.info("PyQt version: {}".format(PYQT_VERSION_STR))
+        self.log.info("PyQt version: {}".format(PySide2.__version__))
 
     # *****************************************************************************************
     def gen4_touchscreen_status(self):
@@ -109,7 +109,7 @@ class Support():
                         if list == 'spidev1.0' or list == 'spidev1.2':
                             self.log.error('ERROR:  Missing SPI Driver !!!')
             except Exception:
-                self.log.error('ERROR')
+                self.log.error('SPI ERROR')
 
     # *****************************************************************************************
     def brightness_set(self, value):

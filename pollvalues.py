@@ -8,7 +8,7 @@ class Pollvalues(QThread):
     switch_changedValue = Signal(int)  # signal to send to awaiting slot
 
 
-    def __init__(self, pollperm, logger, config, switches, currentsense):
+    def __init__(self, pollperm, logger, config, switches, currentsense, sense_callback, switch_callback):
         super().__init__()
         self.pollperm = pollperm
         self.logger = logger
@@ -16,14 +16,16 @@ class Pollvalues(QThread):
         self.log = self.logger.log
         self.switches = switches
         self.currentsense = currentsense
+        self.sense_poll_callback = sense_callback
+        self.switch_poll_callback = switch_callback
         self.log.debug('Polling class initializing...')
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
     # ********************************************************************************
     def startup_processes(self):
-        self.sense_changedValue.connect(self.currentsense.sense_poll_callback)
-        self.switch_changedValue.connect(self.switches.switch_poll_callback)
+        self.sense_changedValue.connect(self.sense_poll_callback)
+        self.switch_changedValue.connect(self.switch_poll_callback)
 
     # ********************************************************************************
     # runs both sense and switches polling
@@ -37,7 +39,7 @@ class Pollvalues(QThread):
             self.log.info("Sense Polling canceled due to polling prohibited... ")
 
     # ********************************************************************************
-    # retrieves value from current sense A/D converter via spi (U25)
+    # retrieves switches_value from current sense A/D converter via spi (U25)
     def sense_read_value(self):
         # TODO get values from INI file
         self.log.debug('Running Sense Polling')
@@ -48,11 +50,11 @@ class Pollvalues(QThread):
         return raw_analog_digital_value
 
     # *********************************************************************************
-    # retrieves value from switch mutiplexer via spi  (U20)
+    # retrieves switches_value from switch mutiplexer via spi  (U20)
     def switch_read_values(self):
         self.log.debug('Running Switch Polling')
         returned_data = self.switches.spi_value_register()
-        self.log.debug("Switch value:{}".format(returned_data))
+        self.log.debug("Switch switches_value:{}".format(returned_data))
         return returned_data
 
 
