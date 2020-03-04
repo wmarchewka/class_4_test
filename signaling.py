@@ -68,8 +68,10 @@ class Signaling():
         self.window.QDIAL_speed_0.sliderReleased.connect(self.speed_0_dial_released)
         self.window.QDIAL_speed_1.sliderReleased.connect(self.speed_1_dial_released)
 
+        #push button manual gpio pin toggle
         self.window.PB_gpio_manual_toggle.toggled.connect(self.gpio_manual_toggled)
 
+        #push button manual chip select
         self.window.PB_chip_select_manual_toggle.toggled.connect(self.commander.manual_chip_select_toggled)
 
         # set brightness switches_value
@@ -78,11 +80,17 @@ class Signaling():
         # set gain lock
         self.window.CHK_gain_lock_percent.stateChanged.connect(self.commander.gains_lock)
 
+        #duty cycle change
         self.window.SLIDER_duty_cycle.valueChanged.connect(self.commander.SLIDER_duty_cycle_changed)
 
+        #hidden security button clicked
         self.window.PB_security.clicked.connect(self.commander.security_pressed)
 
+        #spi log clear
         self.window.PB_spi_log_pause.clicked.connect(self.commander.PB_spi_log_pause)
+
+        # shutdown button
+        self.window.PB_close.clicked.connect(self.commander.shutdown)
     #  ***************************************************************************************
     def speed0_shapestate_change(self, button):
         freq_shape = None

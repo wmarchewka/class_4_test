@@ -64,6 +64,7 @@ class Speedgen(object):
         self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
+    # **************************************************************************************************************
     def simulate(self, sim_pins):
         """
         allows simulation of speed signal
@@ -114,7 +115,7 @@ class Speedgen(object):
             speed_increment = self.threshold_check(delta)
             self.log.debug("Speed threshold {}".format(speed_increment))
             value = self.bounds_check(simulate, speed_increment, direction)
-            self.log.info("{}  FREQ:{}".format(self.name, value))
+            self.log.debug("{}  FREQ:{}".format(self.name, value))
             self.callback(self.name, value)
             spi_msg = self.frequency_to_registers(self.speed_frequency, self.shape)
             self.spi_send(spi_msg)
@@ -205,7 +206,7 @@ class Speedgen(object):
         self.log.debug(
             "FREQ TO REG running with FREQ:{} SHAPE:{}".format(frequency, Speedgen.FREQ_SHAPE[shape]))
 
-        self.log.info('FREQUENCY WORD:{}'.format(bin(int(frequency_word,16))))
+        self.log.debug('FREQUENCY WORD:{}'.format(bin(int(frequency_word,16))))
         MSB = (int(frequency_word, 16) & 0xFFFC000) >> 14  # Split frequency word onto its separate bytes
         self.log.debug('MSB           :{}'.format(bin(MSB)))
         LSB = int(frequency_word, 16) & 0x3FFF

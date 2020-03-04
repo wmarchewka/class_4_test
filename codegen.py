@@ -208,7 +208,7 @@ class Codegen():
             self.duty_cycle = duty_cycle
         self.pi_gpio.wave_clear()
         pulse = []
-        if coderate_ppm is not 0 and duty_cycle is not None:
+        if (coderate_ppm is not 0 and coderate_ppm is not None) and duty_cycle is not None:
             coderate_period_in_microseconds = int((1 / (coderate_ppm / 60.0)) * self.pulses_per_second)
             coderate_positive_pulse = int(coderate_period_in_microseconds * (duty_cycle / 100))
             coderate_negative_pulse = int(coderate_period_in_microseconds * (1 - (duty_cycle / 100)))

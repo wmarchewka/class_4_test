@@ -10,7 +10,7 @@ from logger import Logger
 from signaling import Signaling
 from gui.gui_coderates import Guicoderate
 from gui.gui_frequencies import GuiFrequencies
-from gui import QTResources
+from gui import QTResources  #do not remove!
 
 
 class Mainwindow(QWindow):
@@ -52,9 +52,9 @@ class Mainwindow(QWindow):
         self.fontDB = QFontDatabase()
         self.fontDB.addApplicationFont(":/FONTS/FONTS/digital-7.ttf")
         self.fontDB.addApplicationFont(":/FONTS/FONTS/SiemensSlab_Prof_BlackItalic.ttf")
-        # self.siemensslab = QFont("Siemens Slab", 64, 1)
-        # self.digital7font = QFont("Digital-7", 64, 1)
-        # self.window.LBL_loop_current.setFont(self.digital7font)
+        self.siemensslab = QFont("Siemens Slab", 64, 1)
+        self.digital7font = QFont("Digital-7", 64, 1)
+        self.window.LBL_loop_current.setFont(self.digital7font)
 
     # *****************************************************************************
     def screen_fullscreen(self, fullscreen=None):
@@ -85,5 +85,4 @@ class Mainwindow(QWindow):
             self.log.debug("Could not find {}".format(self.guiname))  # CATCHES EXIT SHUTDOWN
 
     # ************************************************************************************
-    # TODO: only allow items that have previsouly run. items here are running that havent been perfromed
-    # TODO: try "ATEXIT"
+

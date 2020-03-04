@@ -384,7 +384,12 @@ class Commander(object):
         if name == "SPEED1":
             self.window.LBL_sec_tach_freq.setText("{:5.0f}".format(frequency))
         self.log.debug("updated GUI ")
-        self.window.tabWidget.setCurrentIndex(3)
+        self.change_tab("SPEED")
+
+    # ****************************************************************************************************************
+    def change_tab(self, tab):
+        tabvalue = self.securitylevel.get_index_from_name(tab)
+        self.window.tabWidget.setCurrentIndex(tabvalue)
 
     # ****************************************************************************************************************
     def shape_get_values(self):
@@ -432,7 +437,7 @@ class Commander(object):
           """
         self.log.debug("Callback received from {} with switches_value of {}".format(name, gain))
         self.gains_gui_update(name, gain)
-        self.window.tabWidget.setCurrentIndex(2)
+        self.change_tab("CODERATE")
 
     # ****************************************************************************************************************
     def security_pressed(self):
@@ -690,6 +695,11 @@ class Commander(object):
 
     # *******************************************************************************************
     def exit_application(self, signum, frame):
+        self.log.debug("Received signal from signum: {} with frame:{}".format(signum, frame))
+        self.shutdown()
+
+    # *******************************************************************************************
+    def shutdown(self):
         self.log.info(
             "***********************************************************************************************************")
         self.log.info(
@@ -701,25 +711,23 @@ class Commander(object):
         self.log.info(
             "***********************************************************************************************************")
         self.log.info("Starting shutdown")
-        self.log.debug("Received signal from signum: {} with frame:{}".format(signum, frame))
-        self.shutdown()
-
-    # *******************************************************************************************
-    def shutdown(self):
         # self.gains.setval_and_store(0)
-        self.poll_timer.stop()
-        self.gain0.set_value(0)
-        self.gain1.set_value(0)
-        self.speed0.set_value(0)
-        self.speed1.set_value(0)
-        self.codegen.off()
-        time.sleep(1)
+        try:
+            self.poll_timer.stop()
+            self.gain0.set_value(0)
+            self.gain1.set_value(0)
+            self.speed0.set_value(0)
+            self.speed1.set_value(0)
+            self.codegen.off()
+            time.sleep(1)
+            self.log.critical("Goodbye...")
+        except Exception:
+            self.log.critical("Error shutting down TCP server")
         try:
             self.server.server_close()
-        except:
-            print("Error")
+        except Exception:
+            self.log.critical("Error shutting down TCP server")
         # self.log.info('Turning off screen saver forced on')
         # subprocess.call('xset dpms force off', shell=True)
-        self.log.debug("Goodbye...")
         # self.log.shutdown()
         sys.exit(0)
