@@ -1,5 +1,5 @@
 import faulthandler
-#faulthandler.enable()
+# faulthandler.enable()
 import logging
 import argparse
 from PySide2.QtWidgets import QApplication
@@ -9,9 +9,10 @@ from PySide2.QtCore import QTimer, Qt
 from logger import Logger
 from commander import Commander
 
+
 class PortableTester(object):
     def __init__(self):
-        #QApplication.setOverrideCursor(Qt.WaitCursor)
+        # QApplication.setOverrideCursor(Qt.WaitCursor)
         Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = Logger()
         self.log = Logger.log

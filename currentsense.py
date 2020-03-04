@@ -13,7 +13,7 @@ class CurrentSense(object):
         self.gui = gui
         self.config = config
         self.window = self.gui.window
-        #self.sense_callback = sense_callback
+        # self.sense_callback = sense_callback
         self.log = self.logger.log
         self.log.debug('Current Sense initializing...')
         self.display_amps_template = None
@@ -46,9 +46,9 @@ class CurrentSense(object):
 
     # **********************************************************************************************
     def read_spi_register(self, register):
-       return_data = self.spi.read_message(channel=0, chip_select=self.decoder.chip_select_current_sense,
-                                           data=[0xFF, 0xFF])
-       return return_data
+        return_data = self.spi.read_message(channel=0, chip_select=self.decoder.chip_select_current_sense,
+                                            data=[0xFF, 0xFF])
+        return return_data
 
     # **********************************************************************************************
     def read_spi_value_register(self):
@@ -57,7 +57,8 @@ class CurrentSense(object):
         :return: 
         :return: 
         """
-        return_data = self.spi.read_message(channel=0, chip_select=self.decoder.chip_select_current_sense, data=[0xFF, 0xFF])
+        return_data = self.spi.read_message(channel=0, chip_select=self.decoder.chip_select_current_sense,
+                                            data=[0xFF, 0xFF])
         return return_data
 
     # **********************************************************************************************

@@ -31,7 +31,7 @@ class Gains(object):
     gains_locked = False
     global_value = 0
 
-    def __init__(self, config, pollperm, logger, decoder, spi, name, spi_channel, chip_select, pin_0,
+    def __init__(self, config, pollperm, gpio, logger, decoder, spi, name, spi_channel, chip_select, pin_0,
                  pin_1, pin_0_debounce,
                  pin_1_debounce,
                  thresholds, callback, commander_gain_move_callback):
@@ -49,7 +49,7 @@ class Gains(object):
         self.speed_value = 0
         self.value = 0
         self.name = name
-        self.gpio = Gpio(config=config, logger=logger)
+        self.gpio = gpio
         self.pi_gpio = self.gpio.gpio
         self.rotary = None
         self.pin_0 = pin_0
@@ -106,7 +106,7 @@ class Gains(object):
         """
         self.log.debug("Creating {} Rotary...".format(self.name))
         self.rotary = Rotary(config=self.config, pollperm=self.pollperm, logger=self.logger,
-                             name=self.name,
+                             name=self.name, gpio=self.gpio,
                              callback=self.interrupt_callback, pin_0=self.pin_0, pin_1=self.pin_1,
                              pin_0_debounce=self.pin_0_debounce, pin_1_debounce=self.pin_1_debounce)
 

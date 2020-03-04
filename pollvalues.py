@@ -1,12 +1,11 @@
 from PySide2.QtCore import QThread, Signal
 
-#mylibraries
+
+# mylibraries
 
 class Pollvalues(QThread):
-
     sense_changedValue = Signal(float)  # signal to send to awaiting slot
     switch_changedValue = Signal(int)  # signal to send to awaiting slot
-
 
     def __init__(self, pollperm, logger, config, switches, currentsense, sense_callback, switch_callback):
         super().__init__()
@@ -46,7 +45,7 @@ class Pollvalues(QThread):
         data = self.currentsense.read_spi_value_register()
         raw_analog_digital_value = data[0] * 256 + data[1]
         self.log.debug("Data received {0:X}h {1:X}h".format(data[0], data[1]))
-        self.log.debug("ADC Value:{}".format( raw_analog_digital_value))
+        self.log.debug("ADC Value:{}".format(raw_analog_digital_value))
         return raw_analog_digital_value
 
     # *********************************************************************************
@@ -56,6 +55,3 @@ class Pollvalues(QThread):
         returned_data = self.switches.spi_value_register()
         self.log.debug("Switch switches_value:{}".format(returned_data))
         return returned_data
-
-
-

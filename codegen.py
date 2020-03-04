@@ -96,6 +96,7 @@ class Codegen():
         self.shape_square_word = int(self.shape_square_word, 16)
         self.shape_triangle_word = self.config.shape_triangle_word
         self.shape_triangle_word = int(self.shape_triangle_word, 16)
+
     # **************************************************************************************************
     def coderate_generate(self):
         """ coderate selection will send the appropriate coderate to be generated.  to generate a coderate we must
@@ -147,11 +148,11 @@ class Codegen():
             if shape is None:
                 shape = self.shape_default
             self.log.info(
-                    "PRI FREQ:{}  SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
-                                                                                                                  source_frequency,
-                                                                                                                  chip_select_pin,
-                                                                                                                  coded_carrier_pin,
-                                                                                                                  shape))
+                "PRI FREQ:{}  SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
+                                                                                                     source_frequency,
+                                                                                                     chip_select_pin,
+                                                                                                     coded_carrier_pin,
+                                                                                                     shape))
             self.frequency_to_registers(frequency=frequency, source_frequency=source_frequency, shape=shape,
                                         chip_select=chip_select_pin)
             self.pi_gpio.write(coded_carrier_pin, self.primary_channel_mux_pin)
@@ -184,16 +185,17 @@ class Codegen():
                 shape = self.shape_default
             self.log.info(
                 "SEC FREQ:{} SOURCE FREQ:{}  CHIP_SELECT:{}  CODED CARRIER PIN:{}  SHAPE:{}".format(frequency,
-                                                                                                              source_frequency,
-                                                                                                              chip_select_pin,
-                                                                                                              coded_carrier_pin,
-                                                                                                              shape))
+                                                                                                    source_frequency,
+                                                                                                    chip_select_pin,
+                                                                                                    coded_carrier_pin,
+                                                                                                    shape))
             self.frequency_to_registers(frequency=frequency, source_frequency=source_frequency, shape=shape,
                                         chip_select=chip_select_pin)
             self.pi_gpio.write(coded_carrier_pin, self.secondary_channel_mux_pin)
 
         else:
             self.log.info("Setting SECONDARY FREQUENCY OFF")
+
     # **************************************************************************************************
     def coded_carrier_generate(self, coderate_ppm=None, duty_cycle=None):
         if coderate_ppm is None:
@@ -222,6 +224,7 @@ class Codegen():
         #     self.coderate_stop()
         else:
             self.log.info("COULD NOT GENERATE CODERATE")
+
     # **************************************************************************************************
     def off(self):
         self.coderate_stop()
@@ -230,13 +233,12 @@ class Codegen():
         self.secondary_frequency = 0
         self.coderate_generate()
 
-
     # **************************************************************************************************
     def coderate_stop(self):
         self.log.info("Stopping CODERATE")
         if self.pi_gpio.wave_tx_busy():
             self.pi_gpio.wave_tx_stop()
-            #self.pi_gpio.wave_clear()
+            # self.pi_gpio.wave_clear()
 
     # **************************************************************************************************
     def frequency_to_registers(self, frequency, source_frequency, shape, chip_select):
@@ -244,8 +246,8 @@ class Codegen():
         self.spi_msg = []
         self.log.info(
             "FREQ TO REG running with FREQ:{} CLK FREQ:{} SHAPE:{}  CS:{}".format(frequency,
-                                                                                              source_frequency, shape,
-                                                                                              chip_select))
+                                                                                  source_frequency, shape,
+                                                                                  chip_select))
         word = hex(int(round((frequency * 2 ** 28) / source_frequency)))  # Calculate frequency word to send
         if shape == self.shape_square:  # square
             shape_word = self.shape_square_word

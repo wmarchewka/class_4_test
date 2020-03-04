@@ -12,8 +12,8 @@ from gui.gui_coderates import Guicoderate
 from gui.gui_frequencies import GuiFrequencies
 from gui import QTResources
 
-class Mainwindow(QWindow):
 
+class Mainwindow(QWindow):
     Logger.log.info("Instantiating {} class...".format(__qualname__))
     guiname = None
 
@@ -43,6 +43,7 @@ class Mainwindow(QWindow):
         self.securitylevel.index_tab_pages(self.window)
         self.securitylevel.set_security_level("technician")
         self.securitylevel.update_gui(self.window)
+
     # *****************************************************************************
     def fonts_list(self):
         """
@@ -51,9 +52,9 @@ class Mainwindow(QWindow):
         self.fontDB = QFontDatabase()
         self.fontDB.addApplicationFont(":/FONTS/FONTS/digital-7.ttf")
         self.fontDB.addApplicationFont(":/FONTS/FONTS/SiemensSlab_Prof_BlackItalic.ttf")
-        #self.siemensslab = QFont("Siemens Slab", 64, 1)
-        #self.digital7font = QFont("Digital-7", 64, 1)
-        #self.window.LBL_loop_current.setFont(self.digital7font)
+        # self.siemensslab = QFont("Siemens Slab", 64, 1)
+        # self.digital7font = QFont("Digital-7", 64, 1)
+        # self.window.LBL_loop_current.setFont(self.digital7font)
 
     # *****************************************************************************
     def screen_fullscreen(self, fullscreen=None):
@@ -83,10 +84,6 @@ class Mainwindow(QWindow):
         except FileNotFoundError:
             self.log.debug("Could not find {}".format(self.guiname))  # CATCHES EXIT SHUTDOWN
 
-
-
     # ************************************************************************************
     # TODO: only allow items that have previsouly run. items here are running that havent been perfromed
     # TODO: try "ATEXIT"
-
-

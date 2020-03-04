@@ -27,7 +27,7 @@ class Speedgen(object):
     FREQ_SHAPE = None
     rotaries = []
 
-    def __init__(self, config, logger, pollperm, decoder, spi, name, shape, spi_channel, chip_select, pin_0, pin_1,
+    def __init__(self, config, logger, gpio, pollperm, decoder, spi, name, shape, spi_channel, chip_select, pin_0, pin_1,
                  pin_0_debounce,
                  pin_1_debounce, thresholds,
                  callback, commander_speed_move_callback):
@@ -42,7 +42,7 @@ class Speedgen(object):
         self.polling_prohibited = (True, self.__class__)
         self.spi_channel = spi_channel
         self.chip_select = chip_select
-        self.gpio = Gpio(config=self.config, logger=self.logger)
+        self.gpio = gpio
         self.pi_gpio = self.gpio.gpio
         self.name = name
         self.shape = shape
@@ -92,7 +92,7 @@ class Speedgen(object):
         so that we can disable or enable all callbacks
         """
         self.rotary = Rotary(config=self.config, logger=self.logger, pollperm=self.pollperm,
-                             name=self.name,
+                             name=self.name, gpio= self.gpio,
                              callback=self.interrupt_callback, pin_0=self.pin_0, pin_1=self.pin_1,
                              pin_0_debounce=self.pin_0_debounce, pin_1_debounce=self.pin_1_debounce)
         Speedgen.rotaries.append(self.rotary)

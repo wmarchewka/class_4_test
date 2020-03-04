@@ -46,13 +46,14 @@ class Switches(object):
         :rtype: object
         """
         self.log.debug("Performing Switches device present check...")
-        ret=self.spi_read_values(0x00)
+        ret = self.spi_read_values(0x00)
         if ret is not 0xFF:
             self.log.critical("SPI IO EXPANDER:DEVICE NOT PRESENT")
             return 0
         elif ret is 0xFF:
             self.log.critical("SPI IO EXPANDER:DEVICE PRESENT")
             return 1
+
     # **************************************************************************
     def register_setup_address_5(self):
         # disable sequential operation bit 5 on
@@ -94,7 +95,7 @@ class Switches(object):
     def spi_read_values(self, register_address):
         # read switch register
         self.log.debug("Polling spi switch for values")
-        #switch_register_address = 0x09
+        # switch_register_address = 0x09
         number_of_bytes = 2
         switch_sent_op_code = self.switch_op_code | self.switch_address | self.switch_spi_read
         spi_msg = [switch_sent_op_code] + [register_address] + [0x00]

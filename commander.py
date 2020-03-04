@@ -28,6 +28,7 @@ from currentsense import CurrentSense
 from gui.security_window import SecurityWindow
 from securitylevel import SecurityLevel
 
+
 class Commander(object):
     Logger.log.debug("Instantiating {} class...".format(__qualname__))
     set_level = 0
@@ -51,7 +52,7 @@ class Commander(object):
         self.pollvalues = Pollvalues(pollperm=self.pollperm, logger=logger, config=self.config,
                                      currentsense=self.currentsense, switches=self.switches,
                                      sense_callback=self.poll_sense_callback,
-                                 switch_callback=self.poll_switch_callback)
+                                     switch_callback=self.poll_switch_callback)
         self.securitywindow = SecurityWindow(logger=self.logger, securitylevel=self.securitylevel)
         self.window = self.gui.window
         self.log = self.logger.log
@@ -102,7 +103,7 @@ class Commander(object):
         self.sense_scaling_factor_mv_amp = None  # 110 milivolts per amp
         self.sense_ad_max_scaled_value = None
         self.speed0 = Speedgen(pollperm=self.pollperm, logger=self.logger, config=self.config, decoder=self.decoder,
-                               spi=self.spi,
+                               spi=self.spi, gpio = self.gpio,
                                name=self.speed_0_name, shape=self.speed_0_shape,
                                spi_channel=self.speed_0_spi_channel,
                                chip_select=self.SPEED_0_CS,
@@ -112,7 +113,7 @@ class Commander(object):
                                callback=self.speed_callback,
                                commander_speed_move_callback=self.speed_move_callback)
         self.speed1 = Speedgen(pollperm=self.pollperm, logger=self.logger, config=self.config, decoder=self.decoder,
-                               spi=self.spi,
+                               spi=self.spi, gpio = self.gpio,
                                name=self.speed_1_name, shape=self.speed_1_shape,
                                spi_channel=self.speed_1_spi_channel,
                                chip_select=self.SPEED_1_CS,
@@ -122,7 +123,7 @@ class Commander(object):
                                callback=self.speed_callback,
                                commander_speed_move_callback=self.speed_move_callback)
         self.gain0 = Gains(pollperm=self.pollperm, config=self.config, logger=self.logger, decoder=self.decoder,
-                           spi=self.spi,
+                           spi=self.spi, gpio = self.gpio,
                            name=self.gain_0_name, spi_channel=self.gain_0_spi_channel,
                            chip_select=self.GAIN_0_CS,
                            pin_0=self.rotary_2_pins[0], pin_1=self.rotary_2_pins[1],
@@ -131,7 +132,7 @@ class Commander(object):
                            callback=self.gains_callback,
                            commander_gain_move_callback=self.gain_move_callback)
         self.gain1 = Gains(pollperm=self.pollperm, config=self.config, logger=self.logger, decoder=self.decoder,
-                           spi=self.spi,
+                           spi=self.spi, gpio = self.gpio,
                            name=self.gain_1_name, spi_channel=self.gain_1_spi_channel,
                            chip_select=self.GAIN_1_CS,
                            pin_0=self.rotary_3_pins[0], pin_1=self.rotary_3_pins[1],
@@ -165,7 +166,6 @@ class Commander(object):
     # ****************************************************************************************************************
     def logging_callback(self, level):
         self.log.info("Logging callback")
-
 
     # ****************************************************************************************************************
     def parse_args(self, arguments):
@@ -268,7 +268,7 @@ class Commander(object):
         self.display.start(self.config.display_timer_interval)
 
     # ****************************************************************************************************************
-    def poll_sense_callback(self, raw_analog_digital_value):#adc_average, display_amps, counts):
+    def poll_sense_callback(self, raw_analog_digital_value):  # adc_average, display_amps, counts):
 
         analog_digital_volts, scaled_value = self.adc_process_values(raw_analog_digital_value)
         display_amps = (scaled_value * analog_digital_volts)
@@ -280,13 +280,13 @@ class Commander(object):
         self.window.LBL_display_adc_counts.setText("{:5.0f}".format(raw_analog_digital_value))
         self.log.debug('GUI received sense values...')
         self.log.debug(
-             "RAW A/D:{}  Volts:{}  Scaled:{}  AMPS:{}".format(raw_analog_digital_value, analog_digital_volts, scaled_value, display_amps))
-
+            "RAW A/D:{}  Volts:{}  Scaled:{}  AMPS:{}".format(raw_analog_digital_value, analog_digital_volts,
+                                                              scaled_value, display_amps))
 
     # **********************************************************************************************
     def adc_process_values(self, raw_analog_digital_value):
         analog_digital_volts = self.sense_ad_vin * (raw_analog_digital_value / self.sense_ad_max_scaled_value)
-        scaled_value = (analog_digital_volts  / self.sense_scaling_factor_mv_amp)
+        scaled_value = (analog_digital_volts / self.sense_scaling_factor_mv_amp)
         self.log.debug(
             "Analog_Digital converter switches_value: {} Scaled Value({})".format(analog_digital_volts, scaled_value))
         return analog_digital_volts, scaled_value
@@ -639,6 +639,7 @@ class Commander(object):
         self.window.LBL_boot_time_value.setText(boot_time)
         if not self.spi_log_pause:
             self.window.TE_spi_log.insertPlainText(str(self.spi.data))
+
     # *******************************************************************************************
     def load_from_config(self):
         self.rotary_0_pins = self.config.rotary_0_pins

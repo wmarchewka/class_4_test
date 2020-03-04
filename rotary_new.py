@@ -19,12 +19,12 @@ class Rotary(object):
     first_pin = None
     second_pin = None
 
-    def __init__(self, config, logger, pollperm, name, callback, pin_0, pin_1, pin_0_debounce, pin_1_debounce):
+    def __init__(self, config, logger, gpio, pollperm, name, callback, pin_0, pin_1, pin_0_debounce, pin_1_debounce):
         Logger.log.debug('{} initializing....'.format(__name__))
         self.logger = logger
         self.log = Logger.log
         self.config = config
-        self.gpio = Gpio(config=self.config,logger=self.logger)
+        self.gpio = gpio
         self.pi_gpio = self.gpio.gpio
         self.pollperm = pollperm
         self.name = name

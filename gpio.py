@@ -4,7 +4,6 @@ import time
 
 # my libraries
 from logger import Logger
-from config import Config
 
 
 class Gpio():
@@ -18,12 +17,13 @@ class Gpio():
         self.config = config
         self.logger = logger
         self.log = Logger.log
-        self.gpio = pigpio.pi()
-        self.startup_proccesses()
+        self.startup_processes()
         self.log.debug("{} init complete...".format(__name__))
 
     # ****************************************************************************************************
-    def startup_proccesses(self):
+    def startup_processes(self):
+        self.pigpiod_daemon_status()
+        self.gpio = pigpio.pi()
         self.check_connection()
         self.get_io_status()
 
@@ -73,10 +73,10 @@ class Gpio():
         if not self.gpio.connected:
             self.log.debug("PIGPIO not connected, Checking Daemon....")
             self.pigpiod_daemon_status()
-
         else:
             self.log.debug('PIGPIO connected...')
-
+            gpio_version = self.gpio.get_pigpio_version()
+            self.log.info("Using PIGPIO version: {}".format(gpio_version))
     # ****************************************************************************************************
     def get_io_status(self):
         try:
@@ -101,8 +101,6 @@ class Gpio():
     def pigpiod_daemon_status(self):
         try:
             self.log.info("Getting PIGPIO status...")
-            del self.gpio
-            self.log.debug("Deleting PIGPIO instance...")
             # TODO check into why this is taking a long time to run at times
             self.my_cmd = subprocess.call(["sudo", "systemctl", "stop", "pigpiod"])
             self.log.debug("Returned from shell command {}".format(self.my_cmd))
@@ -120,14 +118,8 @@ class Gpio():
                 self.log.info("Error in startup of PIGPIO DAEMON")
                 raise NameError('Error in startup of PIGPIO DAEMON')
             time.sleep(0.1)
-            gpio_version = self.gpio.get_pigpio_version()
-            self.log.info("Using PIGPIO version: {}".format(gpio_version))
         except Exception:
             self.log.exception("Exception in pigiod_daemon_status", exc_info=True)
             return False
         else:
             return True
-
-
-
-        #  ***************************************************************************************
