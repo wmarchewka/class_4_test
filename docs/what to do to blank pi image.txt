@@ -1,0 +1,7 @@
+1. Use BalenaEtcher or similar to mount a default raspberry pi image (Raspian Buster) to an SD card.
+2. While in Windows, in the root of the setup directory, place a blank file named ssh.  This will allow ssh access to the pi
+3. Attach a keyboard and monitor to the raspberry pi.  Setup the pi on the screen with the correct parameter, timezone, etc
+4. In order to get a defualt ip address in the pi we need to modify a file in the pi with a command line.
+5. Modify /etc/dhcpcd.conf and modify the lines that allow a staic ip address.
+6. Set the ip to 10.0.0.111, the dhcp to 10.0.0.1 and the router to 10.0.0.1
+7. Reboot the pi.  You should now be able to ssh into it.

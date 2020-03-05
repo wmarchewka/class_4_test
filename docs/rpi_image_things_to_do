@@ -1,0 +1,19 @@
+make sure /boot/config.txt is updated with:
+    1.  dtparam=i2s=on
+    2.  dtparam=spi=on
+    3.  dtoverlay = spi1.0cs
+    4.  dtoverlay = spi1.2cs
+
+make sure /etc/dhcpcd.conf is update with:
+    1. profile static_eth0
+    2. static ip_address=10.0.0.111/24
+    3. static routers=10.0.0.1
+    4. static domain_name_servers=10.0.0.1
+
+make sure that the kernal is patched for the display
+make sure that appropriate clock freq and compression levels for the display are set in  /boot/cmdline.txt
+make sure all packages are isntalled
+make sure that the defualt logging.conf is in place
+make sure ram drive is created
+make sure that pigpio daemon is added to the crontab to start at boot
+            sudo systemctl enable pigpiod

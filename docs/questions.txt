@@ -1,0 +1,27 @@
+SAM 1. You said to add "dtoverlay=spi1-0cs" but that does not work.  Had to add "dtoverlay=spi1-3cs"
+OK 2. Since we are using all 3 CS on SPI1 will SPI1_CE1_N (BCM17) be interfered with going to the display?
+OK 3. CS8 GOES TO BOTH U25 AND U22.  Is that ok?
+OK 4. JP2-1 through JP2-6 is used for what?  (I think they allow 3 differnt current sensors to be used??)
+OK 5. What does the U23 sample ?  (U23 samples the current sent to the track coil???)
+OK 6. GP0 - GP3 are for switches.  What do they control ?  (I think the switches are built into the rotary encoders but not sure what they
+    are to select?  Perhaps they select the value of the encoder?
+PROBLEM 7. Display and EEPROM share same I2C. Is that a problem ?
+SAM 8. U23 on drawing is should be ACS711ELCTR-25-AB it is labeled as "ACST711ELCTR-25-AB"
+OK  9. U26 EN pin not tied high.
+10. In decoder.py do we need to set the correct SPI1_CE pin after we set the address?
+OK 11. Is the code in the python directory the code to use? what is the code on the root?
+    AD9833.py   DigPot.py  FGen_Decoder.py  spiVal.py
+OK 12. code_rate.py calls "run_code_rate" script that runs code_rate_gen c binary. Is that still needed?
+    was it that python wasn't fast enough?
+OK 13. In sig_gen.py line 80 is "LSB = [(freq_regs >> 8) & 0o77, freq_regs & 0xFF]".  Should the 0o77 be
+    0x77?
+OK 14. In rotary.py I think that the speed and gain calls to the digpot.py and sig_gen.py are reveresed.
+OK 15. In the siggen, is the carrier frqency supposed to be controlled by an encoder?  The code does not show that.
+    i am assuming that it is controlled by selectable buttons on the screen.???
+TODO 16. Are both TACH1 AND TACH 2 USED? What are they specifically for?
+MAYBE 17. It would be good to have a physical power button to shutdown the pi so that code could exit cleanly
+OK 18. How do we switch between the Primary and Secondary channel (AD704BRMZ)  BCM26 ?
+NO 19.  AD9834 or AD9835  would allow switching back and forth via pin selection, while the AD9833 (current) is
+    SPI switchable only.  Not sure how deterministic out output waveform is going to be.
+NO 20. rpi.GPIO is software controlled i think, thus not very deterministic.  May need to up PIGPIO iu uses DMA
+
