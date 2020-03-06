@@ -5,7 +5,7 @@
       <paths name="pi home">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/pi/Documents/class_4_test" local="$PROJECT_DIR$" />
+            <mapping deploy="/Documents/PortableTester" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

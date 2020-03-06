@@ -1,0 +1,10 @@
+#!/bin/bash
+grep "#dtparam=spi=on" /boot/config.txt
+if grep "#dtparam=spi=on" /boot/config.txt
+then
+        exit
+else
+        sed -i "s/dtparam=spi=on/g" /boot/config.txt
+        reboot
+fi
+exit

@@ -1,0 +1,45 @@
+Once rebooted, It is highly recommended to do
+an apt-get update and apt-get upgrade to
+ensure you are running the latest version of the
+kernel and firmware on your Pi, before you
+patch it for the 4DPi. After doing this, reboot
+once again.
+Warning: An upgrade should only be done
+after making sure that the latest kernel is
+supported by the latest kernel pack from 4D.
+Otherwise, installing the 4D kernel pack will
+downgrade the kernel.
+
+
+
+7) Once rebooted, log into your Raspberry Pi
+again, you will need to download and install
+the kernel which supports the 4DPi-24-HAT.
+The following step requires sudo ‘root’ access.
+
+
+
+8) To download and install files, enter the
+following commands in terminal/shell /SSH to
+download the kernel from the 4D Systems
+Server:
+
+
+
+$ wget http://www.4dsystems.com.au/downloads/4DPi/All/gen4-hats_4-14-34_v1.1.tar.gz
+
+Install:
+
+sudo tar –xzvf gen4-hats_4-14-34_v1.1.tar.gz –C /
+The package automatically selects the kernel
+required for Pi1, Pi2 or Pi3 automatically.
+
+sudo tar -xzvf gen4-hats_4-14-34_v1.1.tar.gz -C /
+
+Doing an update/upgrade runs the risk of breaking things as if the version you are upgrading to is a higher kernel version than the patch,
+then the display could stop working. The Kernel patch we offer is a patch on the standard release, so it has to match the same kernel version as what your OS is running.
+ In some cases, the changes in our patches are compatible with minor releases of the kernel, but it's a bit hit and miss, so if you are upgrading you really need to check what
+ the kernel version is you have upgraded to, and then check what version our patch is.
+If they are drastically different, then raise a ticket and we will try and get an updated kernel patch as soon as possible, however, we can't constantly do
+this for every minor release the Pi Foundation make.
+I am not sure this will help you much, but its some background information which is quite important.
